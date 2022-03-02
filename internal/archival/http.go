@@ -16,7 +16,7 @@ import (
 
 // HTTPRoundTripEvent contains an HTTP round trip.
 type HTTPRoundTripEvent struct {
-	Failure                 error
+	Failure                 FlatFailure
 	Finished                time.Time
 	Method                  string
 	RequestHeaders          http.Header
@@ -41,7 +41,7 @@ func (s *Saver) HTTPRoundTrip(
 	started := time.Now()
 	resp, err := txp.RoundTrip(req)
 	rt := &HTTPRoundTripEvent{
-		Failure:                 nil,         // set later
+		Failure:                 "",          // set later
 		Finished:                time.Time{}, // set later
 		Method:                  req.Method,
 		RequestHeaders:          s.cloneRequestHeaders(req),
@@ -56,7 +56,7 @@ func (s *Saver) HTTPRoundTrip(
 	}
 	if err != nil {
 		rt.Finished = time.Now()
-		rt.Failure = err
+		rt.Failure = NewFlatFailure(err)
 		s.appendHTTPRoundTripEvent(rt)
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (s *Saver) HTTPRoundTrip(
 	body, err := netxlite.ReadAllContext(req.Context(), r)
 	if err != nil {
 		rt.Finished = time.Now()
-		rt.Failure = err
+		rt.Failure = NewFlatFailure(err)
 		s.appendHTTPRoundTripEvent(rt)
 		return nil, err
 	}

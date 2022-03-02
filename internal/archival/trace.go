@@ -41,14 +41,6 @@ type Trace struct {
 	TLSHandshake []*QUICTLSHandshakeEvent
 }
 
-func (t *Trace) newFailure(err error) (out *string) {
-	if err != nil {
-		s := err.Error()
-		out = &s
-	}
-	return
-}
-
 //
 // TCP connect
 //
@@ -68,8 +60,8 @@ func (t *Trace) NewArchivalTCPConnectResultList(begin time.Time) (out []model.Ar
 			Port: iport,
 			Status: model.ArchivalTCPConnectStatus{
 				Blocked: nil, // Web Connectivity only, depends on the control
-				Failure: t.newFailure(ev.Failure),
-				Success: ev.Failure == nil,
+				Failure: ev.Failure.ToArchivalFailure(),
+				Success: ev.Failure.IsSuccess(),
 			},
 			T: ev.Finished.Sub(begin).Seconds(),
 		})
@@ -92,7 +84,7 @@ func (t *Trace) NewArchivalTCPConnectResultList(begin time.Time) (out []model.Ar
 func (t *Trace) NewArchivalHTTPRequestResultList(begin time.Time) (out []model.ArchivalHTTPRequestResult) {
 	for _, ev := range t.HTTPRoundTrip {
 		out = append(out, model.ArchivalHTTPRequestResult{
-			Failure: t.newFailure(ev.Failure),
+			Failure: ev.Failure.ToArchivalFailure(),
 			Request: model.ArchivalHTTPRequest{
 				Body:            model.ArchivalMaybeBinaryData{},
 				BodyIsTruncated: false,
@@ -172,7 +164,7 @@ func (t *Trace) NewArchivalDNSLookupResultList(begin time.Time) (out []model.Arc
 		out = append(out, model.ArchivalDNSLookupResult{
 			Answers:          t.gatherA(ev.Addresses),
 			Engine:           ev.ResolverNetwork,
-			Failure:          t.newFailure(ev.Failure),
+			Failure:          ev.Failure.ToArchivalFailure(),
 			Hostname:         ev.Domain,
 			QueryType:        "A",
 			ResolverHostname: nil, // legacy
@@ -181,7 +173,7 @@ func (t *Trace) NewArchivalDNSLookupResultList(begin time.Time) (out []model.Arc
 			T:                ev.Finished.Sub(begin).Seconds(),
 		})
 		aaaa := t.gatherAAAA(ev.Addresses)
-		if len(aaaa) <= 0 && ev.Failure == nil {
+		if len(aaaa) <= 0 && ev.Failure.IsSuccess() {
 			// We don't have any AAAA results. Historically we do not
 			// create a record for AAAA with no results when A succeeded
 			continue
@@ -189,7 +181,7 @@ func (t *Trace) NewArchivalDNSLookupResultList(begin time.Time) (out []model.Arc
 		out = append(out, model.ArchivalDNSLookupResult{
 			Answers:          aaaa,
 			Engine:           ev.ResolverNetwork,
-			Failure:          t.newFailure(ev.Failure),
+			Failure:          ev.Failure.ToArchivalFailure(),
 			Hostname:         ev.Domain,
 			QueryType:        "AAAA",
 			ResolverHostname: nil, // legacy
@@ -241,7 +233,7 @@ func (t *Trace) NewArchivalNetworkEventList(begin time.Time) (out []model.Archiv
 	for _, ev := range t.Network {
 		out = append(out, model.ArchivalNetworkEvent{
 			Address:   ev.RemoteAddr,
-			Failure:   t.newFailure(ev.Failure),
+			Failure:   ev.Failure.ToArchivalFailure(),
 			NumBytes:  int64(ev.Count),
 			Operation: ev.Operation,
 			Proto:     ev.Network,
@@ -262,7 +254,7 @@ func (t *Trace) NewArchivalTLSHandshakeResultList(begin time.Time) (out []model.
 	for _, ev := range t.TLSHandshake {
 		out = append(out, model.ArchivalTLSOrQUICHandshakeResult{
 			CipherSuite:        ev.CipherSuite,
-			Failure:            t.newFailure(ev.Failure),
+			Failure:            ev.Failure.ToArchivalFailure(),
 			NegotiatedProtocol: ev.NegotiatedProto,
 			NoTLSVerify:        ev.SkipVerify,
 			PeerCertificates:   t.makePeerCerts(ev.PeerCerts),

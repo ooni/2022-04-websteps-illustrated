@@ -16,7 +16,7 @@ type DNSLookupEvent struct {
 	ALPNs           []string
 	Addresses       []string
 	Domain          string
-	Failure         error
+	Failure         FlatFailure
 	Finished        time.Time
 	LookupType      string
 	ResolverAddress string
@@ -33,7 +33,7 @@ func (s *Saver) LookupHost(ctx context.Context, reso model.Resolver, domain stri
 		ALPNs:           nil,
 		Addresses:       addrs,
 		Domain:          domain,
-		Failure:         err,
+		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		LookupType:      "getaddrinfo",
 		ResolverAddress: reso.Address(),
@@ -58,7 +58,7 @@ func (s *Saver) LookupHTTPS(ctx context.Context, reso model.Resolver, domain str
 		ALPNs:           s.safeALPNs(https),
 		Addresses:       s.safeAddresses(https),
 		Domain:          domain,
-		Failure:         err,
+		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		LookupType:      "https",
 		ResolverAddress: reso.Address(),
@@ -92,7 +92,7 @@ func (s *Saver) safeAddresses(https *model.HTTPSSvc) (out []string) {
 // DNSRoundTripEvent contains the result of a DNS round trip.
 type DNSRoundTripEvent struct {
 	Address  string
-	Failure  error
+	Failure  FlatFailure
 	Finished time.Time
 	Network  string
 	Query    []byte
@@ -106,7 +106,7 @@ func (s *Saver) DNSRoundTrip(ctx context.Context, txp model.DNSTransport, query 
 	reply, err := txp.RoundTrip(ctx, query)
 	s.appendDNSRoundTripEvent(&DNSRoundTripEvent{
 		Address:  txp.Address(),
-		Failure:  err,
+		Failure:  NewFlatFailure(err),
 		Finished: time.Now(),
 		Network:  txp.Network(),
 		Query:    query,

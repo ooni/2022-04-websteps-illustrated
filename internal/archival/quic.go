@@ -22,7 +22,7 @@ func (s *Saver) WriteTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int
 	count, err := pconn.WriteTo(buf, addr)
 	s.appendNetworkEvent(&NetworkEvent{
 		Count:      count,
-		Failure:    err,
+		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
 		Network:    addr.Network(),
 		Operation:  netxlite.WriteToOperation,
@@ -39,7 +39,7 @@ func (s *Saver) ReadFrom(pconn model.UDPLikeConn, buf []byte) (int, net.Addr, er
 	count, addr, err := pconn.ReadFrom(buf)
 	s.appendNetworkEvent(&NetworkEvent{
 		Count:      count,
-		Failure:    err,
+		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
 		Network:    "udp", // must be always set even on failure
 		Operation:  netxlite.ReadFromOperation,
@@ -74,7 +74,7 @@ func (s *Saver) QUICDialContext(ctx context.Context, dialer model.QUICDialer,
 	s.appendQUICHandshake(&QUICTLSHandshakeEvent{
 		ALPN:            tlsConfig.NextProtos,
 		CipherSuite:     netxlite.TLSCipherSuiteString(state.CipherSuite),
-		Failure:         err,
+		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		NegotiatedProto: state.NegotiatedProtocol,
 		Network:         "quic",

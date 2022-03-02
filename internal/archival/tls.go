@@ -20,7 +20,7 @@ import (
 type QUICTLSHandshakeEvent struct {
 	ALPN            []string
 	CipherSuite     string
-	Failure         error
+	Failure         FlatFailure
 	Finished        time.Time
 	NegotiatedProto string
 	Network         string
@@ -45,7 +45,7 @@ func (s *Saver) TLSHandshake(ctx context.Context, thx model.TLSHandshaker,
 	s.appendTLSHandshake(&QUICTLSHandshakeEvent{
 		ALPN:            config.NextProtos,
 		CipherSuite:     netxlite.TLSCipherSuiteString(state.CipherSuite),
-		Failure:         err,
+		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		NegotiatedProto: state.NegotiatedProtocol,
 		Network:         network,
