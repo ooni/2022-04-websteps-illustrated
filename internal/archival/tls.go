@@ -16,22 +16,6 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
-// QUICTLSHandshakeEvent contains a QUIC or TLS handshake event.
-type QUICTLSHandshakeEvent struct {
-	ALPN            []string
-	CipherSuite     string
-	Failure         FlatFailure
-	Finished        time.Time
-	NegotiatedProto string
-	Network         string
-	PeerCerts       [][]byte
-	RemoteAddr      string
-	SNI             string
-	SkipVerify      bool
-	Started         time.Time
-	TLSVersion      string
-}
-
 // TLSHandshake performs a TLS handshake with the given handshaker
 // and saves the results into the saver.
 func (s *Saver) TLSHandshake(ctx context.Context, thx model.TLSHandshaker,
@@ -42,7 +26,7 @@ func (s *Saver) TLSHandshake(ctx context.Context, thx model.TLSHandshaker,
 	tconn, state, err := thx.Handshake(ctx, conn, config)
 	// Implementation note: state is an empty ConnectionState on failure
 	// so it's safe to access its fields also in that case
-	s.appendTLSHandshake(&QUICTLSHandshakeEvent{
+	s.appendTLSHandshake(&FlatQUICTLSHandshakeEvent{
 		ALPN:            config.NextProtos,
 		CipherSuite:     netxlite.TLSCipherSuiteString(state.CipherSuite),
 		Failure:         NewFlatFailure(err),
@@ -59,7 +43,7 @@ func (s *Saver) TLSHandshake(ctx context.Context, thx model.TLSHandshaker,
 	return tconn, state, err
 }
 
-func (s *Saver) appendTLSHandshake(ev *QUICTLSHandshakeEvent) {
+func (s *Saver) appendTLSHandshake(ev *FlatQUICTLSHandshakeEvent) {
 	s.mu.Lock()
 	s.trace.TLSHandshake = append(s.trace.TLSHandshake, ev)
 	s.mu.Unlock()

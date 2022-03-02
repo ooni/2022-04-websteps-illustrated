@@ -14,22 +14,6 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
-// HTTPRoundTripEvent contains an HTTP round trip.
-type HTTPRoundTripEvent struct {
-	Failure                 FlatFailure
-	Finished                time.Time
-	Method                  string
-	RequestHeaders          http.Header
-	ResponseBody            []byte
-	ResponseBodyIsTruncated bool
-	ResponseBodyLength      int64
-	ResponseHeaders         http.Header
-	Started                 time.Time
-	StatusCode              int64
-	Transport               string
-	URL                     string
-}
-
 // HTTPRoundTrip performs the round trip with the given transport and
 // the given arguments and saves the results into the saver.
 //
@@ -40,7 +24,7 @@ func (s *Saver) HTTPRoundTrip(
 	req *http.Request) (*http.Response, error) {
 	started := time.Now()
 	resp, err := txp.RoundTrip(req)
-	rt := &HTTPRoundTripEvent{
+	rt := &FlatHTTPRoundTripEvent{
 		Failure:                 "",          // set later
 		Finished:                time.Time{}, // set later
 		Method:                  req.Method,
@@ -100,7 +84,7 @@ type archivalHTTPTransportBody struct {
 	io.Closer
 }
 
-func (s *Saver) appendHTTPRoundTripEvent(ev *HTTPRoundTripEvent) {
+func (s *Saver) appendHTTPRoundTripEvent(ev *FlatHTTPRoundTripEvent) {
 	s.mu.Lock()
 	s.trace.HTTPRoundTrip = append(s.trace.HTTPRoundTrip, ev)
 	s.mu.Unlock()

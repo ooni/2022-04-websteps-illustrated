@@ -11,25 +11,12 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
-// DNSLookupEvent contains the results of a DNS lookup.
-type DNSLookupEvent struct {
-	ALPNs           []string
-	Addresses       []string
-	Domain          string
-	Failure         FlatFailure
-	Finished        time.Time
-	LookupType      string
-	ResolverAddress string
-	ResolverNetwork string
-	Started         time.Time
-}
-
 // LookupHost performs a host lookup with the given resolver
 // and saves the results into the saver.
 func (s *Saver) LookupHost(ctx context.Context, reso model.Resolver, domain string) ([]string, error) {
 	started := time.Now()
 	addrs, err := reso.LookupHost(ctx, domain)
-	s.appendLookupHostEvent(&DNSLookupEvent{
+	s.appendLookupHostEvent(&FlatDNSLookupEvent{
 		ALPNs:           nil,
 		Addresses:       addrs,
 		Domain:          domain,
@@ -43,7 +30,7 @@ func (s *Saver) LookupHost(ctx context.Context, reso model.Resolver, domain stri
 	return addrs, err
 }
 
-func (s *Saver) appendLookupHostEvent(ev *DNSLookupEvent) {
+func (s *Saver) appendLookupHostEvent(ev *FlatDNSLookupEvent) {
 	s.mu.Lock()
 	s.trace.DNSLookupHost = append(s.trace.DNSLookupHost, ev)
 	s.mu.Unlock()
@@ -54,7 +41,7 @@ func (s *Saver) appendLookupHostEvent(ev *DNSLookupEvent) {
 func (s *Saver) LookupHTTPS(ctx context.Context, reso model.Resolver, domain string) (*model.HTTPSSvc, error) {
 	started := time.Now()
 	https, err := reso.LookupHTTPS(ctx, domain)
-	s.appendLookupHTTPSEvent(&DNSLookupEvent{
+	s.appendLookupHTTPSEvent(&FlatDNSLookupEvent{
 		ALPNs:           s.safeALPNs(https),
 		Addresses:       s.safeAddresses(https),
 		Domain:          domain,
@@ -68,7 +55,7 @@ func (s *Saver) LookupHTTPS(ctx context.Context, reso model.Resolver, domain str
 	return https, err
 }
 
-func (s *Saver) appendLookupHTTPSEvent(ev *DNSLookupEvent) {
+func (s *Saver) appendLookupHTTPSEvent(ev *FlatDNSLookupEvent) {
 	s.mu.Lock()
 	s.trace.DNSLookupHTTPS = append(s.trace.DNSLookupHTTPS, ev)
 	s.mu.Unlock()
@@ -89,22 +76,11 @@ func (s *Saver) safeAddresses(https *model.HTTPSSvc) (out []string) {
 	return
 }
 
-// DNSRoundTripEvent contains the result of a DNS round trip.
-type DNSRoundTripEvent struct {
-	Address  string
-	Failure  FlatFailure
-	Finished time.Time
-	Network  string
-	Query    []byte
-	Reply    []byte
-	Started  time.Time
-}
-
 // DNSRoundTrip implements ArchivalSaver.DNSRoundTrip.
 func (s *Saver) DNSRoundTrip(ctx context.Context, txp model.DNSTransport, query []byte) ([]byte, error) {
 	started := time.Now()
 	reply, err := txp.RoundTrip(ctx, query)
-	s.appendDNSRoundTripEvent(&DNSRoundTripEvent{
+	s.appendDNSRoundTripEvent(&FlatDNSRoundTripEvent{
 		Address:  txp.Address(),
 		Failure:  NewFlatFailure(err),
 		Finished: time.Now(),
@@ -116,7 +92,7 @@ func (s *Saver) DNSRoundTrip(ctx context.Context, txp model.DNSTransport, query 
 	return reply, err
 }
 
-func (s *Saver) appendDNSRoundTripEvent(ev *DNSRoundTripEvent) {
+func (s *Saver) appendDNSRoundTripEvent(ev *FlatDNSRoundTripEvent) {
 	s.mu.Lock()
 	s.trace.DNSRoundTrip = append(s.trace.DNSRoundTrip, ev)
 	s.mu.Unlock()

@@ -20,7 +20,7 @@ import (
 func (s *Saver) WriteTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int, error) {
 	started := time.Now()
 	count, err := pconn.WriteTo(buf, addr)
-	s.appendNetworkEvent(&NetworkEvent{
+	s.appendNetworkEvent(&FlatNetworkEvent{
 		Count:      count,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
@@ -37,7 +37,7 @@ func (s *Saver) WriteTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int
 func (s *Saver) ReadFrom(pconn model.UDPLikeConn, buf []byte) (int, net.Addr, error) {
 	started := time.Now()
 	count, addr, err := pconn.ReadFrom(buf)
-	s.appendNetworkEvent(&NetworkEvent{
+	s.appendNetworkEvent(&FlatNetworkEvent{
 		Count:      count,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
@@ -71,7 +71,7 @@ func (s *Saver) QUICDialContext(ctx context.Context, dialer model.QUICDialer,
 			sess, err = nil, ctx.Err()
 		}
 	}
-	s.appendQUICHandshake(&QUICTLSHandshakeEvent{
+	s.appendQUICHandshake(&FlatQUICTLSHandshakeEvent{
 		ALPN:            tlsConfig.NextProtos,
 		CipherSuite:     netxlite.TLSCipherSuiteString(state.CipherSuite),
 		Failure:         NewFlatFailure(err),
@@ -88,7 +88,7 @@ func (s *Saver) QUICDialContext(ctx context.Context, dialer model.QUICDialer,
 	return sess, err
 }
 
-func (s *Saver) appendQUICHandshake(ev *QUICTLSHandshakeEvent) {
+func (s *Saver) appendQUICHandshake(ev *FlatQUICTLSHandshakeEvent) {
 	s.mu.Lock()
 	s.trace.QUICHandshake = append(s.trace.QUICHandshake, ev)
 	s.mu.Unlock()

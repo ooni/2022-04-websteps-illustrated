@@ -20,25 +20,25 @@ import (
 // Trace contains the events.
 type Trace struct {
 	// DNSLookupHTTPS contains DNSLookupHTTPS events.
-	DNSLookupHTTPS []*DNSLookupEvent
+	DNSLookupHTTPS []*FlatDNSLookupEvent
 
 	// DNSLookupHost contains DNSLookupHost events.
-	DNSLookupHost []*DNSLookupEvent
+	DNSLookupHost []*FlatDNSLookupEvent
 
 	// DNSRoundTrip contains DNSRoundTrip events.
-	DNSRoundTrip []*DNSRoundTripEvent
+	DNSRoundTrip []*FlatDNSRoundTripEvent
 
 	// HTTPRoundTrip contains HTTPRoundTrip round trip events.
-	HTTPRoundTrip []*HTTPRoundTripEvent
+	HTTPRoundTrip []*FlatHTTPRoundTripEvent
 
 	// Network contains network events.
-	Network []*NetworkEvent
+	Network []*FlatNetworkEvent
 
 	// QUICHandshake contains QUICHandshake handshake events.
-	QUICHandshake []*QUICTLSHandshakeEvent
+	QUICHandshake []*FlatQUICTLSHandshakeEvent
 
 	// TLSHandshake contains TLSHandshake handshake events.
-	TLSHandshake []*QUICTLSHandshakeEvent
+	TLSHandshake []*FlatQUICTLSHandshakeEvent
 }
 
 //
