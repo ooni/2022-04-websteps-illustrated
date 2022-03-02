@@ -1,5 +1,9 @@
 package archival
 
+//
+// Trace implementation
+//
+
 import (
 	"net"
 	"net/http"
@@ -12,10 +16,6 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
-
-//
-// Trace implementation
-//
 
 // Trace contains the events.
 type Trace struct {
