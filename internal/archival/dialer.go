@@ -13,9 +13,50 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
-// DialContext dials with the given dialer with the given arguments
-// and stores the dial result inside of this saver.
-func (s *Saver) DialContext(ctx context.Context,
+// WrapDialer wraps a dialer to use the saver.
+func (s *Saver) WrapDialer(dialer model.Dialer) model.Dialer {
+	return &dialerSaver{
+		Dialer: dialer,
+		s:      s,
+	}
+}
+
+type dialerSaver struct {
+	model.Dialer
+	s *Saver
+}
+
+func (d *dialerSaver) DialContext(
+	ctx context.Context, network, address string) (net.Conn, error) {
+	conn, err := d.s.dialContext(ctx, d.Dialer, network, address)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}
+
+// WrapConn wraps a conn to use the saver.
+func (s *Saver) WrapConn(conn net.Conn) net.Conn {
+	return &connSaver{
+		Conn: conn,
+		s:    s,
+	}
+}
+
+type connSaver struct {
+	net.Conn
+	s *Saver
+}
+
+func (c *connSaver) Read(buf []byte) (int, error) {
+	return c.s.read(c.Conn, buf)
+}
+
+func (c *connSaver) Write(buf []byte) (int, error) {
+	return c.s.write(c.Conn, buf)
+}
+
+func (s *Saver) dialContext(ctx context.Context,
 	dialer model.Dialer, network, address string) (net.Conn, error) {
 	started := time.Now()
 	conn, err := dialer.DialContext(ctx, network, address)
@@ -31,8 +72,7 @@ func (s *Saver) DialContext(ctx context.Context,
 	return conn, err
 }
 
-// Read reads from the given conn and stores the results in the saver.
-func (s *Saver) Read(conn net.Conn, buf []byte) (int, error) {
+func (s *Saver) read(conn net.Conn, buf []byte) (int, error) {
 	network := conn.RemoteAddr().Network()
 	remoteAddr := conn.RemoteAddr().String()
 	started := time.Now()
@@ -49,8 +89,7 @@ func (s *Saver) Read(conn net.Conn, buf []byte) (int, error) {
 	return count, err
 }
 
-// Write writes to the given conn and stores the results into the saver.
-func (s *Saver) Write(conn net.Conn, buf []byte) (int, error) {
+func (s *Saver) write(conn net.Conn, buf []byte) (int, error) {
 	network := conn.RemoteAddr().Network()
 	remoteAddr := conn.RemoteAddr().String()
 	started := time.Now()

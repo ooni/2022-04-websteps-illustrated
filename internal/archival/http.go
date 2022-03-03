@@ -14,12 +14,29 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
-// HTTPRoundTrip performs the round trip with the given transport and
-// the given arguments and saves the results into the saver.
-//
-// The maxBodySnapshotSize argument controls the maximum size of the
-// body snapshot that we collect along with the HTTP round trip.
-func (s *Saver) HTTPRoundTrip(
+// WrapHTTPTransport wraps an HTTP transport to use this saver. The
+// maxBodySnapshotSize argument controls the maximum size of the body
+// snapshot that we collect along with the HTTP round trip.
+func (s *Saver) WrapHTTPTransport(txp model.HTTPTransport,
+	maxBodySnapshotSize int64) model.HTTPTransport {
+	return &httpTransportSaver{
+		HTTPTransport: txp,
+		mbss:          maxBodySnapshotSize,
+		s:             s,
+	}
+}
+
+type httpTransportSaver struct {
+	model.HTTPTransport
+	mbss int64
+	s    *Saver
+}
+
+func (txp *httpTransportSaver) RoundTrip(req *http.Request) (*http.Response, error) {
+	return txp.s.httpRoundTrip(txp.HTTPTransport, txp.mbss, req)
+}
+
+func (s *Saver) httpRoundTrip(
 	txp model.HTTPTransport, maxBodySnapshotSize int64,
 	req *http.Request) (*http.Response, error) {
 	started := time.Now()

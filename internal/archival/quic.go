@@ -15,9 +15,52 @@ import (
 	"github.com/lucas-clemente/quic-go"
 )
 
-// WriteTo performs WriteTo with the given pconn and saves the
-// operation's results inside the saver.
-func (s *Saver) WriteTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int, error) {
+// WrapQUICListener wraps a QUICListener to use the saver.
+func (s *Saver) WrapQUICListener(ql model.QUICListener) model.QUICListener {
+	return &quicListenerSaver{
+		QUICListener: ql,
+		s:            s,
+	}
+}
+
+// WrapQUICDialer wraps a QUICDialer to use the saver.
+func (s *Saver) WrapQUICDialer(qd model.QUICDialer) model.QUICDialer {
+	return &quicDialerSaver{
+		QUICDialer: qd,
+		s:          s,
+	}
+}
+
+type quicListenerSaver struct {
+	model.QUICListener
+	s *Saver
+}
+
+func (ql *quicListenerSaver) Listen(addr *net.UDPAddr) (model.UDPLikeConn, error) {
+	pconn, err := ql.QUICListener.Listen(addr)
+	if err != nil {
+		return nil, err
+	}
+	return &udpLikeConnSaver{
+		UDPLikeConn: pconn,
+		s:           ql.s,
+	}, nil
+}
+
+type udpLikeConnSaver struct {
+	model.UDPLikeConn
+	s *Saver
+}
+
+func (c *udpLikeConnSaver) WriteTo(buf []byte, addr net.Addr) (int, error) {
+	return c.s.writeTo(c.UDPLikeConn, buf, addr)
+}
+
+func (c *udpLikeConnSaver) ReadFrom(buf []byte) (int, net.Addr, error) {
+	return c.s.readFrom(c.UDPLikeConn, buf)
+}
+
+func (s *Saver) writeTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int, error) {
 	started := time.Now()
 	count, err := pconn.WriteTo(buf, addr)
 	s.appendNetworkEvent(&FlatNetworkEvent{
@@ -32,9 +75,7 @@ func (s *Saver) WriteTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int
 	return count, err
 }
 
-// ReadFrom performs ReadFrom with the given pconn and saves the
-// operation's results inside the saver.
-func (s *Saver) ReadFrom(pconn model.UDPLikeConn, buf []byte) (int, net.Addr, error) {
+func (s *Saver) readFrom(pconn model.UDPLikeConn, buf []byte) (int, net.Addr, error) {
 	started := time.Now()
 	count, addr, err := pconn.ReadFrom(buf)
 	s.appendNetworkEvent(&FlatNetworkEvent{
@@ -56,10 +97,20 @@ func (s *Saver) safeAddrString(addr net.Addr) (out string) {
 	return
 }
 
-// QUICDialContext dials a QUIC session using the given dialer
-// and saves the results inside of the saver.
-func (s *Saver) QUICDialContext(ctx context.Context, dialer model.QUICDialer,
-	network, address string, tlsConfig *tls.Config, quicConfig *quic.Config) (quic.EarlySession, error) {
+type quicDialerSaver struct {
+	model.QUICDialer
+	s *Saver
+}
+
+func (qd *quicDialerSaver) DialContext(ctx context.Context, network, address string,
+	tlsConfig *tls.Config, quicConfig *quic.Config) (quic.EarlySession, error) {
+	return qd.s.quicDialContext(
+		ctx, qd.QUICDialer, network, address, tlsConfig, quicConfig)
+}
+
+func (s *Saver) quicDialContext(ctx context.Context, dialer model.QUICDialer,
+	network, address string, tlsConfig *tls.Config,
+	quicConfig *quic.Config) (quic.EarlySession, error) {
 	started := time.Now()
 	var state tls.ConnectionState
 	sess, err := dialer.DialContext(ctx, network, address, tlsConfig, quicConfig)

@@ -16,9 +16,25 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
-// TLSHandshake performs a TLS handshake with the given handshaker
-// and saves the results into the saver.
-func (s *Saver) TLSHandshake(ctx context.Context, thx model.TLSHandshaker,
+// WrapTLSHandshaker wraps a TLS handshaker to use the saver.
+func (s *Saver) WrapTLSHandshaker(thx model.TLSHandshaker) model.TLSHandshaker {
+	return &tlsHandshakerSaver{
+		TLSHandshaker: thx,
+		s:             s,
+	}
+}
+
+type tlsHandshakerSaver struct {
+	model.TLSHandshaker
+	s *Saver
+}
+
+func (thx *tlsHandshakerSaver) Handshake(ctx context.Context,
+	conn net.Conn, config *tls.Config) (net.Conn, tls.ConnectionState, error) {
+	return thx.s.tlsHandshake(ctx, thx.TLSHandshaker, conn, config)
+}
+
+func (s *Saver) tlsHandshake(ctx context.Context, thx model.TLSHandshaker,
 	conn net.Conn, config *tls.Config) (net.Conn, tls.ConnectionState, error) {
 	network := conn.RemoteAddr().Network()
 	remoteAddr := conn.RemoteAddr().String()
