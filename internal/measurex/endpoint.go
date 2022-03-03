@@ -71,6 +71,14 @@ func (e *HTTPEndpoint) String() string {
 	return fmt.Sprintf("%s/%s", e.Address, e.Network)
 }
 
+// AsEndpoint converts an HTTPEndpoint to Endpoint.
+func (e *HTTPEndpoint) AsEndpoint() *Endpoint {
+	return &Endpoint{
+		Network: e.Network,
+		Address: e.Address,
+	}
+}
+
 // NewCookieJar returns the cookies to be used in a request.
 func (e *HTTPEndpoint) NewCookieJar() http.CookieJar {
 	jar := NewCookieJar()
