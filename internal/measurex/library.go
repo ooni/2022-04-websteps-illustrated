@@ -66,6 +66,9 @@ type NetxliteLibrary interface {
 	// NewTLSHandshakerStdlib creates a new TLS handshaker using the stdlib.
 	NewTLSHandshakerStdlib(logger model.Logger) model.TLSHandshaker
 
+	// WrapHTTPClient wraps an HTTP client.
+	WrapHTTPClient(clnt model.HTTPClient) model.HTTPClient
+
 	// WrapResolver wraps a resolver.
 	WrapResolver(logger model.Logger, reso model.Resolver) model.Resolver
 }
@@ -173,8 +176,14 @@ func (lib *Library) NewResolverUDP(saver *archival.Saver, address string) model.
 					)))))
 }
 
-// NewTLSHandshakerStdlib creates a new TLS handshaker that saves results
+// NewTLSHandshakerStdlib creates a new TLS handshaker that uses the
+// standard library using the underlying netxlite library.
 // into the Saver and uses the stdlib for TLS.
-func (lib *Library) NewTLSHandshakerStdlib(saver *archival.Saver) model.TLSHandshaker {
-	return saver.WrapTLSHandshaker(lib.netxlite.NewTLSHandshakerStdlib(lib.logger))
+func (lib *Library) NewTLSHandshakerStdlib() model.TLSHandshaker {
+	return lib.netxlite.NewTLSHandshakerStdlib(lib.logger)
+}
+
+// WrapHTTPClient wraps an HTTP client using the underlying netxlite library.
+func (lib *Library) WrapHTTPClient(clnt model.HTTPClient) model.HTTPClient {
+	return lib.netxlite.WrapHTTPClient(clnt)
 }
