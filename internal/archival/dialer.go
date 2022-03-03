@@ -108,6 +108,8 @@ func (s *Saver) write(conn net.Conn, buf []byte) (int, error) {
 
 func (s *Saver) appendNetworkEvent(ev *FlatNetworkEvent) {
 	s.mu.Lock()
-	s.trace.Network = append(s.trace.Network, ev)
+	if !s.dcne {
+		s.trace.Network = append(s.trace.Network, ev)
+	}
 	s.mu.Unlock()
 }
