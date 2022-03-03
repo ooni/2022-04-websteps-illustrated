@@ -26,11 +26,11 @@ import (
 var (
 	// ErrUnknownEndpointURLScheme means that the given
 	// endpoint's URL scheme is neither HTTP nor HTTPS.
-	ErrUnknownEndpointURLScheme = errors.New("unknown HTTPEndpoint.URL.Scheme")
+	ErrUnknownEndpointURLScheme = errors.New("unknown Endpoint.URL.Scheme")
 
-	// ErrUnknownHTTPEndpointNetwork means that the given endpoint's
+	// ErrUnknownEndpointNetwork means that the given endpoint's
 	// network is of a type that we don't know how to handle.
-	ErrUnknownHTTPEndpointNetwork = errors.New("unknown HTTPEndpoint.Network")
+	ErrUnknownEndpointNetwork = errors.New("unknown Endpoint.Network")
 )
 
 // EndpointNetwork is the network of an endpoint.
@@ -242,8 +242,7 @@ func (mx *Measurer) quicEndpointHandshake(
 	)
 }
 
-func (mx *Measurer) httpHTTPSOrHTTP3Get(
-	ctx context.Context, epnt *Endpoint) *EndpointMeasurement {
+func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *Endpoint) *EndpointMeasurement {
 	saver := archival.NewSaver()
 	var (
 		resp      *http.Response
@@ -360,7 +359,7 @@ func (mx *Measurer) httpsOrHTTP3Get(ctx context.Context, epnt *Endpoint,
 	case NetworkTCP:
 		return mx.httpsGET(ctx, epnt, saver, jar)
 	default:
-		return nil, "", ErrUnknownHTTPEndpointNetwork
+		return nil, "", ErrUnknownEndpointNetwork
 	}
 }
 

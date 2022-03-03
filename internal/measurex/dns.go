@@ -58,7 +58,7 @@ type DNSLookup struct {
 	Resolvers []*DNSResolverInfo
 }
 
-// DNSLookupMeasurement is a DNS measurement.
+// DNSLookupMeasurement is a DNS lookup measurement.
 type DNSLookupMeasurement struct {
 	// Domain is the domain this measurement refers to.
 	Domain string
@@ -89,8 +89,11 @@ type dnsLookupPair struct {
 //
 // You can choose the parallelism with the parallelism argument. If this
 // argument is zero, or negative, we use a small default value.
-func (mx *Measurer) MeasureDNSLookup(ctx context.Context, parallelism int,
-	dnsLookups ...*DNSLookup) <-chan *DNSLookupMeasurement {
+//
+// This function returns to the caller a channel where to read
+// measurements from. The channel is closed when done.
+func (mx *Measurer) MeasureDNSLookup(ctx context.Context,
+	parallelism int, dnsLookups ...*DNSLookup) <-chan *DNSLookupMeasurement {
 	var (
 		done   = make(chan interface{})
 		output = make(chan *DNSLookupMeasurement)
@@ -130,66 +133,109 @@ func (mx *Measurer) MeasureDNSLookup(ctx context.Context, parallelism int,
 func (mx *Measurer) dnsLookup(ctx context.Context,
 	p *dnsLookupPair, output chan<- *DNSLookupMeasurement) {
 	wg := &sync.WaitGroup{}
-	switch {
-	case p.r.Network == DNSResolverSystem:
+	switch p.r.Network {
+
+	case DNSResolverSystem:
 		output <- mx.lookupHostSystem(ctx, p.u.Hostname())
-	case p.r.Network == DNSResolverUDP && p.u.Scheme != "https":
-		output <- mx.lookupHostUDP(ctx, p.u.Hostname(), p.r.Address)
-	case p.r.Network == DNSResolverUDP && p.u.Scheme == "https":
-		wg.Add(2)
+
+	case DNSResolverUDP:
+		wg.Add(1)
 		go func() {
 			output <- mx.lookupHostUDP(ctx, p.u.Hostname(), p.r.Address)
 			wg.Done()
 		}()
-		go func() {
-			output <- mx.lookupHTTPSSvcUDP(ctx, p.u.Hostname(), p.r.Address)
-			wg.Done()
-		}()
-	case p.r.Network == DNSResolverForeign && p.u.Scheme != "https":
-		output <- mx.lookupHostForeign(ctx, p.u.Hostname(), p.r.ForeignResolver)
-	case p.r.Network == DNSResolverForeign && p.u.Scheme == "https":
-		wg.Add(2)
+		if p.u.Scheme == "https" {
+			wg.Add(1)
+			go func() {
+				output <- mx.lookupHTTPSSvcUDP(ctx, p.u.Hostname(), p.r.Address)
+				wg.Done()
+			}()
+		}
+
+	case DNSResolverForeign:
+		wg.Add(1)
 		go func() {
 			output <- mx.lookupHostForeign(ctx, p.u.Hostname(), p.r.ForeignResolver)
 			wg.Done()
 		}()
-		go func() {
-			output <- mx.lookupHTTPSSvcUDPForeign(ctx, p.u.Hostname(), p.r.ForeignResolver)
-			wg.Done()
-		}()
+		if p.u.Scheme == "https" {
+			wg.Add(1)
+			go func() {
+				output <- mx.lookupHTTPSSvcUDPForeign(ctx, p.u.Hostname(), p.r.ForeignResolver)
+				wg.Done()
+			}()
+		}
+
 	}
 	wg.Wait()
 }
 
-// lookupHostForeign performs a LookupHost using a "foreign" resolver.
 func (mx *Measurer) lookupHostForeign(
 	ctx context.Context, domain string, r model.Resolver) *DNSLookupMeasurement {
-	timeout := mx.DNSLookupTimeout
-	ol := NewOperationLogger(mx.Logger, "LookupHost %s with %s", domain, r.Network())
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
 	saver := archival.NewSaver()
-	addrs, err := saver.WrapResolver(r).LookupHost(ctx, domain)
-	ol.Stop(err)
+	r = saver.WrapResolver(r)
+	defer r.CloseIdleConnections()
+	addrs, err := mx.doLookupHost(ctx, domain, r)
 	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
 }
 
-// lookupHTTPSSvcUDPForeign is like LookupHTTPSSvcUDP
-// except that it uses a "foreign" resolver.
 func (mx *Measurer) lookupHTTPSSvcUDPForeign(
 	ctx context.Context, domain string, r model.Resolver) *DNSLookupMeasurement {
-	timeout := mx.DNSLookupTimeout
-	ol := NewOperationLogger(mx.Logger, "LookupHTTPSvc %s with %s", domain, r.Address())
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
 	saver := archival.NewSaver()
-	https, err := saver.WrapResolver(r).LookupHTTPS(ctx, domain)
-	ol.Stop(err)
+	r = saver.WrapResolver(r)
+	defer r.CloseIdleConnections()
+	https, err := mx.doLookupHTTPSSvc(ctx, domain, r)
 	return mx.newDNSLookupMeasurementHTTPS(domain, https, err, saver.MoveOutTrace())
 }
 
-// newDNSLookupMeasurement creates a new DNS measurement from a given
-// domain to measure and a trace containing results.
+func (mx *Measurer) lookupHostSystem(ctx context.Context, domain string) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	r := mx.Library.NewResolverSystem(saver)
+	defer r.CloseIdleConnections()
+	addrs, err := mx.doLookupHost(ctx, domain, r)
+	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
+}
+
+func (mx *Measurer) lookupHostUDP(
+	ctx context.Context, domain, address string) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	r := mx.Library.NewResolverUDP(saver, address)
+	defer r.CloseIdleConnections()
+	addrs, err := mx.doLookupHost(ctx, domain, r)
+	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
+}
+
+func (mx *Measurer) lookupHTTPSSvcUDP(
+	ctx context.Context, domain, address string) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	r := mx.Library.NewResolverUDP(saver, address)
+	defer r.CloseIdleConnections()
+	https, err := mx.doLookupHTTPSSvc(ctx, domain, r)
+	return mx.newDNSLookupMeasurementHTTPS(domain, https, err, saver.MoveOutTrace())
+}
+
+func (mx *Measurer) doLookupHost(
+	ctx context.Context, domain string, r model.Resolver) ([]string, error) {
+	ol := NewOperationLogger(mx.Logger, "LookupHost %s with %s resolver", domain, r.Network())
+	timeout := mx.DNSLookupTimeout
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	addrs, err := r.LookupHost(ctx, domain)
+	ol.Stop(err)
+	return addrs, err
+}
+
+func (mx *Measurer) doLookupHTTPSSvc(
+	ctx context.Context, domain string, r model.Resolver) (*model.HTTPSSvc, error) {
+	ol := NewOperationLogger(mx.Logger, "LookupHTTPSvc %s with %s resolver", domain, r.Network())
+	timeout := mx.DNSLookupTimeout
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	https, err := r.LookupHTTPS(ctx, domain)
+	ol.Stop(err)
+	return https, err
+}
+
 func (mx *Measurer) newDNSLookupMeasurement(domain string,
 	addrs []string, err error, trace *archival.Trace) *DNSLookupMeasurement {
 	return &DNSLookupMeasurement{
@@ -201,8 +247,6 @@ func (mx *Measurer) newDNSLookupMeasurement(domain string,
 	}
 }
 
-// newDNSLookupMeasurementHTTPS is like newDNSLookupMeasurement but
-// takes in input an HTTPSSvc instead of a list of addresses.
 func (mx *Measurer) newDNSLookupMeasurementHTTPS(domain string,
 	https *model.HTTPSSvc, err error, trace *archival.Trace) *DNSLookupMeasurement {
 	var (
@@ -222,68 +266,4 @@ func (mx *Measurer) newDNSLookupMeasurementHTTPS(domain string,
 		ALPNs:     alpns,
 		Trace:     trace,
 	}
-}
-
-// lookupHostSystem performs a LookupHost using the system resolver.
-func (mx *Measurer) lookupHostSystem(ctx context.Context, domain string) *DNSLookupMeasurement {
-	timeout := mx.DNSLookupTimeout
-	ol := NewOperationLogger(mx.Logger, "LookupHost %s with getaddrinfo", domain)
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	saver := archival.NewSaver()
-	r := mx.Library.NewResolverSystem(saver)
-	defer r.CloseIdleConnections()
-	addrs, err := r.LookupHost(ctx, domain)
-	ol.Stop(err)
-	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
-}
-
-// lookupHostUDP is like LookupHostSystem but uses an UDP resolver.
-//
-// Arguments:
-//
-// - ctx is the context allowing to timeout the operation;
-//
-// - domain is the domain to resolve (e.g., "x.org");
-//
-// - address is the UDP resolver address (e.g., "dns.google:53").
-//
-// Returns a DNSMeasurement.
-func (mx *Measurer) lookupHostUDP(
-	ctx context.Context, domain, address string) *DNSLookupMeasurement {
-	timeout := mx.DNSLookupTimeout
-	ol := NewOperationLogger(mx.Logger, "LookupHost %s with %s/udp", domain, address)
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	saver := archival.NewSaver()
-	r := mx.Library.NewResolverUDP(saver, address)
-	defer r.CloseIdleConnections()
-	addrs, err := r.LookupHost(ctx, domain)
-	ol.Stop(err)
-	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
-}
-
-// lookupHTTPSSvcUDP issues an HTTPSSvc query for the given domain.
-//
-// Arguments:
-//
-// - ctx is the context allowing to timeout the operation;
-//
-// - domain is the domain to resolve (e.g., "x.org");
-//
-// - address is the UDP resolver address (e.g., "dns.google:53").
-//
-// Returns a DNSMeasurement.
-func (mx *Measurer) lookupHTTPSSvcUDP(
-	ctx context.Context, domain, address string) *DNSLookupMeasurement {
-	timeout := mx.DNSLookupTimeout
-	ol := NewOperationLogger(mx.Logger, "LookupHTTPSvc %s with %s/udp", domain, address)
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	saver := archival.NewSaver()
-	r := mx.Library.NewResolverUDP(saver, address)
-	defer r.CloseIdleConnections()
-	https, err := r.LookupHTTPS(ctx, domain)
-	ol.Stop(err)
-	return mx.newDNSLookupMeasurementHTTPS(domain, https, err, saver.MoveOutTrace())
 }
