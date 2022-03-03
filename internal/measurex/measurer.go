@@ -15,7 +15,6 @@ package measurex
 import (
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/atomicx"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
@@ -40,7 +39,7 @@ type Measurer struct {
 
 	// IDGenerator is the MANDATORY atomic variable used to generate
 	// unique identifiers for measurements.
-	IDGenerator *atomicx.Int64
+	IDGenerator *IDGenerator
 
 	// Library is the MANDATORY network-measurement library.
 	Library *Library
@@ -114,7 +113,7 @@ func NewMeasurer(library *Library) *Measurer {
 	return &Measurer{
 		DNSLookupTimeout:                 DefaultDNSLookupTimeout,
 		HTTPGETTimeout:                   DefaultHTTPGETTimeout,
-		IDGenerator:                      &atomicx.Int64{},
+		IDGenerator:                      NewIDGenerator(),
 		Library:                          library,
 		Logger:                           model.DiscardLogger,
 		MaxHTTPResponseBodySnapshotSize:  DefaultMaxHTTPResponseBodySnapshotSize,

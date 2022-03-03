@@ -31,7 +31,7 @@ type DNSMeasurement struct {
 func (mx *Measurer) newDNSMeasurement(domain string, trace *archival.Trace) *DNSMeasurement {
 	return &DNSMeasurement{
 		Domain: domain,
-		ID:     mx.IDGenerator.Add(1),
+		ID:     mx.IDGenerator.Next(),
 		Trace:  trace,
 	}
 }

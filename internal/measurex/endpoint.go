@@ -106,7 +106,7 @@ func (mx *Measurer) newEndpointMeasurement(
 	return &EndpointMeasurement{
 		Network: NetworkTCP,
 		Address: address,
-		ID:      mx.IDGenerator.Add(1),
+		ID:      mx.IDGenerator.Next(),
 		Trace:   trace,
 	}
 }
@@ -142,7 +142,7 @@ func (mx *Measurer) newHTTPEndpointMeasurement(URL string, network EndpointNetwo
 		URL:             URL,
 		Network:         NetworkTCP,
 		Address:         address,
-		ID:              mx.IDGenerator.Add(1),
+		ID:              mx.IDGenerator.Next(),
 		RequestCookies:  requestCookies,
 		ResponseCookies: responseCookies,
 		Trace:           trace,
