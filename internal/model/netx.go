@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/lucas-clemente/quic-go"
+	oohttp "github.com/ooni/oohttp"
 )
 
 //
@@ -176,6 +177,9 @@ type Resolver interface {
 	LookupHTTPS(
 		ctx context.Context, domain string) (*HTTPSSvc, error)
 }
+
+// TLSConn is the kind of TLS conn we use in ooniprobe.
+type TLSConn = oohttp.TLSConn
 
 // TLSDialer is a Dialer dialing TLS connections.
 type TLSDialer interface {
