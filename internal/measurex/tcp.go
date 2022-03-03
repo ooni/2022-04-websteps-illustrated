@@ -35,6 +35,9 @@ func (mx *Measurer) TCPConnect(ctx context.Context, address string) *EndpointMea
 
 // TCPConnectWithSaver is like TCPConnect but does not create a new measurement,
 // rather it just stores the events inside of the given saver.
+//
+// Caveat: the returned conn will keep saving its I/O events into
+// the saver until you stop saving them explicitly.
 func (mx *Measurer) TCPConnectWithSaver(ctx context.Context,
 	saver *archival.Saver, address string) (net.Conn, error) {
 	timeout := mx.TCPconnectTimeout
@@ -45,5 +48,8 @@ func (mx *Measurer) TCPConnectWithSaver(ctx context.Context,
 	defer d.CloseIdleConnections()
 	conn, err := d.DialContext(ctx, "tcp", address)
 	ol.Stop(err)
+	if conn != nil {
+		conn = saver.WrapConn(conn)
+	}
 	return conn, err
 }

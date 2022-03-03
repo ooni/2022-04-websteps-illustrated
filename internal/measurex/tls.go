@@ -68,7 +68,6 @@ func (mx *Measurer) TLSConnectAndHandshakeWithSaver(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	conn = saver.WrapConn(conn)
 	timeout := mx.TLSHandshakeTimeout
 	ol := NewOperationLogger(mx.Logger, "TLSHandshake %s with sni=%s", address, config.ServerName)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
