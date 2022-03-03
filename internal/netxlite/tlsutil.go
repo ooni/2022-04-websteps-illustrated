@@ -1,11 +1,11 @@
 package netxlite
 
 // This file is not part of probe-cli's netxlite. It contains a portion
-// of probe-cli's internal/netxlite/tls.go that deals with providing
-// a string representation of TLS versions and cipher suites.
+// of probe-cli's internal/netxlite/tls.go that contains TLS utils.
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 )
 
@@ -68,4 +68,15 @@ func TLSCipherSuiteString(value uint16) string {
 		return str
 	}
 	return fmt.Sprintf("TLS_CIPHER_SUITE_UNKNOWN_%d", value)
+}
+
+// NewDefaultCertPool returns the default x509 certificate pool
+// that we bundle from Mozilla. It's safe to modify the returned
+// value: every invocation returns a distinct *x509.CertPool instance.
+func NewDefaultCertPool() *x509.CertPool {
+	pool := x509.NewCertPool()
+	// Assumption: AppendCertsFromPEM cannot fail because we
+	// have a test in certify_test.go that guarantees that
+	pool.AppendCertsFromPEM([]byte(pemcerts))
+	return pool
 }
