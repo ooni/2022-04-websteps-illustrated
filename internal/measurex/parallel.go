@@ -55,6 +55,9 @@ type ResolverInfo struct {
 
 	// ForeignResolver is only used when Network's
 	// value equals the ResolverForeign constant.
+	//
+	// This resolver MUST be already wrapped using
+	// netxlite to have error wrapping, etc.
 	ForeignResolver model.Resolver
 }
 
