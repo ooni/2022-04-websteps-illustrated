@@ -1,5 +1,13 @@
 package measurex
 
+//
+// HTTP Utils
+//
+// This file contains misc HTTP utilities.
+//
+// Note that this file is not part of ooni/probe-cli.
+//
+
 import (
 	"context"
 	"errors"
@@ -13,14 +21,6 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 	"golang.org/x/net/publicsuffix"
 )
-
-//
-// HTTP Utils
-//
-// This file contains misc HTTP utilities.
-//
-// Note that this file is not part of ooni/probe-cli.
-//
 
 // newHTTPClientWithoutRedirects creates a new HTTPClient instance that
 // does not automatically perform redirects.
