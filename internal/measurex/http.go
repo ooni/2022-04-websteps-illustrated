@@ -21,37 +21,6 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
-// HTTPEndpointGet performs a GET request for an HTTP endpoint.
-//
-// This function WILL NOT follow redirects. If there is a redirect
-// you will see it inside the specific database table.
-//
-// Arguments:
-//
-// - ctx is the context allowing to timeout the operation;
-//
-// - epnt is the HTTP endpoint;
-//
-// - jar is the cookie jar to use.
-//
-// Returns a measurement. The returned measurement is empty if
-// the endpoint is misconfigured or the URL has an unknown scheme.
-func (mx *Measurer) HTTPEndpointGet(
-	ctx context.Context, epnt *HTTPEndpoint, jar http.CookieJar) *HTTPEndpointMeasurement {
-	resp, m, _ := mx.httpEndpointGet(ctx, epnt, jar)
-	if resp != nil {
-		resp.Body.Close()
-	}
-	return m
-}
-
-// HTTPEndpointGetWithoutCookies is like HTTPEndpointGet
-// but does not require you to provide a CookieJar.
-func (mx *Measurer) HTTPEndpointGetWithoutCookies(
-	ctx context.Context, epnt *HTTPEndpoint) *HTTPEndpointMeasurement {
-	return mx.HTTPEndpointGet(ctx, epnt, NewCookieJar())
-}
-
 var (
 	// ErrUnknownHTTPEndpointURLScheme means that the given
 	// endpoint's URL scheme is neither HTTP nor HTTPS.
@@ -62,11 +31,43 @@ var (
 	ErrUnknownHTTPEndpointNetwork = errors.New("unknown HTTPEndpoint.Network")
 )
 
+// HTTPEndpointGet performs a GET request for an HTTP endpoint.
+//
+// This function WILL NOT follow redirects. If there is a redirect
+// you will see it inside the specific database table.
+//
+// Arguments:
+//
+// - ctx is the context allowing to timeout the operation;
+//
+// - epnt is the HTTP endpoint.
+//
+// Returns a measurement. The returned measurement is empty if
+// the endpoint is misconfigured or the URL has an unknown scheme.
+func (mx *Measurer) HTTPEndpointGet(
+	ctx context.Context, epnt *HTTPEndpoint) *HTTPEndpointMeasurement {
+	_, m, _ := mx.httpEndpointGet(ctx, epnt)
+	return m
+}
+
 // httpEndpointGet implements HTTPEndpointGet.
-func (mx *Measurer) httpEndpointGet(ctx context.Context, epnt *HTTPEndpoint,
-	jar http.CookieJar) (*http.Response, *HTTPEndpointMeasurement, error) {
+func (mx *Measurer) httpEndpointGet(
+	ctx context.Context, epnt *HTTPEndpoint) (*http.Response, *HTTPEndpointMeasurement, error) {
+	jar := epnt.NewCookieJar()
 	resp, trace, err := mx.httpEndpointGetReturnTrace(ctx, epnt, jar)
-	out := mx.newHTTPEndpointMeasurement(epnt.URL.String(), epnt.Network, epnt.Address, trace)
+	var responseCookies []*http.Cookie
+	if resp != nil {
+		responseCookies = jar.Cookies(epnt.URL)
+		resp.Body.Close()
+	}
+	out := mx.newHTTPEndpointMeasurement(
+		epnt.URL.String(),
+		epnt.Network,
+		epnt.Address,
+		epnt.Cookies,
+		responseCookies,
+		trace,
+	)
 	return resp, out, err
 }
 

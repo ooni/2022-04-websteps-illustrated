@@ -61,11 +61,21 @@ type HTTPEndpoint struct {
 
 	// Header contains request headers.
 	Header http.Header
+
+	// Cookies contains the cookie to use when measuring.
+	Cookies []*http.Cookie
 }
 
 // String converts an HTTP endpoint to a string (e.g., "8.8.8.8:443/tcp")
 func (e *HTTPEndpoint) String() string {
 	return fmt.Sprintf("%s/%s", e.Address, e.Network)
+}
+
+// NewCookieJar returns the cookies to be used in a request.
+func (e *HTTPEndpoint) NewCookieJar() http.CookieJar {
+	jar := NewCookieJar()
+	jar.SetCookies(e.URL, e.Cookies)
+	return jar
 }
 
 // EndpointMeasurement is an endpoint measurement.
@@ -107,17 +117,26 @@ type HTTPEndpointMeasurement struct {
 	// ID is the unique ID of this measurement.
 	ID int64
 
+	// RequestCookies contains the cookies in the request.
+	RequestCookies []*http.Cookie
+
+	// ResponseCookies contains the cookies in the response.
+	ResponseCookies []*http.Cookie
+
 	// An HTTPEndpointMeasurement contains a Trace.
 	*archival.Trace
 }
 
 func (mx *Measurer) newHTTPEndpointMeasurement(URL string, network EndpointNetwork,
-	address string, trace *archival.Trace) *HTTPEndpointMeasurement {
+	address string, requestCookies, responseCookies []*http.Cookie,
+	trace *archival.Trace) *HTTPEndpointMeasurement {
 	return &HTTPEndpointMeasurement{
-		URL:     URL,
-		Network: NetworkTCP,
-		Address: address,
-		ID:      mx.IDGenerator.Add(1),
-		Trace:   trace,
+		URL:             URL,
+		Network:         NetworkTCP,
+		Address:         address,
+		ID:              mx.IDGenerator.Add(1),
+		RequestCookies:  requestCookies,
+		ResponseCookies: responseCookies,
+		Trace:           trace,
 	}
 }
