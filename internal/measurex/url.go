@@ -152,7 +152,7 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 		if dns.SupportsHTTP3() {
 			flags |= urlAddressFlagHTTP3
 		}
-		for _, addr := range dns.Addresses {
+		for _, addr := range dns.Addresses() {
 			if net.ParseIP(addr) == nil {
 				// Skip CNAMEs in case they slip through.
 				log.Printf("cannot parse %+v inside um.DNS as IP address", addr)
