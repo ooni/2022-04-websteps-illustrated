@@ -11,6 +11,18 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
+// DNSLookupType indicates the type of DNS lookup.
+type DNSLookupType string
+
+var (
+	// DNSLookupTypeGetaddrinfo indicates a getaddrinfo like lookup where we
+	// issue a query for A and a query for AAAA.
+	DNSLookupTypeGetaddrinfo = DNSLookupType("getaddrinfo")
+
+	// DNSLookupTypeHTTPS indicates we're performing an HTTPS lookup.
+	DNSLookupTypeHTTPS = DNSLookupType("https")
+)
+
 // WrapResolver wraps a resolver to use the saver.
 func (s *Saver) WrapResolver(reso model.Resolver) model.Resolver {
 	return &resolverSaver{
@@ -43,13 +55,13 @@ func (r *resolverSaver) LookupHTTPS(ctx context.Context, domain string) (*model.
 func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain string) ([]string, error) {
 	started := time.Now()
 	addrs, err := reso.LookupHost(ctx, domain)
-	s.appendLookupHostEvent(&FlatDNSLookupEvent{
+	s.appendDNSLookupEvent(&FlatDNSLookupEvent{
 		ALPNs:           nil,
 		Addresses:       addrs,
 		Domain:          domain,
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
-		LookupType:      "getaddrinfo",
+		LookupType:      DNSLookupTypeGetaddrinfo,
 		ResolverAddress: reso.Address(),
 		ResolverNetwork: reso.Network(),
 		Started:         started,
@@ -57,33 +69,27 @@ func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain stri
 	return addrs, err
 }
 
-func (s *Saver) appendLookupHostEvent(ev *FlatDNSLookupEvent) {
+func (s *Saver) appendDNSLookupEvent(ev *FlatDNSLookupEvent) {
 	s.mu.Lock()
-	s.trace.DNSLookupHost = append(s.trace.DNSLookupHost, ev)
+	s.trace.DNSLookup = append(s.trace.DNSLookup, ev)
 	s.mu.Unlock()
 }
 
 func (s *Saver) lookupHTTPS(ctx context.Context, reso model.Resolver, domain string) (*model.HTTPSSvc, error) {
 	started := time.Now()
 	https, err := reso.LookupHTTPS(ctx, domain)
-	s.appendLookupHTTPSEvent(&FlatDNSLookupEvent{
+	s.appendDNSLookupEvent(&FlatDNSLookupEvent{
 		ALPNs:           s.safeALPNs(https),
 		Addresses:       s.safeAddresses(https),
 		Domain:          domain,
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
-		LookupType:      "https",
+		LookupType:      DNSLookupTypeHTTPS,
 		ResolverAddress: reso.Address(),
 		ResolverNetwork: reso.Network(),
 		Started:         started,
 	})
 	return https, err
-}
-
-func (s *Saver) appendLookupHTTPSEvent(ev *FlatDNSLookupEvent) {
-	s.mu.Lock()
-	s.trace.DNSLookupHTTPS = append(s.trace.DNSLookupHTTPS, ev)
-	s.mu.Unlock()
 }
 
 func (s *Saver) safeALPNs(https *model.HTTPSSvc) (out []string) {

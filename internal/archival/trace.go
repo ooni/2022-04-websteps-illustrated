@@ -5,6 +5,7 @@ package archival
 //
 
 import (
+	"log"
 	"net"
 	"net/http"
 	"sort"
@@ -19,11 +20,8 @@ import (
 
 // Trace contains the events.
 type Trace struct {
-	// DNSLookupHTTPS contains DNSLookupHTTPS events.
-	DNSLookupHTTPS []*FlatDNSLookupEvent
-
-	// DNSLookupHost contains DNSLookupHost events.
-	DNSLookupHost []*FlatDNSLookupEvent
+	// DNSLookup contains DNSLookup events.
+	DNSLookup []*FlatDNSLookupEvent
 
 	// DNSRoundTrip contains DNSRoundTrip events.
 	DNSRoundTrip []*FlatDNSRoundTripEvent
@@ -160,7 +158,11 @@ func (t *Trace) newHTTPHeadersMap(source http.Header) (out map[string]model.Arch
 // NewArchivalDNSLookupResultList builds a DNS lookups list in the OONI
 // archival data format out of the results saved inside the trace.
 func (t *Trace) NewArchivalDNSLookupResultList(begin time.Time) (out []model.ArchivalDNSLookupResult) {
-	for _, ev := range t.DNSLookupHost {
+	for _, ev := range t.DNSLookup {
+		if ev.LookupType != DNSLookupTypeGetaddrinfo {
+			log.Printf("NewArchivalDNSLookupResultList: unsupported record: %+v", ev)
+			continue
+		}
 		out = append(out, model.ArchivalDNSLookupResult{
 			Answers:          t.gatherA(ev.Addresses),
 			Engine:           ev.ResolverNetwork,
