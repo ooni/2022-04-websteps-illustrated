@@ -5,12 +5,18 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sort"
+	"strings"
 )
 
 // URLMeasurement is the result of measuring an URL.
 type URLMeasurement struct {
 	// ID is the unique ID of this URLMeasurement.
 	ID int64
+
+	// EndpointIDs contains the ID of the EndpointMeasurement(s) that
+	// generated this URLMeasurement through redirects.
+	EndpointIDs []int64
 
 	// URL is the underlying URL to measure.
 	URL *url.URL
@@ -54,15 +60,16 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 		return nil, ErrUnknownURLScheme
 	}
 	out := &URLMeasurement{
-		ID:       mx.NextID(),
-		URL:      parsed,
-		Cookies:  []*http.Cookie{},
-		Headers:  map[string][]string{},
-		SNI:      parsed.Hostname(),
-		ALPN:     []string{},
-		Host:     parsed.Hostname(),
-		DNS:      []*DNSLookupMeasurement{},
-		Endpoint: []*EndpointMeasurement{},
+		ID:          mx.NextID(),
+		EndpointIDs: []int64{},
+		URL:         parsed,
+		Cookies:     []*http.Cookie{},
+		Headers:     map[string][]string{},
+		SNI:         parsed.Hostname(),
+		ALPN:        []string{},
+		Host:        parsed.Hostname(),
+		DNS:         []*DNSLookupMeasurement{},
+		Endpoint:    []*EndpointMeasurement{},
 	}
 	return out, nil
 }
@@ -284,4 +291,94 @@ func (um *URLMeasurement) makeEndpoint(address string) (string, error) {
 		return "", err
 	}
 	return net.JoinHostPort(address, port), nil
+}
+
+// urlRedirectPolicy determins the policy for computing redirects.
+type urlRedirectPolicy interface {
+	// Summary returns a string summarizing the given endpoint. This function
+	// must return false if the endpoint is not relevant to the policy with
+	// which we're currently computing redirects.
+	Summary(epnt *EndpointMeasurement) (string, bool)
+}
+
+// urlRedirectPolicyDefault is the default urlRedirectPolicy.
+type urlRedirectPolicyDefault struct{}
+
+// Summary implements urlRedirectPolicy.Summary.
+func (*urlRedirectPolicyDefault) Summary(epnt *EndpointMeasurement) (string, bool) {
+	switch epnt.StatusCode {
+	case 301, 302, 303, 306, 307:
+	default:
+		return "", false // skip this entry if it's not a redirect
+	}
+	if epnt.Location == nil {
+		return "", false // skip this entry if we don't have a valid location
+	}
+	// If this URL is HTTPS, just ignore conflicting cookies
+	if epnt.URL.Scheme == "https" {
+		return epnt.Location.String(), true
+	}
+	// If there are no cookies, likewise
+	if len(epnt.Cookies) <= 0 {
+		return epnt.Location.String(), true
+	}
+	// Otherwise, account for cookies
+	summary := make([]string, 4)
+	for _, cookie := range epnt.Cookies {
+		summary = append(summary, cookie.String())
+	}
+	sort.Strings(summary)
+	summary = append(summary, epnt.Location.String())
+	return strings.Join(summary, " "), true
+}
+
+// Redirects returns all the redirects seen in this URLMeasurement as a
+// list of follow-up URLMeasurement instances. This function will return
+// false if the returned list of follow-up measurements is empty.
+func (mx *Measurer) Redirects(cur *URLMeasurement) ([]*URLMeasurement, bool) {
+	return mx.redirects(cur, &urlRedirectPolicyDefault{})
+}
+
+func (mx *Measurer) redirects(
+	cur *URLMeasurement, policy urlRedirectPolicy) ([]*URLMeasurement, bool) {
+	uniq := make(map[string]*URLMeasurement)
+	for _, epnt := range cur.Endpoint {
+		summary, good := policy.Summary(epnt)
+		if !good {
+			// We should skip this endpoint
+			continue
+		}
+		next, good := uniq[summary]
+		if !good {
+			next = &URLMeasurement{
+				ID:          mx.NextID(),
+				EndpointIDs: []int64{},
+				URL:         epnt.Location,
+				Cookies:     epnt.Cookies,
+				Headers:     mx.newHeadersForRedirect(epnt.Location, epnt.ResponseHeaders),
+				SNI:         epnt.Location.Hostname(),
+				ALPN:        ALPNForHTTPEndpoint(epnt.Network),
+				Host:        epnt.Location.Hostname(),
+				DNS:         []*DNSLookupMeasurement{},
+				Endpoint:    []*EndpointMeasurement{},
+			}
+			uniq[summary] = next
+		}
+		next.EndpointIDs = append(next.EndpointIDs, epnt.ID)
+	}
+	out := make([]*URLMeasurement, 8)
+	for _, next := range uniq {
+		out = append(out, next)
+	}
+	return out, len(out) > 0
+}
+
+// newHeadersForRedirect builds new headers for a redirect.
+func (mx *Measurer) newHeadersForRedirect(location *url.URL, orig http.Header) http.Header {
+	out := http.Header{}
+	for key, values := range orig {
+		out[key] = values
+	}
+	out.Set("Referer", location.String())
+	return out
 }

@@ -112,8 +112,8 @@ type EndpointMeasurement struct {
 	// FailedOperation is the operation that failed.
 	FailedOperation string
 
-	// ResponseCookies contains the cookies in the response.
-	ResponseCookies []*http.Cookie
+	// Cookies contains cookies the next redirection (if any) should use.
+	Cookies []*http.Cookie
 
 	// Location is the URL we're redirected to (if any).
 	Location *url.URL
@@ -204,7 +204,7 @@ func (mx *Measurer) newEndpointMeasurement(epnt *EndpointMeasurementPlan, operat
 		ID:               mx.NextID(),
 		Failure:          archival.NewFlatFailure(err),
 		FailedOperation:  operation,
-		ResponseCookies:  responseCookies,
+		Cookies:          responseCookies,
 		Location:         location,
 		StatusCode:       statusCode,
 		ResponseHeaders:  responseHeaders,
