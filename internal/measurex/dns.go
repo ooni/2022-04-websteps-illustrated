@@ -27,11 +27,6 @@ var (
 
 	// DNSResolverUDP is a resolver using DNS-over-UDP
 	DNSResolverUDP = DNSResolverNetwork("udp")
-
-	// DNSResolverForeign is a resolver that is not managed by
-	// this package. We can wrap it, but we don't be able to
-	// observe any event but Lookup{Host,HTTPSvc}
-	DNSResolverForeign = DNSResolverNetwork("foreign")
 )
 
 // DNSResolverInfo contains info about a DNS resolver.
@@ -41,13 +36,6 @@ type DNSResolverInfo struct {
 
 	// Address is the address (e.g., "1.1.1.1:53", "https://1.1.1.1/dns-query")
 	Address string
-
-	// ForeignResolver is only used when Network's
-	// value equals the ResolverForeign constant.
-	//
-	// This resolver MUST be already wrapped using
-	// netxlite to have error wrapping, etc.
-	ForeignResolver model.Resolver
 }
 
 // DNSLookupPlan is a plan for performing a DNS lookup.
@@ -138,11 +126,6 @@ func (p *dnsLookupTarget) resolverAddress() string {
 	return p.info.Address
 }
 
-// foreignResolver returns the foreign resolver.
-func (p *dnsLookupTarget) foreignResolver() model.Resolver {
-	return p.info.ForeignResolver
-}
-
 // DNSLookups performs DNS lookups in parallel.
 //
 // You can choose the parallelism with the parallelism argument. If this
@@ -191,10 +174,8 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 	t *dnsLookupTarget, output chan<- *DNSLookupMeasurement) {
 	wg := &sync.WaitGroup{}
 	switch t.resolverNetwork() {
-
 	case DNSResolverSystem:
 		output <- mx.lookupHostSystem(ctx, t)
-
 	case DNSResolverUDP:
 		wg.Add(1)
 		go func() {
@@ -208,41 +189,8 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 				wg.Done()
 			}()
 		}
-
-	case DNSResolverForeign:
-		wg.Add(1)
-		go func() {
-			output <- mx.lookupHostForeign(ctx, t)
-			wg.Done()
-		}()
-		if t.isHTTPS() {
-			wg.Add(1)
-			go func() {
-				output <- mx.lookupHTTPSSvcUDPForeign(ctx, t)
-				wg.Done()
-			}()
-		}
-
 	}
 	wg.Wait()
-}
-
-func (mx *Measurer) lookupHostForeign(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
-	saver := archival.NewSaver()
-	r := saver.WrapResolver(t.foreignResolver())
-	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r) // ignore return value
-	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
-}
-
-func (mx *Measurer) lookupHTTPSSvcUDPForeign(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
-	saver := archival.NewSaver()
-	r := saver.WrapResolver(t.foreignResolver())
-	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r) // ignore return value
-	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) lookupHostSystem(
