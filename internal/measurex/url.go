@@ -200,9 +200,9 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 
 // NewEndpointMeasurementPlanForHTTP creates a new plan for measuring all the
 // endpoints that have not been measured yet using HTTP.
-func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP() ([]*EndpointMeasurementPlan, bool) {
+func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP() ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
-	out := make([]*EndpointMeasurementPlan, 8)
+	out := make([]*EndpointPlan, 8)
 	for _, addr := range addrs {
 		if addr.AlreadyTestedHTTP() {
 			continue
@@ -212,7 +212,7 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP() ([]*EndpointMeasur
 			log.Printf("cannot make endpoint: %s", err.Error())
 			continue
 		}
-		out = append(out, &EndpointMeasurementPlan{
+		out = append(out, &EndpointPlan{
 			URLMeasurementID: um.ID,
 			Domain:           um.Domain(),
 			Network:          archival.NetworkTypeTCP,
@@ -229,9 +229,9 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP() ([]*EndpointMeasur
 
 // NewEndpointMeasurementPlanForHTTPS creates a new plan for measuring all the
 // endpoints that have not been measured yet using HTTPS.
-func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTPS() ([]*EndpointMeasurementPlan, bool) {
+func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTPS() ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
-	out := make([]*EndpointMeasurementPlan, 8)
+	out := make([]*EndpointPlan, 8)
 	for _, addr := range addrs {
 		if addr.AlreadyTestedHTTPS() {
 			continue
@@ -241,7 +241,7 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTPS() ([]*EndpointMeasu
 			log.Printf("cannot make endpoint: %s", err.Error())
 			continue
 		}
-		out = append(out, &EndpointMeasurementPlan{
+		out = append(out, &EndpointPlan{
 			URLMeasurementID: um.ID,
 			Domain:           um.Domain(),
 			Network:          archival.NetworkTypeTCP,
@@ -258,9 +258,9 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTPS() ([]*EndpointMeasu
 
 // NewEndpointMeasurementPlanForHTTP3 creates a new plan for measuring all the
 // endpoints that have not been measured yet using HTTP3.
-func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP3() ([]*EndpointMeasurementPlan, bool) {
+func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP3() ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
-	out := make([]*EndpointMeasurementPlan, 8)
+	out := make([]*EndpointPlan, 8)
 	for _, addr := range addrs {
 		if addr.AlreadyTestedHTTP3() {
 			continue
@@ -270,7 +270,7 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP3() ([]*EndpointMeasu
 			log.Printf("cannot make endpoint: %s", err.Error())
 			continue
 		}
-		out = append(out, &EndpointMeasurementPlan{
+		out = append(out, &EndpointPlan{
 			URLMeasurementID: um.ID,
 			Domain:           um.Domain(),
 			Network:          archival.NetworkTypeQUIC,

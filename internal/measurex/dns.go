@@ -52,14 +52,11 @@ type DNSLookupPlan struct {
 
 // DNSLookupMeasurement is a DNS lookup measurement.
 type DNSLookupMeasurement struct {
-	// Domain is the domain this measurement refers to.
-	Domain string
+	// ID is the unique ID of this measurement.
+	ID int64
 
 	// URLMeasurementID is the ID of the parent URLMeasurement.
 	URLMeasurementID int64
-
-	// ID is the unique ID of this measurement.
-	ID int64
 
 	// Lookup contains the DNS lookup event.
 	Lookup *archival.FlatDNSLookupEvent
@@ -245,9 +242,8 @@ func (mx *Measurer) doLookupHTTPSSvc(
 func (mx *Measurer) newDNSLookupMeasurement(
 	t *dnsLookupTarget, trace *archival.Trace) *DNSLookupMeasurement {
 	out := &DNSLookupMeasurement{
-		Domain:           t.targetDomain(),
-		URLMeasurementID: t.plan.URLMeasurementID,
 		ID:               mx.NextID(),
+		URLMeasurementID: t.plan.URLMeasurementID,
 	}
 	if len(trace.DNSLookup) > 1 {
 		log.Printf("warning: more than one DNSLookup entry: %+v", trace.DNSLookup)
