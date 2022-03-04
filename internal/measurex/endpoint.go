@@ -278,7 +278,6 @@ func (mx *Measurer) tcpEndpointConnect(
 	if conn != nil {
 		conn.Close()
 	}
-	saver.StopCollectingNetworkEvents()
 	return mx.newEndpointMeasurement(
 		epnt,
 		operation, err,
@@ -294,7 +293,6 @@ func (mx *Measurer) tlsEndpointHandshake(
 	if conn != nil {
 		conn.Close()
 	}
-	saver.StopCollectingNetworkEvents()
 	return mx.newEndpointMeasurement(
 		epnt,
 		operation, err,
@@ -311,7 +309,6 @@ func (mx *Measurer) quicEndpointHandshake(
 		// TODO(bassosimone): close session with correct message
 		sess.CloseWithError(0, "")
 	}
-	saver.StopCollectingNetworkEvents()
 	return mx.newEndpointMeasurement(
 		epnt,
 		operation, err,
@@ -355,7 +352,6 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointMeasu
 		statusCode = int64(resp.StatusCode)
 		responseHeaders = resp.Header
 	}
-	saver.StopCollectingNetworkEvents()
 	return mx.newEndpointMeasurement(
 		epnt,
 		operation, err,
