@@ -13,6 +13,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -79,6 +80,9 @@ func (e *EndpointPlan) newCookieJar() http.CookieJar {
 	return jar
 }
 
+// FlatFailedOperation is a flat representation of a failed operation.
+type FlatFailedOperation = archival.FlatFailure
+
 // EndpointMeasurement is an endpoint measurement.
 type EndpointMeasurement struct {
 	// ID is the unique ID of this measurement.
@@ -100,7 +104,7 @@ type EndpointMeasurement struct {
 	Failure archival.FlatFailure
 
 	// FailedOperation is the operation that failed.
-	FailedOperation string
+	FailedOperation FlatFailedOperation
 
 	// Cookies contains cookies the next redirection (if any) should use.
 	Cookies []*http.Cookie
@@ -119,6 +123,11 @@ type EndpointMeasurement struct {
 
 	// HTTPRoundTrip contains the HTTP round trip event (if any).
 	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent
+}
+
+// EndpointAddress returns a string like "{address}/{network}".
+func (em *EndpointMeasurement) EndpointAddress() string {
+	return fmt.Sprintf("%s/%s", em.Address, em.Network)
 }
 
 // ErrInvalidIPAddress means that we cannot parse an IP address.
@@ -214,7 +223,7 @@ func (mx *Measurer) newEndpointMeasurement(
 		Address:          epnt.Address,
 		ID:               mx.NextID(),
 		Failure:          archival.NewFlatFailure(err),
-		FailedOperation:  operation,
+		FailedOperation:  FlatFailedOperation(operation),
 		Cookies:          responseCookies,
 		Location:         location,
 		NetworkEvent:     nil,

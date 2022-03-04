@@ -23,8 +23,14 @@ import (
 
 // NewArchivalTCPConnectResultList builds a TCP connect list in the OONI archival
 // data format out of the results saved inside the trace.
-func (t *Trace) NewArchivalTCPConnectResultList(begin time.Time) (out []model.ArchivalTCPConnectResult) {
-	for _, ev := range t.TCPConnect {
+func (t *Trace) NewArchivalTCPConnectResultList(begin time.Time) []model.ArchivalTCPConnectResult {
+	return NewArchivalTCPConnectResultList(begin, t.TCPConnect)
+}
+
+// NewArchivalTCPConnectResultList builds a TCP connect list in the OONI archival
+// data format out of the results saved inside the trace.
+func NewArchivalTCPConnectResultList(begin time.Time, in []*FlatNetworkEvent) (out []model.ArchivalTCPConnectResult) {
+	for _, ev := range in {
 		out = append(out, ev.ToArchivalTCPConnectResult(begin))
 	}
 	return
@@ -59,9 +65,21 @@ func (ev *FlatNetworkEvent) ToArchivalTCPConnectResult(begin time.Time) model.Ar
 // measurement code performs related requests sequentially (which is a kinda a
 // given because you cannot follow a redirect before reading the previous request),
 // then the result is sorted how the OONI pipeline expects it to be.
-func (t *Trace) NewArchivalHTTPRequestResultList(begin time.Time) (out []model.ArchivalHTTPRequestResult) {
-	for _, ev := range t.HTTPRoundTrip {
-		out = append(out, ev.ToArchivalHTTPRequestResult(begin))
+func (t *Trace) NewArchivalHTTPRequestResultList(begin time.Time) []model.ArchivalHTTPRequestResult {
+	return NewArchivalHTTPRequestResultList(begin, t.HTTPRoundTrip)
+}
+
+// NewArchivalHTTPRequestResultList builds an HTTP requests list in the OONI
+// archival data format out of the results saved inside the trace.
+//
+// This function will sort the emitted list of requests such that the last
+// request that happened in time is the first one to be emitted. If the
+// measurement code performs related requests sequentially (which is a kinda a
+// given because you cannot follow a redirect before reading the previous request),
+// then the result is sorted how the OONI pipeline expects it to be.
+func NewArchivalHTTPRequestResultList(begin time.Time, in []*FlatHTTPRoundTripEvent) (out []model.ArchivalHTTPRequestResult) {
+	for _, ev := range in {
+		out = append(out, ev.ToArchival(begin))
 	}
 	// Implementation note: historically OONI has always added
 	// the _last_ measurement in _first_ position. This has only
@@ -74,8 +92,8 @@ func (t *Trace) NewArchivalHTTPRequestResultList(begin time.Time) (out []model.A
 	return
 }
 
-// ToArchivalHTTPRequestResult converts a FlatHTTPRoundTripEvent to ArchivalHTTPRequestResult.
-func (ev *FlatHTTPRoundTripEvent) ToArchivalHTTPRequestResult(begin time.Time) model.ArchivalHTTPRequestResult {
+// ToArchival converts a FlatHTTPRoundTripEvent to ArchivalHTTPRequestResult.
+func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTPRequestResult {
 	return model.ArchivalHTTPRequestResult{
 		Failure: ev.Failure.ToArchivalFailure(),
 		Request: model.ArchivalHTTPRequest{
@@ -142,27 +160,33 @@ func (ev *FlatHTTPRoundTripEvent) newHTTPHeadersMap(source http.Header) (out map
 
 // NewArchivalDNSLookupResultList builds a DNS lookups list in the OONI
 // archival data format out of the results saved inside the trace.
-func (t *Trace) NewArchivalDNSLookupResultList(begin time.Time) (out []model.ArchivalDNSLookupResult) {
-	for _, ev := range t.DNSLookup {
-		out = append(out, ev.ToArchivalDNSLookupResultList(begin)...)
+func (t *Trace) NewArchivalDNSLookupResultList(begin time.Time) []model.ArchivalDNSLookupResult {
+	return NewArchivalDNSLookupResultList(begin, t.DNSLookup)
+}
+
+// NewArchivalDNSLookupResultList builds a DNS lookups list in the OONI
+// archival data format out of the results saved inside the trace.
+func NewArchivalDNSLookupResultList(begin time.Time, in []*FlatDNSLookupEvent) (out []model.ArchivalDNSLookupResult) {
+	for _, ev := range in {
+		out = append(out, ev.ToArchival(begin)...)
 	}
 	return
 }
 
-// ToArchivalDNSLookupResultList converts a FlatDNSLookupEvent to []ArchivalDNSLookupResult.
-func (ev *FlatDNSLookupEvent) ToArchivalDNSLookupResultList(begin time.Time) []model.ArchivalDNSLookupResult {
+// ToArchival converts a FlatDNSLookupEvent to []ArchivalDNSLookupResult.
+func (ev *FlatDNSLookupEvent) ToArchival(begin time.Time) []model.ArchivalDNSLookupResult {
 	switch ev.LookupType {
 	case DNSLookupTypeHTTPS:
-		return ev.toArchivalDNSLookupResultHTTPS(begin)
+		return ev.toArchivalHTTPS(begin)
 	case DNSLookupTypeGetaddrinfo:
-		return ev.toArchivalDNSLookupResultGetaddrinfo(begin)
+		return ev.toArchivalGetaddrinfo(begin)
 	default:
 		log.Printf("ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
 		return []model.ArchivalDNSLookupResult{}
 	}
 }
 
-func (ev *FlatDNSLookupEvent) toArchivalDNSLookupResultHTTPS(begin time.Time) (out []model.ArchivalDNSLookupResult) {
+func (ev *FlatDNSLookupEvent) toArchivalHTTPS(begin time.Time) (out []model.ArchivalDNSLookupResult) {
 	out = append(out, model.ArchivalDNSLookupResult{
 		Answers:          ev.gatherHTTPS(),
 		Engine:           ev.ResolverNetwork,
@@ -199,7 +223,7 @@ func (ev *FlatDNSLookupEvent) gatherHTTPS() (out []model.ArchivalDNSAnswer) {
 	return
 }
 
-func (ev *FlatDNSLookupEvent) toArchivalDNSLookupResultGetaddrinfo(begin time.Time) (out []model.ArchivalDNSLookupResult) {
+func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []model.ArchivalDNSLookupResult) {
 	out = append(out, model.ArchivalDNSLookupResult{
 		Answers:          ev.gatherA(),
 		Engine:           ev.ResolverNetwork,
@@ -267,8 +291,14 @@ func (ev *FlatDNSLookupEvent) gatherAAAA() (out []model.ArchivalDNSAnswer) {
 
 // NewArchivalNetworkEventList builds a network events list in the OONI
 // archival data format out of the results saved inside the trace.
-func (t *Trace) NewArchivalNetworkEventList(begin time.Time) (out []model.ArchivalNetworkEvent) {
-	for _, ev := range t.Network {
+func (t *Trace) NewArchivalNetworkEventList(begin time.Time) []model.ArchivalNetworkEvent {
+	return NewArchivalNetworkEventList(begin, t.Network)
+}
+
+// NewArchivalNetworkEventList builds a network events list in the OONI
+// archival data format out of the results saved inside the trace.
+func NewArchivalNetworkEventList(begin time.Time, in []*FlatNetworkEvent) (out []model.ArchivalNetworkEvent) {
+	for _, ev := range in {
 		out = append(out, ev.ToArchivalNetworkEvent(begin))
 	}
 	return
@@ -293,14 +323,22 @@ func (ev *FlatNetworkEvent) ToArchivalNetworkEvent(begin time.Time) model.Archiv
 
 // NewArchivalTLSOrQUICHandshakeResultList builds a TLS/QUIC handshakes list in the OONI
 // archival data format out of the results saved inside the trace.
-func (t *Trace) NewArchivalTLSOrQUICHandshakeResultList(begin time.Time) (out []model.ArchivalTLSOrQUICHandshakeResult) {
-	for _, ev := range t.QUICTLSHandshake {
-		out = append(out, ev.ToArchivalTLSOrQUICHandshakeResult(begin))
+func (t *Trace) NewArchivalTLSOrQUICHandshakeResultList(begin time.Time) []model.ArchivalTLSOrQUICHandshakeResult {
+	return NewArchivalTLSOrQUICHandshakeResultList(begin, t.QUICTLSHandshake)
+}
+
+// NewArchivalTLSOrQUICHandshakeResultList builds a TLS/QUIC handshakes list in the OONI
+// archival data format out of the results saved inside the trace.
+func NewArchivalTLSOrQUICHandshakeResultList(
+	begin time.Time, in []*FlatQUICTLSHandshakeEvent) (out []model.ArchivalTLSOrQUICHandshakeResult) {
+	for _, ev := range in {
+		out = append(out, ev.ToArchival(begin))
 	}
 	return
 }
 
-func (ev *FlatQUICTLSHandshakeEvent) ToArchivalTLSOrQUICHandshakeResult(begin time.Time) model.ArchivalTLSOrQUICHandshakeResult {
+// ToArchival converts FlatQUICTLSHandshakeEvent to ArchivalTLSOrQUICHandshakeResult.
+func (ev *FlatQUICTLSHandshakeEvent) ToArchival(begin time.Time) model.ArchivalTLSOrQUICHandshakeResult {
 	return model.ArchivalTLSOrQUICHandshakeResult{
 		Address:            ev.RemoteAddr,
 		CipherSuite:        ev.CipherSuite,
@@ -321,4 +359,46 @@ func (ev *FlatQUICTLSHandshakeEvent) makePeerCerts(in [][]byte) (out []model.Arc
 		out = append(out, model.ArchivalMaybeBinaryData{Value: string(v)})
 	}
 	return
+}
+
+//
+// DNS round trip
+//
+
+// NewArchivalDNSRoundTripEventList converts the DNSRoundTripEvent list
+// inside the trace to the corresponding archival format.
+func (t *Trace) NewArchivalDNSRoundTripEventList(begin time.Time) []model.ArchivalDNSRoundTripEvent {
+	return NewArchivalDNSRoundTripEventList(begin, t.DNSRoundTrip)
+}
+
+// NewArchivalDNSRoundTripEventList converts the DNSRoundTripEvent list
+// inside the trace to the corresponding archival format.
+func NewArchivalDNSRoundTripEventList(begin time.Time, in []*FlatDNSRoundTripEvent) (out []model.ArchivalDNSRoundTripEvent) {
+	for _, ev := range in {
+		out = append(out, *ev.ToArchival(begin))
+	}
+	return
+}
+
+// ToArchival converts a FlatDNSRoundTripEvent into ArchivalDNSRoundTripEvent.
+func (ev *FlatDNSRoundTripEvent) ToArchival(begin time.Time) *model.ArchivalDNSRoundTripEvent {
+	return &model.ArchivalDNSRoundTripEvent{
+		Address:  ev.Address,
+		Failure:  ev.Failure.ToArchivalFailure(),
+		Finished: ev.Finished.Sub(begin).Seconds(),
+		Network:  string(ev.Network),
+		Query:    ev.bytesToBinaryData(ev.Query),
+		Reply:    ev.bytesToBinaryData(ev.Reply),
+		Started:  ev.Started.Sub(begin).Seconds(),
+	}
+}
+
+func (ev *FlatDNSRoundTripEvent) bytesToBinaryData(in []byte) *model.ArchivalBinaryData {
+	if len(in) < 1 {
+		return nil
+	}
+	return &model.ArchivalBinaryData{
+		Format: "base64",
+		Data:   in,
+	}
 }

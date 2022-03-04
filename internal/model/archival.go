@@ -59,6 +59,12 @@ var (
 // Base types
 //
 
+// ArchivalBinaryData is the representation of a binary string.
+type ArchivalBinaryData struct {
+	Format string `json:"format"`
+	Data   []byte `json:"data"`
+}
+
 // ArchivalMaybeBinaryData is a possibly binary string. We use this helper class
 // to define a custom JSON encoder that allows us to choose the proper
 // representation depending on whether the Value field is valid UTF-8 or not.
@@ -311,4 +317,23 @@ type ArchivalNetworkEvent struct {
 	Proto     string   `json:"proto,omitempty"`
 	T         float64  `json:"t"`
 	Tags      []string `json:"tags,omitempty"`
+}
+
+//
+// DNSRoundTripEvent
+//
+
+// ArchivalDNSRoundTripEvent is the OONI data format representation
+// of a DNS round trip, which is currently not specified.
+//
+// We are trying to use names compatible with the names currently
+// used by other specifications we currently use.
+type ArchivalDNSRoundTripEvent struct {
+	Address  string              `json:"resolver_address"`
+	Failure  *string             `json:"failure"`
+	Finished float64             `json:"t"`
+	Network  string              `json:"engine"`
+	Query    *ArchivalBinaryData `json:"raw_query"`
+	Reply    *ArchivalBinaryData `json:"raw_reply"`
+	Started  float64             `json:"started"`
 }
