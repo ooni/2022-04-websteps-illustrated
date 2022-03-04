@@ -11,7 +11,7 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 )
 
-// URLMeasurement is the result of measuring an URL.
+// URLMeasurement is the (possibly interim) result of measuring an URL.
 type URLMeasurement struct {
 	// ID is the unique ID of this URLMeasurement.
 	ID int64
@@ -66,7 +66,7 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 		EndpointIDs: []int64{},
 		URL:         parsed,
 		Cookies:     []*http.Cookie{},
-		Headers:     map[string][]string{},
+		Headers:     NewHTTPRequestHeaderForMeasuring(),
 		SNI:         parsed.Hostname(),
 		ALPN:        []string{},
 		Host:        parsed.Hostname(),
@@ -198,91 +198,63 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 	return out, len(out) > 0
 }
 
-// NewEndpointMeasurementPlanForHTTP creates a new plan for measuring all the
-// endpoints that have not been measured yet using HTTP.
-func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP() ([]*EndpointPlan, bool) {
+// NewEndpointPlan creates a new plan for measuring all the endpoints that
+// have not been measured yet in the current URLMeasurement.
+//
+// Note that the returned list will include HTTP, HTTPS, and HTTP3 plans
+// related to the original URL regardless of its scheme.
+func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
 	out := make([]*EndpointPlan, 8)
 	for _, addr := range addrs {
-		if addr.AlreadyTestedHTTP() {
-			continue
-		}
 		epnt, err := um.makeEndpoint(addr.Address)
 		if err != nil {
 			log.Printf("cannot make endpoint: %s", err.Error())
 			continue
 		}
-		out = append(out, &EndpointPlan{
-			URLMeasurementID: um.ID,
-			Domain:           um.Domain(),
-			Network:          archival.NetworkTypeTCP,
-			Address:          epnt,
-			SNI:              "",         // not needed
-			ALPN:             []string{}, // not needed
-			URL:              um.URL,
-			Header:           NewHTTPRequestHeaderForMeasuring(),
-			Cookies:          um.Cookies,
-		})
+		if !addr.AlreadyTestedHTTP() {
+			out = append(out, um.newEndpointPlan(archival.NetworkTypeTCP, epnt, "http"))
+		}
+		if !addr.AlreadyTestedHTTPS() {
+			out = append(out, um.newEndpointPlan(archival.NetworkTypeTCP, epnt, "https"))
+		}
+		if addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
+			out = append(out, um.newEndpointPlan(archival.NetworkTypeQUIC, epnt, "https"))
+		}
 	}
 	return out, len(out) > 0
 }
 
-// NewEndpointMeasurementPlanForHTTPS creates a new plan for measuring all the
-// endpoints that have not been measured yet using HTTPS.
-func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTPS() ([]*EndpointPlan, bool) {
-	addrs, _ := um.URLAddressList()
-	out := make([]*EndpointPlan, 8)
-	for _, addr := range addrs {
-		if addr.AlreadyTestedHTTPS() {
-			continue
-		}
-		epnt, err := um.makeEndpoint(addr.Address)
-		if err != nil {
-			log.Printf("cannot make endpoint: %s", err.Error())
-			continue
-		}
-		out = append(out, &EndpointPlan{
-			URLMeasurementID: um.ID,
-			Domain:           um.Domain(),
-			Network:          archival.NetworkTypeTCP,
-			Address:          epnt,
-			SNI:              um.Domain(),
-			ALPN:             []string{"h2", "http/1.1"},
-			URL:              um.URL,
-			Header:           NewHTTPRequestHeaderForMeasuring(),
-			Cookies:          um.Cookies,
-		})
+// newEndpointPlan is a factory for creating an endpoint plan.
+func (um *URLMeasurement) newEndpointPlan(
+	network archival.NetworkType, epnt, scheme string) *EndpointPlan {
+	return &EndpointPlan{
+		URLMeasurementID: um.ID,
+		Domain:           um.Domain(),
+		Network:          network,
+		Address:          epnt,
+		SNI:              um.Domain(),
+		ALPN:             ALPNForHTTPEndpoint(network),
+		URL:              newURLWithScheme(um.URL, scheme),
+		Headers:          um.Headers,
+		Cookies:          um.Cookies,
 	}
-	return out, len(out) > 0
 }
 
-// NewEndpointMeasurementPlanForHTTP3 creates a new plan for measuring all the
-// endpoints that have not been measured yet using HTTP3.
-func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP3() ([]*EndpointPlan, bool) {
-	addrs, _ := um.URLAddressList()
-	out := make([]*EndpointPlan, 8)
-	for _, addr := range addrs {
-		if addr.AlreadyTestedHTTP3() {
-			continue
-		}
-		epnt, err := um.makeEndpoint(addr.Address)
-		if err != nil {
-			log.Printf("cannot make endpoint: %s", err.Error())
-			continue
-		}
-		out = append(out, &EndpointPlan{
-			URLMeasurementID: um.ID,
-			Domain:           um.Domain(),
-			Network:          archival.NetworkTypeQUIC,
-			Address:          epnt,
-			SNI:              um.Domain(),
-			ALPN:             []string{"h3"},
-			URL:              um.URL,
-			Header:           NewHTTPRequestHeaderForMeasuring(),
-			Cookies:          um.Cookies,
-		})
+// newURLWithScheme creates a copy of an URL with a different scheme.
+func newURLWithScheme(URL *url.URL, scheme string) *url.URL {
+	return &url.URL{
+		Scheme:      scheme,
+		Opaque:      URL.Opaque,
+		User:        URL.User,
+		Host:        URL.Host,
+		Path:        URL.Path,
+		RawPath:     URL.RawPath,
+		ForceQuery:  URL.ForceQuery,
+		RawQuery:    URL.RawQuery,
+		Fragment:    URL.Fragment,
+		RawFragment: URL.RawFragment,
 	}
-	return out, len(out) > 0
 }
 
 // makeEndpoint makes a level-4 endpoint given the address and either the URL scheme
@@ -295,7 +267,14 @@ func (um *URLMeasurement) makeEndpoint(address string) (string, error) {
 	return net.JoinHostPort(address, port), nil
 }
 
-// urlRedirectPolicy determins the policy for computing redirects.
+// HasUnmeasuredEndpoints returns whether the given URLMeasurement
+// contains references to any unmeasured endpoints.
+func (um *URLMeasurement) HasUnmeasuredEndpoints() bool {
+	plan, _ := um.NewEndpointPlan()
+	return len(plan) > 0
+}
+
+// urlRedirectPolicy determines the policy for computing redirects.
 type urlRedirectPolicy interface {
 	// Summary returns a string summarizing the given endpoint. This function
 	// must return false if the endpoint is not relevant to the policy with

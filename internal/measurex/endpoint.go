@@ -58,8 +58,8 @@ type EndpointPlan struct {
 	// URL is the endpoint URL.
 	URL *url.URL
 
-	// Header contains request headers.
-	Header http.Header
+	// Headers contains request headers.
+	Headers http.Header
 
 	// Cookies contains the cookie to use when measuring.
 	Cookies []*http.Cookie
@@ -488,7 +488,7 @@ func (mx *Measurer) httpClientDo(ctx context.Context,
 	if err != nil {
 		return nil, netxlite.TopLevelOperation, err
 	}
-	req.Header = epnt.Header.Clone() // must clone because of potential parallel usage
+	req.Header = epnt.Headers.Clone() // must clone because of potential parallel usage
 	timeout := mx.HTTPGETTimeout
 	ol := NewOperationLogger(mx.Logger,
 		"%s %s with %s/%s", req.Method, req.URL.String(), epnt.Address, epnt.Network)
