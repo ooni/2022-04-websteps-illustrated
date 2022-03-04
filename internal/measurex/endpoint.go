@@ -111,6 +111,9 @@ type EndpointMeasurement struct {
 	// NetworkEvent contains network events (if any).
 	NetworkEvent []*archival.FlatNetworkEvent
 
+	// TCPConnect contains the TCP connect event (if any).
+	TCPConnect *archival.FlatNetworkEvent
+
 	// QUICTLSHandshake contains the QUIC/TLS handshake event (if any).
 	QUICTLSHandshake *archival.FlatQUICTLSHandshakeEvent
 
@@ -229,6 +232,12 @@ func (mx *Measurer) newEndpointMeasurement(
 	}
 	if len(trace.QUICTLSHandshake) == 1 {
 		out.QUICTLSHandshake = trace.QUICTLSHandshake[0]
+	}
+	if len(trace.TCPConnect) > 1 {
+		log.Printf("warning: more than one TCPConnect entry: %+v", trace.TCPConnect)
+	}
+	if len(trace.TCPConnect) == 1 {
+		out.TCPConnect = trace.TCPConnect[0]
 	}
 	out.NetworkEvent = trace.Network
 	return out

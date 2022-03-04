@@ -80,7 +80,7 @@ func (s *Saver) dialContext(ctx context.Context,
 	dialer model.Dialer, network, address string) (net.Conn, error) {
 	started := time.Now()
 	conn, err := dialer.DialContext(ctx, network, address)
-	s.appendNetworkEvent(&FlatNetworkEvent{
+	s.appendTCPConnectEvent(&FlatNetworkEvent{
 		Count:      0,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
@@ -90,6 +90,16 @@ func (s *Saver) dialContext(ctx context.Context,
 		Started:    started,
 	})
 	return conn, err
+}
+
+func (s *Saver) appendTCPConnectEvent(ev *FlatNetworkEvent) {
+	if ev.Network != NetworkTypeTCP {
+		// We don't care about recording UDP "connect"
+		return
+	}
+	s.mu.Lock()
+	s.trace.TCPConnect = append(s.trace.TCPConnect, ev)
+	s.mu.Unlock()
 }
 
 func (s *Saver) read(conn net.Conn, buf []byte) (int, error) {

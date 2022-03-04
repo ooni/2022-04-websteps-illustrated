@@ -15,7 +15,6 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
 // Trace contains the events.
@@ -34,6 +33,9 @@ type Trace struct {
 
 	// QUICTLSHandshake contains QUICTLSHandshake handshake events.
 	QUICTLSHandshake []*FlatQUICTLSHandshakeEvent
+
+	// TCPConnect contains TCP connect events.
+	TCPConnect []*FlatNetworkEvent
 }
 
 //
@@ -43,10 +45,7 @@ type Trace struct {
 // NewArchivalTCPConnectResultList builds a TCP connect list in the OONI archival
 // data format out of the results saved inside the trace.
 func (t *Trace) NewArchivalTCPConnectResultList(begin time.Time) (out []model.ArchivalTCPConnectResult) {
-	for _, ev := range t.Network {
-		if ev.Operation != netxlite.ConnectOperation || ev.Network != "tcp" {
-			continue
-		}
+	for _, ev := range t.TCPConnect {
 		// We assume Go is passing us legit data structures
 		ip, sport, _ := net.SplitHostPort(ev.RemoteAddr)
 		iport, _ := strconv.Atoi(sport)
