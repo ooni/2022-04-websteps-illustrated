@@ -13,6 +13,26 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
+// NetworkType is the type of network we're using.
+type NetworkType string
+
+var (
+	// NetworkTypeTCP indicates we're using TCP.
+	NetworkTypeTCP = NetworkType("tcp")
+
+	// NetworkTypeUDP indicates we're using UDP.
+	NetworkTypeUDP = NetworkType("udp")
+
+	// NetworkTypeQUIC indicates we're using QUIC.
+	NetworkTypeQUIC = NetworkType("quic")
+
+	// NetworkTypeDoT indicates we're using DoT.
+	NetworkTypeDoT = NetworkType("dot")
+
+	// NetworkTypeDoH indicates we're using DoH.
+	NetworkTypeDoH = NetworkType("doh")
+)
+
 // WrapDialer wraps a dialer to use the saver.
 func (s *Saver) WrapDialer(dialer model.Dialer) model.Dialer {
 	return &dialerSaver{
@@ -64,7 +84,7 @@ func (s *Saver) dialContext(ctx context.Context,
 		Count:      0,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
-		Network:    network,
+		Network:    NetworkType(network), // "tcp" or "udp"
 		Operation:  netxlite.ConnectOperation,
 		RemoteAddr: address,
 		Started:    started,
@@ -81,7 +101,7 @@ func (s *Saver) read(conn net.Conn, buf []byte) (int, error) {
 		Count:      count,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
-		Network:    network,
+		Network:    NetworkType(network), // "tcp" or "udp"
 		Operation:  netxlite.ReadOperation,
 		RemoteAddr: remoteAddr,
 		Started:    started,
@@ -98,7 +118,7 @@ func (s *Saver) write(conn net.Conn, buf []byte) (int, error) {
 		Count:      count,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
-		Network:    network,
+		Network:    NetworkType(network), // "tcp" or "udp"
 		Operation:  netxlite.WriteOperation,
 		RemoteAddr: remoteAddr,
 		Started:    started,

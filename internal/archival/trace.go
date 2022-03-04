@@ -32,11 +32,8 @@ type Trace struct {
 	// Network contains network events.
 	Network []*FlatNetworkEvent
 
-	// QUICHandshake contains QUICHandshake handshake events.
-	QUICHandshake []*FlatQUICTLSHandshakeEvent
-
-	// TLSHandshake contains TLSHandshake handshake events.
-	TLSHandshake []*FlatQUICTLSHandshakeEvent
+	// QUICTLSHandshake contains QUICTLSHandshake handshake events.
+	QUICTLSHandshake []*FlatQUICTLSHandshakeEvent
 }
 
 //
@@ -238,7 +235,7 @@ func (t *Trace) NewArchivalNetworkEventList(begin time.Time) (out []model.Archiv
 			Failure:   ev.Failure.ToArchivalFailure(),
 			NumBytes:  int64(ev.Count),
 			Operation: ev.Operation,
-			Proto:     ev.Network,
+			Proto:     string(ev.Network),
 			T:         ev.Finished.Sub(begin).Seconds(),
 			Tags:      nil,
 		})
@@ -253,7 +250,11 @@ func (t *Trace) NewArchivalNetworkEventList(begin time.Time) (out []model.Archiv
 // NewArchivalTLSHandshakeResultList builds a TLS handshakes list in the OONI
 // archival data format out of the results saved inside the trace.
 func (t *Trace) NewArchivalTLSHandshakeResultList(begin time.Time) (out []model.ArchivalTLSOrQUICHandshakeResult) {
-	for _, ev := range t.TLSHandshake {
+	for _, ev := range t.QUICTLSHandshake {
+		if ev.Network != NetworkTypeTCP {
+			log.Printf("NewArchivalTLSHandshakeResultList: unsupported record: %+v", ev)
+			continue
+		}
 		out = append(out, model.ArchivalTLSOrQUICHandshakeResult{
 			CipherSuite:        ev.CipherSuite,
 			Failure:            ev.Failure.ToArchivalFailure(),

@@ -123,7 +123,7 @@ func (s *Saver) dnsRoundTrip(ctx context.Context, txp model.DNSTransport, query 
 		Address:  txp.Address(),
 		Failure:  NewFlatFailure(err),
 		Finished: time.Now(),
-		Network:  txp.Network(),
+		Network:  NetworkType(txp.Network()),
 		Query:    query,
 		Reply:    reply,
 		Started:  started,

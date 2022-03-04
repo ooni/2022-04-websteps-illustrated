@@ -67,7 +67,7 @@ func (s *Saver) writeTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int
 		Count:      count,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
-		Network:    addr.Network(),
+		Network:    NetworkType(addr.Network()), // "udp"
 		Operation:  netxlite.WriteToOperation,
 		RemoteAddr: addr.String(),
 		Started:    started,
@@ -82,7 +82,7 @@ func (s *Saver) readFrom(pconn model.UDPLikeConn, buf []byte) (int, net.Addr, er
 		Count:      count,
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
-		Network:    "udp", // must be always set even on failure
+		Network:    NetworkTypeUDP, // must be always set even on failure
 		Operation:  netxlite.ReadFromOperation,
 		RemoteAddr: s.safeAddrString(addr),
 		Started:    started,
@@ -122,13 +122,13 @@ func (s *Saver) quicDialContext(ctx context.Context, dialer model.QUICDialer,
 			sess, err = nil, ctx.Err()
 		}
 	}
-	s.appendQUICHandshake(&FlatQUICTLSHandshakeEvent{
+	s.appendQUICTLSHandshake(&FlatQUICTLSHandshakeEvent{
 		ALPN:            tlsConfig.NextProtos,
 		CipherSuite:     netxlite.TLSCipherSuiteString(state.CipherSuite),
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		NegotiatedProto: state.NegotiatedProtocol,
-		Network:         "quic",
+		Network:         NetworkTypeQUIC,
 		PeerCerts:       s.tlsPeerCerts(err, &state),
 		RemoteAddr:      address,
 		SNI:             tlsConfig.ServerName,
@@ -139,8 +139,8 @@ func (s *Saver) quicDialContext(ctx context.Context, dialer model.QUICDialer,
 	return sess, err
 }
 
-func (s *Saver) appendQUICHandshake(ev *FlatQUICTLSHandshakeEvent) {
+func (s *Saver) appendQUICTLSHandshake(ev *FlatQUICTLSHandshakeEvent) {
 	s.mu.Lock()
-	s.trace.QUICHandshake = append(s.trace.QUICHandshake, ev)
+	s.trace.QUICTLSHandshake = append(s.trace.QUICTLSHandshake, ev)
 	s.mu.Unlock()
 }

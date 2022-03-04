@@ -35,7 +35,7 @@ type FlatDNSRoundTripEvent struct {
 	Address  string
 	Failure  FlatFailure
 	Finished time.Time
-	Network  string
+	Network  NetworkType
 	Query    []byte
 	Reply    []byte
 	Started  time.Time
@@ -88,7 +88,7 @@ type FlatNetworkEvent struct {
 	Count      int
 	Failure    FlatFailure
 	Finished   time.Time
-	Network    string
+	Network    NetworkType
 	Operation  string
 	RemoteAddr string
 	Started    time.Time
@@ -101,7 +101,7 @@ type FlatQUICTLSHandshakeEvent struct {
 	Failure         FlatFailure
 	Finished        time.Time
 	NegotiatedProto string
-	Network         string
+	Network         NetworkType
 	PeerCerts       [][]byte
 	RemoteAddr      string
 	SNI             string

@@ -42,13 +42,13 @@ func (s *Saver) tlsHandshake(ctx context.Context, thx model.TLSHandshaker,
 	tconn, state, err := thx.Handshake(ctx, conn, config)
 	// Implementation note: state is an empty ConnectionState on failure
 	// so it's safe to access its fields also in that case
-	s.appendTLSHandshake(&FlatQUICTLSHandshakeEvent{
+	s.appendQUICTLSHandshake(&FlatQUICTLSHandshakeEvent{
 		ALPN:            config.NextProtos,
 		CipherSuite:     netxlite.TLSCipherSuiteString(state.CipherSuite),
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		NegotiatedProto: state.NegotiatedProtocol,
-		Network:         network,
+		Network:         NetworkType(network), // we expect this to be "tcp"
 		PeerCerts:       s.tlsPeerCerts(err, &state),
 		RemoteAddr:      remoteAddr,
 		SNI:             config.ServerName,
@@ -57,12 +57,6 @@ func (s *Saver) tlsHandshake(ctx context.Context, thx model.TLSHandshaker,
 		TLSVersion:      netxlite.TLSVersionString(state.Version),
 	})
 	return tconn, state, err
-}
-
-func (s *Saver) appendTLSHandshake(ev *FlatQUICTLSHandshakeEvent) {
-	s.mu.Lock()
-	s.trace.TLSHandshake = append(s.trace.TLSHandshake, ev)
-	s.mu.Unlock()
 }
 
 func (s *Saver) tlsPeerCerts(err error, state *tls.ConnectionState) (out [][]byte) {
