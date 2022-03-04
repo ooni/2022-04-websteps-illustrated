@@ -92,11 +92,11 @@ const (
 
 	// DefaultMaxHTTPResponseBodySnapshotSize is the default snapshot
 	// size of the response body for cleartext requests.
-	DefaultMaxHTTPResponseBodySnapshotSize = 1 << 17
+	DefaultMaxHTTPResponseBodySnapshotSize = 1 << 19
 
 	// DefaultMaxHTTPSResponseBodySnapshotSize is the default snapshot
 	// size of the response body for cleartext requests.
-	DefaultMaxHTTPSResponseBodySnapshotSize = 1 << 17
+	DefaultMaxHTTPSResponseBodySnapshotSize = 1 << 19
 
 	// DefaultQUICHandshakeTimeout is the default QUIC handshake timeout.
 	DefaultQUICHandshakeTimeout = 10 * time.Second
