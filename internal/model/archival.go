@@ -125,6 +125,7 @@ type ArchivalDNSLookupResult struct {
 
 // ArchivalDNSAnswer is a DNS answer.
 type ArchivalDNSAnswer struct {
+	ALPN       string  `json:"alpn,omitempty"`
 	ASN        int64   `json:"asn,omitempty"`
 	ASOrgName  string  `json:"as_org_name,omitempty"`
 	AnswerType string  `json:"answer_type"`
@@ -163,11 +164,13 @@ type ArchivalTCPConnectStatus struct {
 //
 // See https://github.com/ooni/spec/blob/master/data-formats/df-006-tlshandshake.md
 type ArchivalTLSOrQUICHandshakeResult struct {
+	Address            string                    `json:"address"`
 	CipherSuite        string                    `json:"cipher_suite"`
 	Failure            *string                   `json:"failure"`
 	NegotiatedProtocol string                    `json:"negotiated_protocol"`
 	NoTLSVerify        bool                      `json:"no_tls_verify"`
 	PeerCertificates   []ArchivalMaybeBinaryData `json:"peer_certificates"`
+	Proto              string                    `json:"proto"`
 	ServerName         string                    `json:"server_name"`
 	T                  float64                   `json:"t"`
 	Tags               []string                  `json:"tags"`
