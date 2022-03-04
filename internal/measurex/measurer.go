@@ -124,3 +124,8 @@ func NewMeasurer(library *Library) *Measurer {
 		TLSHandshaker:                    library.NewTLSHandshakerStdlib(),
 	}
 }
+
+// NextID returns the next measurement ID.
+func (mx *Measurer) NextID() int64 {
+	return mx.IDGenerator.Next()
+}

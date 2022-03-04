@@ -49,8 +49,11 @@ type DNSResolverInfo struct {
 	ForeignResolver model.Resolver
 }
 
-// DNSLookup describes a DNS lookup we want to perform.
-type DNSLookup struct {
+// DNSLookupPlan is a plan for performing a DNS lookup.
+type DNSLookupPlan struct {
+	// URLMeasurementID is the ID of the original URLMeasurement.
+	URLMeasurementID int64
+
 	// URL is the URL to resolve.
 	URL *url.URL
 
@@ -62,6 +65,9 @@ type DNSLookup struct {
 type DNSLookupMeasurement struct {
 	// Domain is the domain this measurement refers to.
 	Domain string
+
+	// URLMeasurementID is the ID of the parent URLMeasurement.
+	URLMeasurementID int64
 
 	// ID is the unique ID of this measurement.
 	ID int64
@@ -75,37 +81,75 @@ type DNSLookupMeasurement struct {
 	// ALPNs contains the available ALPNs.
 	ALPNs []string
 
-	// A DNSMeasurement contains a trace.
+	// A DNSLookupMeasurement contains a trace.
 	*archival.Trace
 }
 
-// dnsLookupPair contains a single URL and single resolver.
-type dnsLookupPair struct {
-	r *DNSResolverInfo
-	u *url.URL
+// SupportsHTTP3 returns whether this DNSLookupMeasurement includes the "h3"
+// ALPN in the list of ALPNs for this domain.
+func (dlm *DNSLookupMeasurement) SupportsHTTP3() bool {
+	for _, alpn := range dlm.ALPNs {
+		if alpn == "h3" {
+			return true
+		}
+	}
+	return false
 }
 
-// MeasureDNSLookup performs DNS queries in parallel.
+// dnsLookupTarget uniquely identifies a given DNS lookup.
+type dnsLookupTarget struct {
+	// info uniquely identifies the resolver.
+	info *DNSResolverInfo
+
+	// plan is the overall plan.
+	plan *DNSLookupPlan
+}
+
+// targetDomain returns the domain we want to query.
+func (p *dnsLookupTarget) targetDomain() string {
+	return p.plan.URL.Hostname()
+}
+
+// isHTTPS returns whether the targer URL scheme is HTTPS.
+func (p *dnsLookupTarget) isHTTPS() bool {
+	return p.plan.URL.Scheme == "https"
+}
+
+// resolverNetwork returns the resolver network.
+func (p *dnsLookupTarget) resolverNetwork() DNSResolverNetwork {
+	return p.info.Network
+}
+
+// resolverAddress returns the resolver address.
+func (p *dnsLookupTarget) resolverAddress() string {
+	return p.info.Address
+}
+
+// foreignResolver returns the foreign resolver.
+func (p *dnsLookupTarget) foreignResolver() model.Resolver {
+	return p.info.ForeignResolver
+}
+
+// DNSLookups performs DNS lookups in parallel.
 //
 // You can choose the parallelism with the parallelism argument. If this
 // argument is zero, or negative, we use a small default value.
 //
 // This function returns to the caller a channel where to read
 // measurements from. The channel is closed when done.
-func (mx *Measurer) MeasureDNSLookup(ctx context.Context,
-	parallelism int, dnsLookups ...*DNSLookup) <-chan *DNSLookupMeasurement {
+func (mx *Measurer) DNSLookups(ctx context.Context, parallelism int, dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
 	var (
-		done   = make(chan interface{})
-		output = make(chan *DNSLookupMeasurement)
-		pairs  = make(chan *dnsLookupPair)
+		targets = make(chan *dnsLookupTarget)
+		output  = make(chan *DNSLookupMeasurement)
+		done    = make(chan interface{})
 	)
 	go func() {
-		defer close(pairs)
+		defer close(targets)
 		for _, lookup := range dnsLookups {
 			for _, r := range lookup.Resolvers {
-				pairs <- &dnsLookupPair{
-					r: r,
-					u: lookup.URL,
+				targets <- &dnsLookupTarget{
+					info: r,
+					plan: lookup,
 				}
 			}
 		}
@@ -115,7 +159,7 @@ func (mx *Measurer) MeasureDNSLookup(ctx context.Context,
 	}
 	for i := 0; i < parallelism; i++ {
 		go func() {
-			for pair := range pairs {
+			for pair := range targets {
 				mx.dnsLookup(ctx, pair, output)
 			}
 			done <- true
@@ -131,23 +175,23 @@ func (mx *Measurer) MeasureDNSLookup(ctx context.Context,
 }
 
 func (mx *Measurer) dnsLookup(ctx context.Context,
-	p *dnsLookupPair, output chan<- *DNSLookupMeasurement) {
+	t *dnsLookupTarget, output chan<- *DNSLookupMeasurement) {
 	wg := &sync.WaitGroup{}
-	switch p.r.Network {
+	switch t.resolverNetwork() {
 
 	case DNSResolverSystem:
-		output <- mx.lookupHostSystem(ctx, p.u.Hostname())
+		output <- mx.lookupHostSystem(ctx, t)
 
 	case DNSResolverUDP:
 		wg.Add(1)
 		go func() {
-			output <- mx.lookupHostUDP(ctx, p.u.Hostname(), p.r.Address)
+			output <- mx.lookupHostUDP(ctx, t)
 			wg.Done()
 		}()
-		if p.u.Scheme == "https" {
+		if t.isHTTPS() {
 			wg.Add(1)
 			go func() {
-				output <- mx.lookupHTTPSSvcUDP(ctx, p.u.Hostname(), p.r.Address)
+				output <- mx.lookupHTTPSSvcUDP(ctx, t)
 				wg.Done()
 			}()
 		}
@@ -155,13 +199,13 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 	case DNSResolverForeign:
 		wg.Add(1)
 		go func() {
-			output <- mx.lookupHostForeign(ctx, p.u.Hostname(), p.r.ForeignResolver)
+			output <- mx.lookupHostForeign(ctx, t)
 			wg.Done()
 		}()
-		if p.u.Scheme == "https" {
+		if t.isHTTPS() {
 			wg.Add(1)
 			go func() {
-				output <- mx.lookupHTTPSSvcUDPForeign(ctx, p.u.Hostname(), p.r.ForeignResolver)
+				output <- mx.lookupHTTPSSvcUDPForeign(ctx, t)
 				wg.Done()
 			}()
 		}
@@ -171,47 +215,48 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 }
 
 func (mx *Measurer) lookupHostForeign(
-	ctx context.Context, domain string, r model.Resolver) *DNSLookupMeasurement {
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
-	r = saver.WrapResolver(r)
+	r := saver.WrapResolver(t.foreignResolver())
 	defer r.CloseIdleConnections()
-	addrs, err := mx.doLookupHost(ctx, domain, r)
-	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
+	addrs, err := mx.doLookupHost(ctx, t.targetDomain(), r)
+	return mx.newDNSLookupMeasurement(t, addrs, err, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) lookupHTTPSSvcUDPForeign(
-	ctx context.Context, domain string, r model.Resolver) *DNSLookupMeasurement {
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
-	r = saver.WrapResolver(r)
+	r := saver.WrapResolver(t.foreignResolver())
 	defer r.CloseIdleConnections()
-	https, err := mx.doLookupHTTPSSvc(ctx, domain, r)
-	return mx.newDNSLookupMeasurementHTTPS(domain, https, err, saver.MoveOutTrace())
+	https, err := mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r)
+	return mx.newDNSLookupMeasurementHTTPS(t, https, err, saver.MoveOutTrace())
 }
 
-func (mx *Measurer) lookupHostSystem(ctx context.Context, domain string) *DNSLookupMeasurement {
+func (mx *Measurer) lookupHostSystem(
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverSystem(saver)
 	defer r.CloseIdleConnections()
-	addrs, err := mx.doLookupHost(ctx, domain, r)
-	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
+	addrs, err := mx.doLookupHost(ctx, t.targetDomain(), r)
+	return mx.newDNSLookupMeasurement(t, addrs, err, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) lookupHostUDP(
-	ctx context.Context, domain, address string) *DNSLookupMeasurement {
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
-	r := mx.Library.NewResolverUDP(saver, address)
+	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	addrs, err := mx.doLookupHost(ctx, domain, r)
-	return mx.newDNSLookupMeasurement(domain, addrs, err, saver.MoveOutTrace())
+	addrs, err := mx.doLookupHost(ctx, t.targetDomain(), r)
+	return mx.newDNSLookupMeasurement(t, addrs, err, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) lookupHTTPSSvcUDP(
-	ctx context.Context, domain, address string) *DNSLookupMeasurement {
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
-	r := mx.Library.NewResolverUDP(saver, address)
+	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	https, err := mx.doLookupHTTPSSvc(ctx, domain, r)
-	return mx.newDNSLookupMeasurementHTTPS(domain, https, err, saver.MoveOutTrace())
+	https, err := mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r)
+	return mx.newDNSLookupMeasurementHTTPS(t, https, err, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) doLookupHost(
@@ -236,18 +281,20 @@ func (mx *Measurer) doLookupHTTPSSvc(
 	return https, err
 }
 
-func (mx *Measurer) newDNSLookupMeasurement(domain string,
+func (mx *Measurer) newDNSLookupMeasurement(t *dnsLookupTarget,
 	addrs []string, err error, trace *archival.Trace) *DNSLookupMeasurement {
 	return &DNSLookupMeasurement{
-		Domain:    domain,
-		ID:        mx.IDGenerator.Next(),
-		Failure:   archival.NewFlatFailure(err),
-		Addresses: addrs,
-		Trace:     trace,
+		Domain:           t.targetDomain(),
+		URLMeasurementID: t.plan.URLMeasurementID,
+		ID:               mx.NextID(),
+		Failure:          archival.NewFlatFailure(err),
+		Addresses:        addrs,
+		ALPNs:            []string{},
+		Trace:            trace,
 	}
 }
 
-func (mx *Measurer) newDNSLookupMeasurementHTTPS(domain string,
+func (mx *Measurer) newDNSLookupMeasurementHTTPS(t *dnsLookupTarget,
 	https *model.HTTPSSvc, err error, trace *archival.Trace) *DNSLookupMeasurement {
 	var (
 		addrs []string
@@ -259,11 +306,12 @@ func (mx *Measurer) newDNSLookupMeasurementHTTPS(domain string,
 		alpns = https.ALPN
 	}
 	return &DNSLookupMeasurement{
-		Domain:    domain,
-		ID:        mx.IDGenerator.Next(),
-		Failure:   archival.NewFlatFailure(err),
-		Addresses: addrs,
-		ALPNs:     alpns,
-		Trace:     trace,
+		Domain:           t.targetDomain(),
+		URLMeasurementID: t.plan.URLMeasurementID,
+		ID:               mx.NextID(),
+		Failure:          archival.NewFlatFailure(err),
+		Addresses:        addrs,
+		ALPNs:            alpns,
+		Trace:            trace,
 	}
 }

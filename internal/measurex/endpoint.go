@@ -16,6 +16,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -24,9 +25,9 @@ import (
 )
 
 var (
-	// ErrUnknownEndpointURLScheme means that the given
+	// ErrUnknownURLScheme means that the given
 	// endpoint's URL scheme is neither HTTP nor HTTPS.
-	ErrUnknownEndpointURLScheme = errors.New("unknown Endpoint.URL.Scheme")
+	ErrUnknownURLScheme = errors.New("unknown URL.Scheme")
 
 	// ErrUnknownEndpointNetwork means that the given endpoint's
 	// network is of a type that we don't know how to handle.
@@ -44,8 +45,11 @@ const (
 	NetworkQUIC = EndpointNetwork("quic")
 )
 
-// Endpoint is an endpoint.
-type Endpoint struct {
+// EndpointMeasurementPlan is a plan to measure an endpoint.
+type EndpointMeasurementPlan struct {
+	// URLMeasurementID is the ID of the URLMeasurement that created us.
+	URLMeasurementID int64
+
 	// Domain is the endpoint domain (e.g., "dns.google").
 	Domain string
 
@@ -71,7 +75,7 @@ type Endpoint struct {
 	Cookies []*http.Cookie
 }
 
-func (e *Endpoint) tlsConfig() *tls.Config {
+func (e *EndpointMeasurementPlan) tlsConfig() *tls.Config {
 	return &tls.Config{
 		ServerName: e.SNI,
 		NextProtos: e.ALPN,
@@ -79,7 +83,7 @@ func (e *Endpoint) tlsConfig() *tls.Config {
 	}
 }
 
-func (e *Endpoint) newCookieJar() http.CookieJar {
+func (e *EndpointMeasurementPlan) newCookieJar() http.CookieJar {
 	jar := NewCookieJar()
 	jar.SetCookies(e.URL, e.Cookies)
 	return jar
@@ -87,8 +91,11 @@ func (e *Endpoint) newCookieJar() http.CookieJar {
 
 // EndpointMeasurement is an endpoint measurement.
 type EndpointMeasurement struct {
+	// URLMeasurementID is the ID of the URLMeasurement that created us.
+	URLMeasurementID int64
+
 	// URL is the URL this measurement refers to.
-	URL string
+	URL *url.URL
 
 	// Network is the network of this endpoint.
 	Network EndpointNetwork
@@ -114,23 +121,94 @@ type EndpointMeasurement struct {
 	// StatusCode is the status code (if any).
 	StatusCode int64
 
+	// ResponseHeaders contains the response headers (if any).
+	ResponseHeaders http.Header
+
 	// An HTTPEndpointMeasurement contains a Trace.
 	*archival.Trace
 }
 
-func (mx *Measurer) newEndpointMeasurement(epnt *Endpoint, operation string,
+// ErrInvalidIPAddress means that we cannot parse an IP address.
+var ErrInvalidIPAddress = errors.New("invalid IP address")
+
+// IPAddress returns the IP address used in this EndpointMeasurement.
+func (em *EndpointMeasurement) IPAddress() (string, error) {
+	addr, _, err := net.SplitHostPort(em.Address)
+	if err != nil {
+		return "", err
+	}
+	if net.ParseIP(addr) == nil {
+		return "", ErrInvalidIPAddress
+	}
+	return addr, nil
+}
+
+// SupportsAltSvcHTTP3 indicates whether the response in this EndpointMeasurement
+// contains headers claiming the service also supports HTTP3.
+func (em *EndpointMeasurement) SupportsAltSvcHTTP3() bool {
+	var altsvc string
+	if v := em.ResponseHeaders.Get("alt-svc"); v != "" {
+		altsvc = v
+	}
+	// syntax:
+	//
+	// Alt-Svc: clear
+	// Alt-Svc: <protocol-id>=<alt-authority>; ma=<max-age>
+	// Alt-Svc: <protocol-id>=<alt-authority>; ma=<max-age>; persist=1
+	//
+	// multiple entries may be separated by comma.
+	//
+	// See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Alt-Svc
+	entries := strings.Split(altsvc, ",")
+	if len(entries) < 1 {
+		return false
+	}
+	for _, entry := range entries {
+		parts := strings.Split(entry, ";")
+		if len(parts) < 1 {
+			continue
+		}
+		if parts[0] == "h3=\":443\"" {
+			return true
+		}
+	}
+	return false
+}
+
+// IsHTTPMeasurement returns whether this EndpointMeasurement measures the
+// cleartex HTTP protocol using the TCP network.
+func (em *EndpointMeasurement) IsHTTPMeasurement() bool {
+	return em.URL.Scheme == "http" && em.Network == NetworkTCP
+}
+
+// IsHTTPSMeasurement returns whether this EndpointMeasurement measures the
+// encrypted HTTPS protocol using the TCP network.
+func (em *EndpointMeasurement) IsHTTPSMeasurement() bool {
+	return em.URL.Scheme == "https" && em.Network == NetworkTCP
+}
+
+// IsHTTP3Measurement returns whether this EndpointMeasurement measures the
+// encrypted HTTPS protocol using the QUIC network.
+func (em *EndpointMeasurement) IsHTTP3Measurement() bool {
+	return em.URL.Scheme == "https" && em.Network == NetworkQUIC
+}
+
+func (mx *Measurer) newEndpointMeasurement(epnt *EndpointMeasurementPlan, operation string,
 	err error, responseCookies []*http.Cookie, location *url.URL, statusCode int64,
-	trace *archival.Trace) *EndpointMeasurement {
+	responseHeaders http.Header, trace *archival.Trace) *EndpointMeasurement {
 	return &EndpointMeasurement{
-		URL:             epnt.URL.String(),
-		Network:         epnt.Network,
-		Address:         epnt.Address,
-		ID:              mx.IDGenerator.Next(),
-		Failure:         archival.NewFlatFailure(err),
-		FailedOperation: operation,
-		ResponseCookies: responseCookies,
-		StatusCode:      statusCode,
-		Trace:           trace,
+		URLMeasurementID: epnt.URLMeasurementID,
+		URL:              epnt.URL,
+		Network:          epnt.Network,
+		Address:          epnt.Address,
+		ID:               mx.NextID(),
+		Failure:          archival.NewFlatFailure(err),
+		FailedOperation:  operation,
+		ResponseCookies:  responseCookies,
+		Location:         location,
+		StatusCode:       statusCode,
+		ResponseHeaders:  responseHeaders,
+		Trace:            trace,
 	}
 }
 
@@ -142,10 +220,10 @@ func (mx *Measurer) newEndpointMeasurement(epnt *Endpoint, operation string,
 // This function returns to the caller a channel where to read
 // measurements from. The channel is closed when done.
 func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int,
-	epnts ...*Endpoint) <-chan *EndpointMeasurement {
+	epnts ...*EndpointMeasurementPlan) <-chan *EndpointMeasurement {
 	var (
 		done   = make(chan interface{})
-		input  = make(chan *Endpoint)
+		input  = make(chan *EndpointMeasurementPlan)
 		output = make(chan *EndpointMeasurement)
 	)
 	go func() {
@@ -174,7 +252,7 @@ func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int,
 	return output
 }
 
-func (mx *Measurer) measureEndpoint(ctx context.Context, epnt *Endpoint) *EndpointMeasurement {
+func (mx *Measurer) measureEndpoint(ctx context.Context, epnt *EndpointMeasurementPlan) *EndpointMeasurement {
 	switch epnt.URL.Scheme {
 	case "tcpconnect":
 		return mx.tcpEndpointConnect(ctx, epnt)
@@ -187,14 +265,14 @@ func (mx *Measurer) measureEndpoint(ctx context.Context, epnt *Endpoint) *Endpoi
 	default:
 		return mx.newEndpointMeasurement(epnt,
 			netxlite.TopLevelOperation,
-			ErrUnknownEndpointURLScheme,
-			nil, nil, 0,
+			ErrUnknownURLScheme,
+			nil, nil, 0, nil,
 			&archival.Trace{})
 	}
 }
 
 func (mx *Measurer) tcpEndpointConnect(
-	ctx context.Context, epnt *Endpoint) *EndpointMeasurement {
+	ctx context.Context, epnt *EndpointMeasurementPlan) *EndpointMeasurement {
 	saver := archival.NewSaver()
 	conn, operation, err := mx.tcpEndpointConnectWithSaver(ctx, epnt, saver)
 	if conn != nil {
@@ -204,13 +282,13 @@ func (mx *Measurer) tcpEndpointConnect(
 	return mx.newEndpointMeasurement(
 		epnt,
 		operation, err,
-		nil, nil, 0,
+		nil, nil, 0, nil,
 		saver.MoveOutTrace(),
 	)
 }
 
 func (mx *Measurer) tlsEndpointHandshake(
-	ctx context.Context, epnt *Endpoint) *EndpointMeasurement {
+	ctx context.Context, epnt *EndpointMeasurementPlan) *EndpointMeasurement {
 	saver := archival.NewSaver()
 	conn, operation, err := mx.tlsEndpointHandshakeWithSaver(ctx, epnt, saver)
 	if conn != nil {
@@ -220,13 +298,13 @@ func (mx *Measurer) tlsEndpointHandshake(
 	return mx.newEndpointMeasurement(
 		epnt,
 		operation, err,
-		nil, nil, 0,
+		nil, nil, 0, nil,
 		saver.MoveOutTrace(),
 	)
 }
 
 func (mx *Measurer) quicEndpointHandshake(
-	ctx context.Context, epnt *Endpoint) *EndpointMeasurement {
+	ctx context.Context, epnt *EndpointMeasurementPlan) *EndpointMeasurement {
 	saver := archival.NewSaver()
 	sess, operation, err := mx.quicEndpointHandshakeWithSaver(ctx, epnt, saver)
 	if sess != nil {
@@ -237,12 +315,12 @@ func (mx *Measurer) quicEndpointHandshake(
 	return mx.newEndpointMeasurement(
 		epnt,
 		operation, err,
-		nil, nil, 0,
+		nil, nil, 0, nil,
 		saver.MoveOutTrace(),
 	)
 }
 
-func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *Endpoint) *EndpointMeasurement {
+func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointMeasurementPlan) *EndpointMeasurement {
 	saver := archival.NewSaver()
 	var (
 		resp      *http.Response
@@ -258,14 +336,15 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *Endpoint) *En
 	default:
 		return mx.newEndpointMeasurement(epnt,
 			netxlite.TopLevelOperation,
-			ErrUnknownEndpointURLScheme,
-			nil, nil, 0,
+			ErrUnknownURLScheme,
+			nil, nil, 0, nil,
 			&archival.Trace{})
 	}
 	var (
-		responseJar []*http.Cookie
-		location    *url.URL
-		statusCode  int64
+		responseJar     []*http.Cookie
+		location        *url.URL
+		statusCode      int64
+		responseHeaders http.Header
 	)
 	if resp != nil {
 		resp.Body.Close()
@@ -274,6 +353,7 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *Endpoint) *En
 			location = loc
 		}
 		statusCode = int64(resp.StatusCode)
+		responseHeaders = resp.Header
 	}
 	saver.StopCollectingNetworkEvents()
 	return mx.newEndpointMeasurement(
@@ -282,12 +362,13 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *Endpoint) *En
 		responseJar,
 		location,
 		statusCode,
+		responseHeaders,
 		saver.MoveOutTrace(),
 	)
 }
 
 func (mx *Measurer) tcpEndpointConnectWithSaver(ctx context.Context,
-	epnt *Endpoint, saver *archival.Saver) (net.Conn, string, error) {
+	epnt *EndpointMeasurementPlan, saver *archival.Saver) (net.Conn, string, error) {
 	timeout := mx.TCPconnectTimeout
 	ol := NewOperationLogger(mx.Logger, "TCPConnect %s", epnt.Address)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -304,7 +385,7 @@ func (mx *Measurer) tcpEndpointConnectWithSaver(ctx context.Context,
 }
 
 func (mx *Measurer) tlsEndpointHandshakeWithSaver(ctx context.Context,
-	epnt *Endpoint, saver *archival.Saver) (net.Conn, string, error) {
+	epnt *EndpointMeasurementPlan, saver *archival.Saver) (net.Conn, string, error) {
 	conn, operation, err := mx.tcpEndpointConnectWithSaver(ctx, epnt, saver)
 	if err != nil {
 		return nil, operation, err
@@ -323,7 +404,7 @@ func (mx *Measurer) tlsEndpointHandshakeWithSaver(ctx context.Context,
 }
 
 func (mx *Measurer) quicEndpointHandshakeWithSaver(
-	ctx context.Context, epnt *Endpoint, saver *archival.Saver) (quic.EarlySession, string, error) {
+	ctx context.Context, epnt *EndpointMeasurementPlan, saver *archival.Saver) (quic.EarlySession, string, error) {
 	timeout := mx.QUICHandshakeTimeout
 	ol := NewOperationLogger(mx.Logger, "QUICHandshake %s with sni=%s", epnt.Address, epnt.SNI)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -338,7 +419,7 @@ func (mx *Measurer) quicEndpointHandshakeWithSaver(
 	return sess, "", nil
 }
 
-func (mx *Measurer) httpGET(ctx context.Context, epnt *Endpoint,
+func (mx *Measurer) httpGET(ctx context.Context, epnt *EndpointMeasurementPlan,
 	saver *archival.Saver, jar http.CookieJar) (*http.Response, string, error) {
 	conn, operation, err := mx.tcpEndpointConnectWithSaver(ctx, epnt, saver)
 	if err != nil {
@@ -351,7 +432,7 @@ func (mx *Measurer) httpGET(ctx context.Context, epnt *Endpoint,
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }
 
-func (mx *Measurer) httpsOrHTTP3Get(ctx context.Context, epnt *Endpoint,
+func (mx *Measurer) httpsOrHTTP3Get(ctx context.Context, epnt *EndpointMeasurementPlan,
 	saver *archival.Saver, jar http.CookieJar) (*http.Response, string, error) {
 	switch epnt.Network {
 	case NetworkQUIC:
@@ -363,7 +444,7 @@ func (mx *Measurer) httpsOrHTTP3Get(ctx context.Context, epnt *Endpoint,
 	}
 }
 
-func (mx *Measurer) httpsGET(ctx context.Context, epnt *Endpoint,
+func (mx *Measurer) httpsGET(ctx context.Context, epnt *EndpointMeasurementPlan,
 	saver *archival.Saver, jar http.CookieJar) (*http.Response, string, error) {
 	conn, operation, err := mx.tlsEndpointHandshakeWithSaver(ctx, epnt, saver)
 	if err != nil {
@@ -377,7 +458,7 @@ func (mx *Measurer) httpsGET(ctx context.Context, epnt *Endpoint,
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }
 
-func (mx *Measurer) http3GET(ctx context.Context, epnt *Endpoint,
+func (mx *Measurer) http3GET(ctx context.Context, epnt *EndpointMeasurementPlan,
 	saver *archival.Saver, jar http.CookieJar) (*http.Response, string, error) {
 	sess, operation, err := mx.quicEndpointHandshakeWithSaver(ctx, epnt, saver)
 	if err != nil {
@@ -391,7 +472,7 @@ func (mx *Measurer) http3GET(ctx context.Context, epnt *Endpoint,
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }
 
-func (mx *Measurer) httpTransportDo(ctx context.Context, epnt *Endpoint,
+func (mx *Measurer) httpTransportDo(ctx context.Context, epnt *EndpointMeasurementPlan,
 	saver *archival.Saver, jar http.CookieJar, txp model.HTTPTransport) (*http.Response, string, error) {
 	clnt := mx.newHTTPClientWithoutRedirects(saver, jar, txp)
 	defer clnt.CloseIdleConnections()
@@ -399,7 +480,7 @@ func (mx *Measurer) httpTransportDo(ctx context.Context, epnt *Endpoint,
 }
 
 func (mx *Measurer) httpClientDo(ctx context.Context,
-	clnt model.HTTPClient, epnt *Endpoint) (*http.Response, string, error) {
+	clnt model.HTTPClient, epnt *EndpointMeasurementPlan) (*http.Response, string, error) {
 	req, err := NewHTTPGetRequest(ctx, epnt.URL.String())
 	if err != nil {
 		return nil, netxlite.TopLevelOperation, err
