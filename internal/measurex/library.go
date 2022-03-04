@@ -184,8 +184,7 @@ func (lib *Library) NewResolverUDP(saver *archival.Saver, address string) model.
 }
 
 // NewTLSHandshakerStdlib creates a new TLS handshaker that uses the
-// standard library using the underlying netxlite library.
-// into the Saver and uses the stdlib for TLS.
+// Go standard library by invoking the underlying netxlite library.
 func (lib *Library) NewTLSHandshakerStdlib() model.TLSHandshaker {
 	return lib.netxlite.NewTLSHandshakerStdlib(lib.logger)
 }
