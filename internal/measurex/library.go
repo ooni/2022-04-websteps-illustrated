@@ -11,6 +11,7 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/lucas-clemente/quic-go"
 )
 
@@ -82,12 +83,18 @@ type Library struct {
 	netxlite NetxliteLibrary
 }
 
-// NewLibrary creates a new basic measurement library instance.
+// NewLibrary creates a new basic measurement library instance using the given
+// logger and a custom implementation of the nextlite library.
 func NewLibrary(logger model.Logger, netx NetxliteLibrary) *Library {
 	return &Library{
 		logger:   logger,
 		netxlite: netx,
 	}
+}
+
+// NewDefaultLibrary creates a Library that uses netxlite.
+func NewDefaultLibrary(logger model.Logger) *Library {
+	return NewLibrary(logger, &netxliteLibrary{})
 }
 
 // newDialerWithSystemResolver creates a new dialer that
@@ -186,4 +193,80 @@ func (lib *Library) NewTLSHandshakerStdlib() model.TLSHandshaker {
 // WrapHTTPClient wraps an HTTP client using the underlying netxlite library.
 func (lib *Library) WrapHTTPClient(clnt model.HTTPClient) model.HTTPClient {
 	return lib.netxlite.WrapHTTPClient(clnt)
+}
+
+// netxliteLibrary is the default NetxliteLibrary implementation.
+type netxliteLibrary struct{}
+
+func (nl *netxliteLibrary) NewDNSOverUDPTransport(
+	dialer model.Dialer, address string) model.DNSTransport {
+	return netxlite.NewDNSOverUDP(dialer, address)
+}
+
+func (nl *netxliteLibrary) NewDialerWithResolver(
+	logger model.Logger, reso model.Resolver) model.Dialer {
+	return netxlite.NewDialerWithResolver(logger, reso)
+}
+
+func (nl *netxliteLibrary) NewDialerWithoutResolver(logger model.Logger) model.Dialer {
+	return netxlite.NewDialerWithoutResolver(logger)
+}
+
+func (nl *netxliteLibrary) NewHTTP3Transport(logger model.Logger, dialer model.QUICDialer,
+	tlsConfig *tls.Config) model.HTTPTransport {
+	return netxlite.NewHTTP3Transport(logger, dialer, tlsConfig)
+}
+
+func (nl *netxliteLibrary) NewHTTPTransport(logger model.Logger, dialer model.Dialer,
+	tlsDialer model.TLSDialer) model.HTTPTransport {
+	return netxlite.NewHTTPTransport(logger, dialer, tlsDialer)
+}
+
+func (nl *netxliteLibrary) NewNullDialer() model.Dialer {
+	return netxlite.NewNullDialer()
+}
+
+func (nl *netxliteLibrary) NewNullTLSDialer() model.TLSDialer {
+	return netxlite.NewNullTLSDialer()
+}
+
+func (nl *netxliteLibrary) NewQUICDialerWithoutResolver(
+	ql model.QUICListener, logger model.Logger) model.QUICDialer {
+	return netxlite.NewQUICDialerWithoutResolver(ql, logger)
+}
+
+func (nl *netxliteLibrary) NewQUICListener() model.QUICListener {
+	return netxlite.NewQUICListener()
+}
+
+func (nl *netxliteLibrary) NewResolverSystem(logger model.Logger) model.Resolver {
+	return netxlite.NewResolverStdlib(logger)
+}
+
+func (nl *netxliteLibrary) NewResolverSerial(txp model.DNSTransport) model.Resolver {
+	return netxlite.NewSerialResolver(txp)
+}
+
+func (nl *netxliteLibrary) NewSingleUseDialer(conn net.Conn) model.Dialer {
+	return netxlite.NewSingleUseDialer(conn)
+}
+
+func (nl *netxliteLibrary) NewSingleUseQUICDialer(sess quic.EarlySession) model.QUICDialer {
+	return netxlite.NewSingleUseQUICDialer(sess)
+}
+
+func (nl *netxliteLibrary) NewSingleUseTLSDialer(conn model.TLSConn) model.TLSDialer {
+	return netxlite.NewSingleUseTLSDialer(conn)
+}
+
+func (nl *netxliteLibrary) NewTLSHandshakerStdlib(logger model.Logger) model.TLSHandshaker {
+	return netxlite.NewTLSHandshakerStdlib(logger)
+}
+
+func (nl *netxliteLibrary) WrapHTTPClient(clnt model.HTTPClient) model.HTTPClient {
+	return netxlite.WrapHTTPClient(clnt)
+}
+
+func (nl *netxliteLibrary) WrapResolver(logger model.Logger, reso model.Resolver) model.Resolver {
+	return netxlite.WrapResolver(logger, reso)
 }
