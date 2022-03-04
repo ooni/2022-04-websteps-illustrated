@@ -357,7 +357,7 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointPlan)
 	if resp != nil {
 		resp.Body.Close()
 		responseJar = jar.Cookies(epnt.URL)
-		if loc, err := resp.Location(); err != nil {
+		if loc, err := resp.Location(); err == nil {
 			location = loc
 		}
 	}
@@ -496,5 +496,8 @@ func (mx *Measurer) httpClientDo(ctx context.Context,
 	defer cancel()
 	resp, err := clnt.Do(req.WithContext(ctx))
 	ol.Stop(err)
-	return resp, netxlite.HTTPRoundTripOperation, err
+	if err != nil {
+		return nil, netxlite.HTTPRoundTripOperation, err
+	}
+	return resp, "", nil
 }

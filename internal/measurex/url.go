@@ -1,6 +1,7 @@
 package measurex
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -50,6 +51,11 @@ func (um *URLMeasurement) Domain() string {
 	return um.URL.Hostname()
 }
 
+// String returns a string representation of the URLMeasurement.
+func (um *URLMeasurement) String() string {
+	return um.URL.String()
+}
+
 // NewURLMeasurement creates a new URLMeasurement from a string URL.
 func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	parsed, err := url.Parse(input)
@@ -61,6 +67,11 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	default:
 		return nil, ErrUnknownURLScheme
 	}
+	// if needed normalize the URL path and fragment
+	if parsed.Path == "" {
+		parsed.Path = "/"
+	}
+	parsed.Fragment = ""
 	out := &URLMeasurement{
 		ID:          mx.NextID(),
 		EndpointIDs: []int64{},
@@ -186,7 +197,7 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 		uniq[ipAddr] |= urlAddressFlagHTTP3
 	}
 	// finally build the return list.
-	out := make([]*URLAddress, 8)
+	out := make([]*URLAddress, 0, 8)
 	for addr, flags := range uniq {
 		out = append(out, &URLAddress{
 			URLMeasurementID: um.ID,
@@ -205,21 +216,31 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 // related to the original URL regardless of its scheme.
 func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
-	out := make([]*EndpointPlan, 8)
+	out := make([]*EndpointPlan, 0, 8)
 	for _, addr := range addrs {
-		epnt, err := um.makeEndpoint(addr.Address)
-		if err != nil {
-			log.Printf("cannot make endpoint: %s", err.Error())
-			continue
-		}
 		if !addr.AlreadyTestedHTTP() {
-			out = append(out, um.newEndpointPlan(archival.NetworkTypeTCP, epnt, "http"))
+			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
+			if err != nil {
+				log.Printf("cannot make plan: %s", err.Error())
+				continue
+			}
+			out = append(out, plan)
 		}
 		if !addr.AlreadyTestedHTTPS() {
-			out = append(out, um.newEndpointPlan(archival.NetworkTypeTCP, epnt, "https"))
+			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
+			if err != nil {
+				log.Printf("cannot make plan: %s", err.Error())
+				continue
+			}
+			out = append(out, plan)
 		}
 		if addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
-			out = append(out, um.newEndpointPlan(archival.NetworkTypeQUIC, epnt, "https"))
+			plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
+			if err != nil {
+				log.Printf("cannot make plan: %s", err.Error())
+				continue
+			}
+			out = append(out, plan)
 		}
 	}
 	return out, len(out) > 0
@@ -227,18 +248,24 @@ func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 
 // newEndpointPlan is a factory for creating an endpoint plan.
 func (um *URLMeasurement) newEndpointPlan(
-	network archival.NetworkType, epnt, scheme string) *EndpointPlan {
-	return &EndpointPlan{
+	network archival.NetworkType, address, scheme string) (*EndpointPlan, error) {
+	URL := newURLWithScheme(um.URL, scheme)
+	epnt, err := urlMakeEndpoint(URL, address)
+	if err != nil {
+		return nil, err
+	}
+	out := &EndpointPlan{
 		URLMeasurementID: um.ID,
 		Domain:           um.Domain(),
 		Network:          network,
 		Address:          epnt,
 		SNI:              um.Domain(),
 		ALPN:             ALPNForHTTPEndpoint(network),
-		URL:              newURLWithScheme(um.URL, scheme),
+		URL:              URL,
 		Headers:          um.Headers,
 		Cookies:          um.Cookies,
 	}
+	return out, nil
 }
 
 // newURLWithScheme creates a copy of an URL with a different scheme.
@@ -257,21 +284,14 @@ func newURLWithScheme(URL *url.URL, scheme string) *url.URL {
 	}
 }
 
-// makeEndpoint makes a level-4 endpoint given the address and either the URL scheme
+// urlMakeEndpoint makes a level-4 endpoint given the address and either the URL scheme
 // or the explicit port provided inside the URL.
-func (um *URLMeasurement) makeEndpoint(address string) (string, error) {
-	port, err := PortFromURL(um.URL)
+func urlMakeEndpoint(URL *url.URL, address string) (string, error) {
+	port, err := PortFromURL(URL)
 	if err != nil {
 		return "", err
 	}
 	return net.JoinHostPort(address, port), nil
-}
-
-// HasUnmeasuredEndpoints returns whether the given URLMeasurement
-// contains references to any unmeasured endpoints.
-func (um *URLMeasurement) HasUnmeasuredEndpoints() bool {
-	plan, _ := um.NewEndpointPlan()
-	return len(plan) > 0
 }
 
 // urlRedirectPolicy determines the policy for computing redirects.
@@ -304,7 +324,7 @@ func (*urlRedirectPolicyDefault) Summary(epnt *EndpointMeasurement) (string, boo
 		return epnt.Location.String(), true
 	}
 	// Otherwise, account for cookies
-	summary := make([]string, 4)
+	summary := make([]string, 0, 4)
 	for _, cookie := range epnt.Cookies {
 		summary = append(summary, cookie.String())
 	}
@@ -347,7 +367,7 @@ func (mx *Measurer) redirects(
 		}
 		next.EndpointIDs = append(next.EndpointIDs, epnt.ID)
 	}
-	out := make([]*URLMeasurement, 8)
+	out := make([]*URLMeasurement, 0, 8)
 	for _, next := range uniq {
 		out = append(out, next)
 	}
@@ -362,4 +382,72 @@ func (mx *Measurer) newHeadersForRedirect(location *url.URL, orig http.Header) h
 	}
 	out.Set("Referer", location.String())
 	return out
+}
+
+// URLRedirectDeque is the type we use to manage the redirection
+// queue and to follow a reasonable number of redirects.
+type URLRedirectDeque struct {
+	// cnt counts the depth
+	cnt int
+
+	// mem contains the URLs we've already visited.
+	mem map[string]bool
+
+	// q contains the current deque
+	q []*URLMeasurement
+}
+
+// NewURLRedirectDeque creates an URLRedirectDeque.
+func NewURLRedirectDeque() *URLRedirectDeque {
+	return &URLRedirectDeque{
+		cnt: 0,
+		mem: map[string]bool{},
+		q:   []*URLMeasurement{},
+	}
+}
+
+// String returns a string representation of the deque.
+func (r *URLRedirectDeque) String() string {
+	var out []string
+	for _, entry := range r.q {
+		out = append(out, entry.String())
+	}
+	return fmt.Sprintf("%+v", out)
+}
+
+// Append appends one or more URLMeasurement to the right of the deque if
+// and only if we've not already visited the related URLs.
+func (r *URLRedirectDeque) Append(um ...*URLMeasurement) {
+	for _, m := range um {
+		if r.mem[m.String()] {
+			continue
+		}
+		r.q = append(r.q, m)
+	}
+}
+
+// RememberVisitedURLs register the URLs we've already visited so that
+// we're not going to visit them again.
+func (r *URLRedirectDeque) RememberVisitedURLs(um *URLMeasurement) {
+	for _, epnt := range um.Endpoint {
+		r.mem[epnt.URL.String()] = true
+	}
+}
+
+// PopLeft removes the first element in the redirect deque.
+func (r *URLRedirectDeque) PopLeft() (um *URLMeasurement) {
+	um = r.q[0]
+	r.q = r.q[1:]
+	r.cnt++ // we increment the depth when we _remove_ and measure
+	return
+}
+
+// Empty returns true if the deque is empty.
+func (r *URLRedirectDeque) Empty() bool {
+	return len(r.q) <= 0
+}
+
+// NumRedirects returns the number or redirects we followed so far.
+func (r *URLRedirectDeque) NumRedirects() int {
+	return r.cnt
 }

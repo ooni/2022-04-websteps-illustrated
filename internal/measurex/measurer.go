@@ -109,13 +109,13 @@ const (
 )
 
 // NewMeasurer creates a new Measurer instance using the default settings.
-func NewMeasurer(library *Library) *Measurer {
+func NewMeasurer(logger model.Logger, library *Library) *Measurer {
 	return &Measurer{
 		DNSLookupTimeout:                 DefaultDNSLookupTimeout,
 		HTTPGETTimeout:                   DefaultHTTPGETTimeout,
 		IDGenerator:                      NewIDGenerator(),
 		Library:                          library,
-		Logger:                           model.DiscardLogger,
+		Logger:                           logger,
 		MaxHTTPResponseBodySnapshotSize:  DefaultMaxHTTPResponseBodySnapshotSize,
 		MaxHTTPSResponseBodySnapshotSize: DefaultMaxHTTPSResponseBodySnapshotSize,
 		QUICHandshakeTimeout:             DefaultQUICHandshakeTimeout,
