@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+
+	"github.com/bassosimone/websteps-illustrated/internal/archival"
 )
 
 // URLMeasurement is the result of measuring an URL.
@@ -213,7 +215,7 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP() ([]*EndpointMeasur
 		out = append(out, &EndpointMeasurementPlan{
 			URLMeasurementID: um.ID,
 			Domain:           um.Domain(),
-			Network:          NetworkTCP,
+			Network:          archival.NetworkTypeTCP,
 			Address:          epnt,
 			SNI:              "",         // not needed
 			ALPN:             []string{}, // not needed
@@ -242,7 +244,7 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTPS() ([]*EndpointMeasu
 		out = append(out, &EndpointMeasurementPlan{
 			URLMeasurementID: um.ID,
 			Domain:           um.Domain(),
-			Network:          NetworkTCP,
+			Network:          archival.NetworkTypeTCP,
 			Address:          epnt,
 			SNI:              um.Domain(),
 			ALPN:             []string{"h2", "http/1.1"},
@@ -271,7 +273,7 @@ func (um *URLMeasurement) NewEndpointMeasurementPlanForHTTP3() ([]*EndpointMeasu
 		out = append(out, &EndpointMeasurementPlan{
 			URLMeasurementID: um.ID,
 			Domain:           um.Domain(),
-			Network:          NetworkQUIC,
+			Network:          archival.NetworkTypeQUIC,
 			Address:          epnt,
 			SNI:              um.Domain(),
 			ALPN:             []string{"h3"},
@@ -306,7 +308,7 @@ type urlRedirectPolicyDefault struct{}
 
 // Summary implements urlRedirectPolicy.Summary.
 func (*urlRedirectPolicyDefault) Summary(epnt *EndpointMeasurement) (string, bool) {
-	switch epnt.StatusCode {
+	switch epnt.ResponseStatusCode() {
 	case 301, 302, 303, 306, 307:
 	default:
 		return "", false // skip this entry if it's not a redirect
@@ -355,7 +357,7 @@ func (mx *Measurer) redirects(
 				EndpointIDs: []int64{},
 				URL:         epnt.Location,
 				Cookies:     epnt.Cookies,
-				Headers:     mx.newHeadersForRedirect(epnt.Location, epnt.ResponseHeaders),
+				Headers:     mx.newHeadersForRedirect(epnt.Location, epnt.ResponseHeaders()),
 				SNI:         epnt.Location.Hostname(),
 				ALPN:        ALPNForHTTPEndpoint(epnt.Network),
 				Host:        epnt.Location.Hostname(),

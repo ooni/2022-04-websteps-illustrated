@@ -9,15 +9,17 @@ package measurex
 import (
 	"errors"
 	"net/url"
+
+	"github.com/bassosimone/websteps-illustrated/internal/archival"
 )
 
 // ALPNForHTTPEndpoint selects the correct ALPN for an HTTP endpoint
 // given the network. On failure, we return an empty list.
-func ALPNForHTTPEndpoint(network EndpointNetwork) []string {
+func ALPNForHTTPEndpoint(network archival.NetworkType) []string {
 	switch network {
-	case NetworkQUIC:
+	case archival.NetworkTypeQUIC:
 		return []string{"h3"}
-	case NetworkTCP:
+	case archival.NetworkTypeTCP:
 		return []string{"h2", "http/1.1"}
 	default:
 		return []string{}
