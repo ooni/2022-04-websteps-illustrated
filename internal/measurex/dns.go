@@ -27,6 +27,12 @@ var (
 
 	// DNSResolverUDP is a resolver using DNS-over-UDP
 	DNSResolverUDP = DNSResolverNetwork("udp")
+
+	// DNSResolverDoH is a resolver using DNS-over-HTTPS
+	DNSResolverDoH = DNSResolverNetwork("doh")
+
+	// DNSResolverDoH3 is a resolver using DNS-over-HTTP3
+	DNSResolverDoH3 = DNSResolverNetwork("doh3")
 )
 
 // DNSResolverInfo contains info about a DNS resolver.
@@ -86,8 +92,8 @@ func (dlm *DNSLookupMeasurement) ALPNs() []string {
 	return nil
 }
 
-// SupportsHTTP3 returns whether this DNSLookupMeasurement includes the "h3"
-// ALPN in the list of ALPNs for this domain.
+// SupportsHTTP3 returns whether this DNSLookupMeasurement includes the
+// "h3" ALPN in the list of ALPNs for this domain.
 func (dlm *DNSLookupMeasurement) SupportsHTTP3() bool {
 	for _, alpn := range dlm.ALPNs() {
 		if alpn == "h3" {
@@ -179,6 +185,16 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			output <- mx.lookupHTTPSSvcUDP(ctx, t)
 			wg.Done()
 		}()
+	case DNSResolverDoH, DNSResolverDoH3:
+		wg.Add(2)
+		go func() {
+			output <- mx.lookupHostDoH(ctx, t)
+			wg.Done()
+		}()
+		go func() {
+			output <- mx.lookupHTTPSSvcDoH(ctx, t)
+			wg.Done()
+		}()
 	}
 	wg.Wait()
 }
@@ -201,11 +217,44 @@ func (mx *Measurer) lookupHostUDP(
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
+func (mx *Measurer) lookupHostDoH(
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	hc := mx.httpClientForDNSLookupTarget(t)
+	r := mx.Library.NewResolverDoH(
+		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
+	// Note: no close idle connections because actually we'd like to keep
+	// open connections with the server.
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t)
+	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
+}
+
+func (mx *Measurer) httpClientForDNSLookupTarget(t *dnsLookupTarget) model.HTTPClient {
+	switch t.resolverNetwork() {
+	case DNSResolverDoH3:
+		return mx.HTTP3ClientForDoH
+	default:
+		return mx.HTTPClientForDoH
+	}
+}
+
 func (mx *Measurer) lookupHTTPSSvcUDP(
 	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
+	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t)
+	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
+}
+
+func (mx *Measurer) lookupHTTPSSvcDoH(
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	hc := mx.httpClientForDNSLookupTarget(t)
+	r := mx.Library.NewResolverDoH(
+		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
+	// Note: no close idle connections because actually we'd like to keep
+	// open connections with the server.
 	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t)
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }

@@ -20,6 +20,10 @@ type NetxliteLibrary interface {
 	// NewDNSOverUDPTransport creates a new DNS-over-UDP DNS transport.
 	NewDNSOverUDPTransport(dialer model.Dialer, address string) model.DNSTransport
 
+	// NewDNSOverHTTPSTransport creates a new DNS-over-HTTPS DNS transport. The
+	// network argument should be one of "doh" and "doh3".
+	NewDNSOverHTTPSTransport(clnt model.HTTPClient, network, address string) model.DNSTransport
+
 	// NewDialerWithResolver creates a new dialer using the given logger and resolver
 	NewDialerWithResolver(logger model.Logger, reso model.Resolver) model.Dialer
 
@@ -183,6 +187,29 @@ func (lib *Library) NewResolverUDP(saver *archival.Saver, address string) model.
 					)))))
 }
 
+// NewResolverDoH is a convenience factory for creating a Resolver
+// using DNS-over-HTTPS that saves measurements into the Saver.
+//
+// Note that we'll not save HTTP related events (such as connecting,
+// or handshaking) when issuing queries because the lifecycle of
+// the HTTP client is much larger than the one of the saver.
+//
+// The network argument should one of "doh" and "doh3". The former
+// uses DNS-over-HTTPS and the latter DNS-over-HTTP3.
+func (lib *Library) NewResolverDoH(saver *archival.Saver,
+	clnt model.HTTPClient, network, address string) model.Resolver {
+	return saver.WrapResolver(
+		lib.netxlite.WrapResolver(
+			lib.logger,
+			lib.netxlite.NewUnwrappedParallelResolver(
+				saver.WrapDNSTransport(
+					lib.netxlite.NewDNSOverHTTPSTransport(
+						clnt,
+						network,
+						address,
+					)))))
+}
+
 // NewTLSHandshakerStdlib creates a new TLS handshaker that uses the
 // Go standard library by invoking the underlying netxlite library.
 func (lib *Library) NewTLSHandshakerStdlib() model.TLSHandshaker {
@@ -200,6 +227,16 @@ type netxliteLibrary struct{}
 func (nl *netxliteLibrary) NewDNSOverUDPTransport(
 	dialer model.Dialer, address string) model.DNSTransport {
 	return netxlite.NewDNSOverUDP(dialer, address)
+}
+
+func (nl *netxliteLibrary) NewDNSOverHTTPSTransport(
+	clnt model.HTTPClient, network, address string) model.DNSTransport {
+	return &netxlite.DNSOverHTTPS{
+		Client:       clnt,
+		URL:          address,
+		HostOverride: "",
+		Protocol:     network,
+	}
 }
 
 func (nl *netxliteLibrary) NewDialerWithResolver(

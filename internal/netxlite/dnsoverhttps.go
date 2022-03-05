@@ -22,6 +22,10 @@ type DNSOverHTTPS struct {
 	// HostOverride is OPTIONAL and allows to override the
 	// Host header sent in every request.
 	HostOverride string
+
+	// Protocol is the MANDATORY protocol to report to the caller
+	// via Network(). It should be "doh" or "doh3".
+	Protocol string
 }
 
 // NewDNSOverHTTPS creates a new DNSOverHTTPS instance.
@@ -39,7 +43,12 @@ func NewDNSOverHTTPS(client model.HTTPClient, URL string) *DNSOverHTTPS {
 // with the given Host header override.
 func NewDNSOverHTTPSWithHostOverride(
 	client model.HTTPClient, URL, hostOverride string) *DNSOverHTTPS {
-	return &DNSOverHTTPS{Client: client, URL: URL, HostOverride: hostOverride}
+	return &DNSOverHTTPS{
+		Client:       client,
+		URL:          URL,
+		HostOverride: hostOverride,
+		Protocol:     "doh",
+	}
 }
 
 // RoundTrip sends a query and receives a reply.
@@ -77,7 +86,7 @@ func (t *DNSOverHTTPS) RequiresPadding() bool {
 
 // Network returns the transport network, i.e., "doh".
 func (t *DNSOverHTTPS) Network() string {
-	return "doh"
+	return t.Protocol
 }
 
 // Address returns the URL we're using for the DoH server.

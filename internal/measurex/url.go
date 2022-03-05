@@ -268,6 +268,10 @@ const (
 //
 // Note that the returned list will include HTTP, HTTPS, and HTTP3 plans
 // related to the original URL regardless of its scheme.
+//
+// The flags argument allows to specify flags that modify the planning
+// algorithm. The EndpointPlanningExcludeBogons flag is such that we
+// will not include any bogon IP address into the returned plan.
 func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
 	out := make([]*EndpointPlan, 0, 8)
