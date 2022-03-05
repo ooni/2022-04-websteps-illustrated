@@ -51,9 +51,9 @@ type NetxliteLibrary interface {
 	// NewResolverSystem creates a new "system" resolver.
 	NewResolverSystem(logger model.Logger) model.Resolver
 
-	// NewResolverSerial creates a new "serial" resolver. (Note that
+	// NewUnwrappedParallelResolver creates a new "parallel" resolver. (Note that
 	// this resolver needs to be wrapped.)
-	NewResolverSerial(txp model.DNSTransport) model.Resolver
+	NewUnwrappedParallelResolver(txp model.DNSTransport) model.Resolver
 
 	// NewSingleUseDialer creates a new "single use" dialer.
 	NewSingleUseDialer(conn net.Conn) model.Dialer
@@ -175,7 +175,7 @@ func (lib *Library) NewResolverUDP(saver *archival.Saver, address string) model.
 	return saver.WrapResolver(
 		lib.netxlite.WrapResolver(
 			lib.logger,
-			lib.netxlite.NewResolverSerial(
+			lib.netxlite.NewUnwrappedParallelResolver(
 				saver.WrapDNSTransport(
 					lib.netxlite.NewDNSOverUDPTransport(
 						lib.newDialerWithSystemResolver(saver),
@@ -242,8 +242,8 @@ func (nl *netxliteLibrary) NewResolverSystem(logger model.Logger) model.Resolver
 	return netxlite.NewResolverStdlib(logger)
 }
 
-func (nl *netxliteLibrary) NewResolverSerial(txp model.DNSTransport) model.Resolver {
-	return netxlite.NewSerialResolver(txp)
+func (nl *netxliteLibrary) NewUnwrappedParallelResolver(txp model.DNSTransport) model.Resolver {
+	return netxlite.NewUnwrappedParallelResolver(txp)
 }
 
 func (nl *netxliteLibrary) NewSingleUseDialer(conn net.Conn) model.Dialer {
