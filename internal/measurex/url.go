@@ -13,6 +13,7 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"golang.org/x/net/idna"
 )
 
@@ -257,16 +258,26 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 	return out, len(out) > 0
 }
 
+const (
+	// EndpointPlanningExcludeBogons excludes bogons from NewEndpointPlan's planning.
+	EndpointPlanningExcludeBogons = 1 << iota
+)
+
 // NewEndpointPlan creates a new plan for measuring all the endpoints that
 // have not been measured yet in the current URLMeasurement.
 //
 // Note that the returned list will include HTTP, HTTPS, and HTTP3 plans
 // related to the original URL regardless of its scheme.
-func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
+func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
 	out := make([]*EndpointPlan, 0, 8)
 	familyCounter := make(map[string]int64)
 	for _, addr := range addrs {
+		if (flags&EndpointPlanningExcludeBogons) != 0 && netxlite.IsBogon(addr.Address) {
+			// Exclude bogons from planning if we're requested to do so.
+			continue
+		}
+
 		family := "A"
 		if strings.Contains(addr.Address, ":") {
 			family = "AAAA"
