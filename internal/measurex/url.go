@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -368,63 +367,15 @@ func urlMakeEndpoint(URL *url.URL, address string) (string, error) {
 	return net.JoinHostPort(address, port), nil
 }
 
-// urlRedirectPolicy determines the policy for computing redirects.
-type urlRedirectPolicy interface {
-	// Summary returns a string summarizing the given endpoint. This function
-	// must return false if the endpoint is not relevant to the policy with
-	// which we're currently computing redirects.
-	Summary(epnt *EndpointMeasurement) (string, bool)
-}
-
-// urlRedirectPolicyDefault is the default urlRedirectPolicy.
-type urlRedirectPolicyDefault struct{}
-
-// Summary implements urlRedirectPolicy.Summary.
-func (*urlRedirectPolicyDefault) Summary(epnt *EndpointMeasurement) (string, bool) {
-	switch epnt.StatusCode() {
-	case 301, 302, 303, 306, 307:
-	default:
-		return "", false // skip this entry if it's not a redirect
-	}
-	if epnt.Location == nil {
-		return "", false // skip this entry if we don't have a valid location
-	}
-	// If this URL is HTTPS, just ignore conflicting cookies
-	if epnt.URL.Scheme == "https" {
-		return epnt.Location.String(), true
-	}
-	// If there are no cookies, likewise
-	if len(epnt.NewCookies) <= 0 {
-		return epnt.Location.String(), true
-	}
-	// Otherwise, account for cookies
-	summary := make([]string, 0, 4)
-	for _, cookie := range epnt.NewCookies {
-		summary = append(summary, cookie.String())
-	}
-	sort.Strings(summary)
-	summary = append(summary, epnt.Location.String())
-	return strings.Join(summary, " "), true
-}
-
 // Redirects returns all the redirects seen in this URLMeasurement as a
 // list of follow-up URLMeasurement instances. This function will return
 // false if the returned list of follow-up measurements is empty.
 func (mx *Measurer) Redirects(cur *URLMeasurement) ([]*URLMeasurement, bool) {
-	return mx.redirects(cur, &urlRedirectPolicyDefault{})
-}
-
-func (mx *Measurer) redirects(
-	cur *URLMeasurement, policy urlRedirectPolicy) ([]*URLMeasurement, bool) {
 	uniq := make(map[string]*URLMeasurement)
 	for _, epnt := range cur.Endpoint {
-		summary, good := policy.Summary(epnt)
+		summary, good := epnt.RedirectSummary()
 		if !good {
 			// We should skip this endpoint
-			continue
-		}
-		if epnt.Location == nil {
-			// Safety net: don't try to redirect if we don't know where to
 			continue
 		}
 		next, good := uniq[summary]
@@ -503,33 +454,13 @@ func (mx *Measurer) NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque {
 	}
 }
 
-// reprURL returns a representation of the given URL that should be
-// more canonical than the random URLs returned by web services.
-//
-// We need as canonical as possible URLs in URLRedirectDeque because
-// their string representation is used to decide whether we need to
-// follow redirects or not.
-//
-// SPDX-License-Identifier: MIT
-//
-// Adapted from: https://github.com/sekimura/go-normalize-url.
-func (r *URLRedirectDeque) reprURL(URL *url.URL) string {
-	u := newURLWithScheme(URL, URL.Scheme)
-	// TODO(bassosimone): canonicalize path if needed?
-	// TODO(bassosimone): how about IDNA?
-	v := u.Query()
-	u.RawQuery = v.Encode()
-	u.RawQuery, _ = url.QueryUnescape(u.RawQuery)
-	return u.String()
-}
-
 // String returns a string representation of the deque.
 func (r *URLRedirectDeque) String() string {
 	defer r.mu.Unlock()
 	r.mu.Lock()
 	var out []string
 	for _, entry := range r.q {
-		out = append(out, r.reprURL(entry.URL))
+		out = append(out, CanonicalURLString(entry.URL))
 	}
 	return fmt.Sprintf("%+v", out)
 }
@@ -547,7 +478,7 @@ func (r *URLRedirectDeque) RememberVisitedURLs(um *URLMeasurement) {
 	defer r.mu.Unlock()
 	r.mu.Lock()
 	for _, epnt := range um.Endpoint {
-		r.mem[r.reprURL(epnt.URL)] = true
+		r.mem[CanonicalURLString(epnt.URL)] = true
 	}
 }
 
@@ -563,7 +494,7 @@ func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
 	for len(r.q) > 0 {
 		um := r.q[0]
 		r.q = r.q[1:]
-		if repr := r.reprURL(um.URL); r.mem[repr] {
+		if repr := CanonicalURLString(um.URL); r.mem[repr] {
 			r.logger.Infof("🧐 skip already visited URL: %s", repr)
 			continue
 		}

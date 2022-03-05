@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"sort"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 )
@@ -52,4 +53,31 @@ func SerializeCookies(in []*http.Cookie) (out []string) {
 		out = append(out, cookie.String())
 	}
 	return
+}
+
+// SortedSerializedCookies returns a sorted copy of the cookies.
+func SortedSerializedCookies(in []*http.Cookie) (out []string) {
+	out = SerializeCookies(in)
+	sort.Strings(out)
+	return
+}
+
+// CanonicalURLString returns a representation of the given URL that should be
+// more canonical than the random URLs returned by web services.
+//
+// We need as canonical as possible URLs in URLRedirectDeque because
+// their string representation is used to decide whether we need to
+// follow redirects or not.
+//
+// SPDX-License-Identifier: MIT
+//
+// Adapted from: https://github.com/sekimura/go-normalize-url.
+func CanonicalURLString(URL *url.URL) string {
+	u := newURLWithScheme(URL, URL.Scheme)
+	// TODO(bassosimone): canonicalize path if needed?
+	// TODO(bassosimone): how about IDNA?
+	v := u.Query()
+	u.RawQuery = v.Encode()
+	u.RawQuery, _ = url.QueryUnescape(u.RawQuery)
+	return u.String()
 }

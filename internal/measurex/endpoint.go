@@ -123,6 +123,67 @@ type EndpointMeasurement struct {
 	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent
 }
 
+// Summary returns a string representing the endpoint's summary. Two
+// endpoints are ~same if they have the same summary.
+//
+// The summary of an HTTPS/HTTP3 endpoint consists of these fields:
+//
+// - URL
+// - Network
+// - Address
+//
+// The summary of an HTTP endpoint also includes:
+//
+// - original cookies (sorted)
+//
+// If the endpoint URL is nil, we return the empty string and
+// false; otherwise, a valid string and true.
+func (em *EndpointMeasurement) Summary() (string, bool) {
+	var digest []string
+	if em.URL == nil {
+		return "", false
+	}
+	digest = append(digest, CanonicalURLString(em.URL))
+	digest = append(digest, string(em.Network))
+	digest = append(digest, em.Address)
+	if em.URL.Scheme == "http" {
+		digest = append(digest, SortedSerializedCookies(em.OrigCookies)...)
+	}
+	return strings.Join(digest, " "), true
+}
+
+// RedirectSummary is a summary of the endpoint's redirect. If there's no
+// redirect, we return an empty string and false. Otherwise, we return a
+// string that uniquely identify this redirect and true.
+//
+// Two redirects are ~same if they have the same redirect summary.
+//
+// There is a redirect if the code is 301, 302, 303, 307, or 308 and there
+// is a non-nil redirect location. If the scheme is HTTPS, we use these
+// fields for computing the RedirectSummary:
+//
+// - redirect location
+//
+// If the scheme is HTTP, we also include:
+//
+// - new cookies (sorted)
+func (em *EndpointMeasurement) RedirectSummary() (string, bool) {
+	switch em.StatusCode() {
+	case 301, 302, 303, 307, 308:
+	default:
+		return "", false // skip this entry if it's not a redirect
+	}
+	if em.Location == nil {
+		return "", false // skip this entry if we don't have a valid location
+	}
+	var digest []string
+	digest = append(digest, CanonicalURLString(em.Location))
+	if em.Location.Scheme == "http" {
+		digest = append(digest, SortedSerializedCookies(em.NewCookies)...)
+	}
+	return strings.Join(digest, " "), true
+}
+
 // EndpointAddress returns a string like "{address}/{network}".
 func (em *EndpointMeasurement) EndpointAddress() string {
 	return fmt.Sprintf("%s/%s", em.Address, em.Network)
