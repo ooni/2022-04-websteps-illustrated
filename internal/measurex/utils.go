@@ -8,6 +8,7 @@ package measurex
 
 import (
 	"errors"
+	"net/http"
 	"net/url"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -42,4 +43,13 @@ func PortFromURL(URL *url.URL) (string, error) {
 	default:
 		return "", ErrCannotDeterminePortFromURL
 	}
+}
+
+// SerializeCookies takes in input []*http.Cookie and returns
+// a []string where each string is a serialized cookie.
+func SerializeCookies(in []*http.Cookie) (out []string) {
+	for _, cookie := range in {
+		out = append(out, cookie.String())
+	}
+	return
 }
