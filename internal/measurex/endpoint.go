@@ -50,17 +50,12 @@ type EndpointPlan struct {
 	// Address is the endpoint address (e.g., "8.8.8.8:443").
 	Address string
 
-	// SNI is the SNI to use (only used with URL.scheme == "https").
-	SNI string
-
-	// ALPN is the ALPN to use (only used with URL.scheme == "https").
-	ALPN []string
-
 	// URL is the endpoint URL.
 	URL *url.URL
 
-	// Headers contains request headers.
-	Headers http.Header
+	// Options contains the options. A nil value implies that we're
+	// going to use the default value of each option.
+	Options *Options
 
 	// Cookies contains the cookie to use when measuring.
 	Cookies []*http.Cookie
@@ -68,8 +63,8 @@ type EndpointPlan struct {
 
 func (e *EndpointPlan) tlsConfig() *tls.Config {
 	return &tls.Config{
-		ServerName: e.SNI,
-		NextProtos: e.ALPN,
+		ServerName: e.Options.sni(e),
+		NextProtos: e.Options.alpn(e),
 		RootCAs:    netxlite.NewDefaultCertPool(),
 	}
 }
@@ -239,24 +234,28 @@ func (mx *Measurer) newEndpointMeasurement(
 		QUICTLSHandshake: nil,
 		HTTPRoundTrip:    nil,
 	}
+
 	if len(trace.HTTPRoundTrip) > 1 {
 		log.Printf("warning: more than one HTTPRoundTrip entry: %+v", trace.HTTPRoundTrip)
 	}
 	if len(trace.HTTPRoundTrip) == 1 {
 		out.HTTPRoundTrip = trace.HTTPRoundTrip[0]
 	}
+
 	if len(trace.QUICTLSHandshake) > 1 {
 		log.Printf("warning: more than one QUICTLSHandshake entry: %+v", trace.QUICTLSHandshake)
 	}
 	if len(trace.QUICTLSHandshake) == 1 {
 		out.QUICTLSHandshake = trace.QUICTLSHandshake[0]
 	}
+
 	if len(trace.TCPConnect) > 1 {
 		log.Printf("warning: more than one TCPConnect entry: %+v", trace.TCPConnect)
 	}
 	if len(trace.TCPConnect) == 1 {
 		out.TCPConnect = trace.TCPConnect[0]
 	}
+
 	out.NetworkEvent = trace.Network
 	return out
 }
@@ -268,7 +267,7 @@ func (mx *Measurer) newEndpointMeasurement(
 //
 // This function returns to the caller a channel where to read
 // measurements from. The channel is closed when done.
-func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int,
+func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int64,
 	epnts ...*EndpointPlan) <-chan *EndpointMeasurement {
 	var (
 		input  = make(chan *EndpointPlan)
@@ -284,7 +283,7 @@ func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int,
 	if parallelism <= 0 {
 		parallelism = 4
 	}
-	for i := 0; i < parallelism; i++ {
+	for i := int64(0); i < parallelism; i++ {
 		go func() {
 			for epnt := range input {
 				output <- mx.measureEndpoint(ctx, epnt)
@@ -293,7 +292,7 @@ func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int,
 		}()
 	}
 	go func() {
-		for i := 0; i < parallelism; i++ {
+		for i := int64(0); i < parallelism; i++ {
 			<-done
 		}
 		close(output)
@@ -358,7 +357,7 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointPlan)
 		operation string
 		err       error
 	)
-	jar := epnt.newCookieJar()
+	jar := epnt.newCookieJar() // note: this also sets cookies
 	switch epnt.URL.Scheme {
 	case "https":
 		resp, operation, err = mx.httpsOrHTTP3Get(ctx, epnt, saver, jar)
@@ -390,7 +389,7 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointPlan)
 
 func (mx *Measurer) tcpEndpointConnectWithSaver(ctx context.Context,
 	epnt *EndpointPlan, saver *archival.Saver) (net.Conn, string, error) {
-	timeout := mx.TCPconnectTimeout
+	timeout := epnt.Options.tcpConnectTimeout()
 	ol := NewOperationLogger(mx.Logger, "[#%d] TCPConnect %s",
 		epnt.URLMeasurementID, epnt.Address)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -412,13 +411,14 @@ func (mx *Measurer) tlsEndpointHandshakeWithSaver(ctx context.Context,
 	if err != nil {
 		return nil, operation, err
 	}
-	timeout := mx.TLSHandshakeTimeout
+	timeout := epnt.Options.tlsHandshakeTimeout()
+	tlsConfig := epnt.tlsConfig()
 	ol := NewOperationLogger(mx.Logger, "[#%d] TLSHandshake %s with sni=%s",
-		epnt.URLMeasurementID, epnt.Address, epnt.SNI)
+		epnt.URLMeasurementID, epnt.Address, tlsConfig.ServerName)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	th := saver.WrapTLSHandshaker(mx.TLSHandshaker)
-	tlsConn, _, err := th.Handshake(ctx, conn, epnt.tlsConfig())
+	tlsConn, _, err := th.Handshake(ctx, conn, tlsConfig)
 	ol.Stop(err)
 	if err != nil {
 		return nil, netxlite.TLSHandshakeOperation, err
@@ -428,14 +428,15 @@ func (mx *Measurer) tlsEndpointHandshakeWithSaver(ctx context.Context,
 
 func (mx *Measurer) quicEndpointHandshakeWithSaver(
 	ctx context.Context, epnt *EndpointPlan, saver *archival.Saver) (quic.EarlySession, string, error) {
-	timeout := mx.QUICHandshakeTimeout
+	timeout := epnt.Options.quicHandshakeTimeout()
+	tlsConfig := epnt.tlsConfig()
 	ol := NewOperationLogger(mx.Logger, "[#%d] QUICHandshake %s with sni=%s",
-		epnt.URLMeasurementID, epnt.Address, epnt.SNI)
+		epnt.URLMeasurementID, epnt.Address, tlsConfig.ServerName)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	qd := mx.Library.NewQUICDialerWithoutResolver(saver)
 	defer qd.CloseIdleConnections()
-	sess, err := qd.DialContext(ctx, "udp", epnt.Address, epnt.tlsConfig(), &quic.Config{})
+	sess, err := qd.DialContext(ctx, "udp", epnt.Address, tlsConfig, &quic.Config{})
 	ol.Stop(err)
 	if err != nil {
 		return nil, netxlite.QUICHandshakeOperation, err
@@ -451,7 +452,7 @@ func (mx *Measurer) httpGET(ctx context.Context, epnt *EndpointPlan,
 	}
 	defer conn.Close() // we own it
 	txp := mx.Library.NewHTTPTransportWithConn(
-		saver, conn, mx.MaxHTTPResponseBodySnapshotSize)
+		saver, conn, epnt.Options.maxHTTPResponseBodySnapshotSize())
 	defer txp.CloseIdleConnections()
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }
@@ -476,8 +477,9 @@ func (mx *Measurer) httpsGET(ctx context.Context, epnt *EndpointPlan,
 	}
 	defer conn.Close() // we own it
 	// the cast should always be possible according to nextlite docs
-	txp := mx.Library.NewHTTPTransportWithTLSConn(
-		saver, conn.(model.TLSConn), mx.MaxHTTPSResponseBodySnapshotSize)
+	tlsConn := conn.(model.TLSConn)
+	txp := mx.Library.NewHTTPTransportWithTLSConn(saver, tlsConn,
+		epnt.Options.maxHTTPSResponseBodySnapshotSize(epnt))
 	defer txp.CloseIdleConnections()
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }
@@ -490,8 +492,8 @@ func (mx *Measurer) http3GET(ctx context.Context, epnt *EndpointPlan,
 	}
 	// TODO(bassosimone): close session with correct message
 	defer sess.CloseWithError(0, "") // we own it
-	txp := mx.Library.NewHTTPTransportWithQUICSess(
-		saver, sess, mx.MaxHTTPSResponseBodySnapshotSize)
+	txp := mx.Library.NewHTTPTransportWithQUICSess(saver, sess,
+		epnt.Options.maxHTTPSResponseBodySnapshotSize(epnt))
 	defer txp.CloseIdleConnections()
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }
@@ -509,8 +511,9 @@ func (mx *Measurer) httpClientDo(ctx context.Context,
 	if err != nil {
 		return nil, netxlite.TopLevelOperation, err
 	}
-	req.Header = epnt.Headers.Clone() // must clone because of potential parallel usage
-	timeout := mx.HTTPGETTimeout
+	req.Host = epnt.Options.httpHostHeader()
+	req.Header = epnt.Options.httpClonedRequestHeaders() //  clone b/c of potential parallel usage
+	timeout := epnt.Options.httpGETTimeout()
 	ol := NewOperationLogger(mx.Logger, "[#%d] %s %s with %s/%s",
 		epnt.URLMeasurementID, req.Method, req.URL.String(), epnt.Address, epnt.Network)
 	ctx, cancel := context.WithTimeout(ctx, timeout)

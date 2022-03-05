@@ -124,25 +124,8 @@ type ArchivalURLMeasurement struct {
 	// URL is the underlying URL to measure.
 	URL string `json:"url"`
 
-	// SNI contains the SNI.
-	SNI string `json:"sni,omitempty"`
-
-	// Cookies contatins the cookies.
+	// Cookies contains the cookies.
 	Cookies []string `json:"cookies,omitempty"`
-
-	// ForceBothHTTPAndHTTPS indicates whether to force
-	// measuring both HTTP and HTTPS.
-	ForceBothHTTPAndHTTPS bool `json:"force_both_http_and_https"`
-
-	// MaxAddressesPerFamily is the maximum number of
-	// addresses we should measure per family.
-	MaxAddressesPerFamily int64 `json:"max_addresses_per_family"`
-
-	// ALPN contains values for ALPN.
-	ALPN []string `json:"alpn,omitempty"`
-
-	// Host is the host header.
-	Host string `json:"host_header,omitempty"`
 
 	// DNS contains a list of DNS measurements.
 	DNS []ArchivalDNSLookupMeasurement `json:"dns"`
@@ -154,17 +137,12 @@ type ArchivalURLMeasurement struct {
 // ToArchival converts URLMeasurement to ArchivalURLMeasurement.
 func (m *URLMeasurement) ToArchival(begin time.Time) ArchivalURLMeasurement {
 	return ArchivalURLMeasurement{
-		ID:                    m.ID,
-		EndpointIDs:           m.EndpointIDs,
-		URL:                   m.URL.String(),
-		SNI:                   m.SNI,
-		Cookies:               m.toArchivalCookies(),
-		ForceBothHTTPAndHTTPS: m.ForceBothHTTPAndHTTPS,
-		MaxAddressesPerFamily: m.MaxAddressesPerFamily,
-		ALPN:                  m.ALPN,
-		Host:                  m.Host,
-		DNS:                   NewArchivalDNSLookupMeasurementList(begin, m.DNS),
-		Endpoint:              NewArchivalEndpointMeasurementList(begin, m.Endpoint),
+		ID:          m.ID,
+		EndpointIDs: m.EndpointIDs,
+		URL:         m.URL.String(),
+		Cookies:     m.toArchivalCookies(),
+		DNS:         NewArchivalDNSLookupMeasurementList(begin, m.DNS),
+		Endpoint:    NewArchivalEndpointMeasurementList(begin, m.Endpoint),
 	}
 }
 

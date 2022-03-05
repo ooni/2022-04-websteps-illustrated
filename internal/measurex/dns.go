@@ -46,6 +46,9 @@ type DNSLookupPlan struct {
 	// URL is the URL to resolve.
 	URL *url.URL
 
+	// Options contains the options. If nil we'll use default values.
+	Options *Options
+
 	// Resolvers describes the resolvers to use.
 	Resolvers []*DNSResolverInfo
 }
@@ -125,7 +128,7 @@ func (p *dnsLookupTarget) resolverAddress() string {
 //
 // This function returns to the caller a channel where to read
 // measurements from. The channel is closed when done.
-func (mx *Measurer) DNSLookups(ctx context.Context, parallelism int, dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
+func (mx *Measurer) DNSLookups(ctx context.Context, parallelism int64, dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
 	var (
 		targets = make(chan *dnsLookupTarget)
 		output  = make(chan *DNSLookupMeasurement)
@@ -145,7 +148,7 @@ func (mx *Measurer) DNSLookups(ctx context.Context, parallelism int, dnsLookups 
 	if parallelism <= 0 {
 		parallelism = 4
 	}
-	for i := 0; i < parallelism; i++ {
+	for i := int64(0); i < parallelism; i++ {
 		go func() {
 			for pair := range targets {
 				mx.dnsLookup(ctx, pair, output)
@@ -154,7 +157,7 @@ func (mx *Measurer) DNSLookups(ctx context.Context, parallelism int, dnsLookups 
 		}()
 	}
 	go func() {
-		for i := 0; i < parallelism; i++ {
+		for i := int64(0); i < parallelism; i++ {
 			<-done
 		}
 		close(output)
@@ -187,7 +190,7 @@ func (mx *Measurer) lookupHostSystem(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverSystem(saver)
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t.plan.URLMeasurementID)
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t)
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
@@ -196,7 +199,7 @@ func (mx *Measurer) lookupHostUDP(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t.plan.URLMeasurementID)
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t)
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
@@ -205,15 +208,15 @@ func (mx *Measurer) lookupHTTPSSvcUDP(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t.plan.URLMeasurementID)
+	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t)
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) doLookupHost(ctx context.Context,
-	domain string, r model.Resolver, id int64) ([]string, error) {
+	domain string, r model.Resolver, t *dnsLookupTarget) ([]string, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHost %s with %s resolver %s",
-		id, domain, r.Network(), r.Address())
-	timeout := mx.DNSLookupTimeout
+		t.plan.URLMeasurementID, domain, r.Network(), r.Address())
+	timeout := t.plan.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	addrs, err := r.LookupHost(ctx, domain)
@@ -222,10 +225,10 @@ func (mx *Measurer) doLookupHost(ctx context.Context,
 }
 
 func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context,
-	domain string, r model.Resolver, id int64) (*model.HTTPSSvc, error) {
+	domain string, r model.Resolver, t *dnsLookupTarget) (*model.HTTPSSvc, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHTTPSvc %s with %s resolver %s",
-		id, domain, r.Network(), r.Address())
-	timeout := mx.DNSLookupTimeout
+		t.plan.URLMeasurementID, domain, r.Network(), r.Address())
+	timeout := t.plan.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	https, err := r.LookupHTTPS(ctx, domain)

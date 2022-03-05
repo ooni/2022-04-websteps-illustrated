@@ -23,31 +23,14 @@ type URLMeasurement struct {
 	// generated this URLMeasurement through redirects.
 	EndpointIDs []int64
 
+	// Options contains options. If nil, we'll use default values.
+	Options *Options
+
 	// URL is the underlying URL to measure.
 	URL *url.URL
 
 	// Cookies contains the list of cookies to use.
 	Cookies []*http.Cookie
-
-	// Headers contains request headers.
-	Headers http.Header
-
-	// ForceBothHTTPAndHTTPS indicates whether to force
-	// measuring both HTTP and HTTPS.
-	ForceBothHTTPAndHTTPS bool
-
-	// MaxAddressesPerFamily is the maximum number of
-	// addresses we should measure per family.
-	MaxAddressesPerFamily int64
-
-	// SNI contains the SNI.
-	SNI string
-
-	// ALPN contains values for ALPN.
-	ALPN []string
-
-	// Host is the host header.
-	Host string
 
 	// DNS contains a list of DNS measurements.
 	DNS []*DNSLookupMeasurement
@@ -63,17 +46,13 @@ func (um *URLMeasurement) Domain() string {
 
 // IsHTTP returns whether this URL is HTTP.
 func (um *URLMeasurement) IsHTTP() bool {
-	return um.ForceBothHTTPAndHTTPS || um.URL.Scheme == "http"
+	return !um.Options.doNotInitiallyForceHTTPAndHTTPS() || um.URL.Scheme == "http"
 }
 
 // IsHTTPS returns whether this URL is HTTPS.
 func (um *URLMeasurement) IsHTTPS() bool {
-	return um.ForceBothHTTPAndHTTPS || um.URL.Scheme == "https"
+	return !um.Options.doNotInitiallyForceHTTPAndHTTPS() || um.URL.Scheme == "https"
 }
-
-// DefaultMaxAddressPerFamily is the default number of IP addresses
-// per address family that we will test using websteps.
-const DefaultMaxAddressPerFamily = 2
 
 // NewURLMeasurement creates a new URLMeasurement from a string URL.
 func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
@@ -86,6 +65,7 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	default:
 		return nil, ErrUnknownURLScheme
 	}
+	// ensure that we're using the punycoded domain
 	if host, err := idna.ToASCII(parsed.Host); err == nil {
 		parsed.Host = host
 	}
@@ -95,18 +75,13 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	}
 	parsed.Fragment = ""
 	out := &URLMeasurement{
-		ID:                    mx.NextID(),
-		EndpointIDs:           []int64{},
-		URL:                   parsed,
-		Cookies:               []*http.Cookie{},
-		Headers:               NewHTTPRequestHeaderForMeasuring(),
-		ForceBothHTTPAndHTTPS: parsed.Port() == "", // check both unless there's a port
-		MaxAddressesPerFamily: DefaultMaxAddressPerFamily,
-		SNI:                   parsed.Hostname(),
-		ALPN:                  []string{},
-		Host:                  parsed.Hostname(),
-		DNS:                   []*DNSLookupMeasurement{},
-		Endpoint:              []*EndpointMeasurement{},
+		ID:          mx.NextID(),
+		EndpointIDs: []int64{},
+		Options:     mx.Options,
+		URL:         parsed,
+		Cookies:     []*http.Cookie{},
+		DNS:         []*DNSLookupMeasurement{},
+		Endpoint:    []*EndpointMeasurement{},
 	}
 	return out, nil
 }
@@ -117,6 +92,7 @@ func (um *URLMeasurement) NewDNSLookupPlan(ri []*DNSResolverInfo) *DNSLookupPlan
 	return &DNSLookupPlan{
 		URLMeasurementID: um.ID,
 		URL:              um.URL,
+		Options:          um.Options,
 		Resolvers:        ri,
 	}
 }
@@ -215,12 +191,11 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 		if epnt.IsHTTP3Measurement() {
 			uniq[ipAddr] |= urlAddressAlreadyTestedHTTP3
 		}
-		if !epnt.SupportsAltSvcHTTP3() {
-			continue
+		if epnt.SupportsAltSvcHTTP3() {
+			uniq[ipAddr] |= urlAddressFlagHTTP3
 		}
-		uniq[ipAddr] |= urlAddressFlagHTTP3
 	}
-	// finally build the return list.
+	// finally build the result.
 	out := make([]*URLAddress, 0, 8)
 	for addr, flags := range uniq {
 		out = append(out, &URLAddress{
@@ -247,11 +222,12 @@ func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 		if strings.Contains(addr.Address, ":") {
 			family = "AAAA"
 		}
-		if familyCounter[family] >= um.MaxAddressesPerFamily {
+		if familyCounter[family] >= um.Options.maxAddressesPerFamily() {
 			// Do not add more than N IP addrs for each address family.
 			continue
 		}
 		familyCounter[family] += 1
+
 		if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
 			if err != nil {
@@ -260,6 +236,7 @@ func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 			}
 			out = append(out, plan)
 		}
+
 		if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
 			if err != nil {
@@ -268,6 +245,7 @@ func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 			}
 			out = append(out, plan)
 		}
+
 		if um.IsHTTPS() && addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
 			if err != nil {
@@ -293,10 +271,8 @@ func (um *URLMeasurement) newEndpointPlan(
 		Domain:           um.Domain(),
 		Network:          network,
 		Address:          epnt,
-		SNI:              um.Domain(),
-		ALPN:             ALPNForHTTPEndpoint(network),
 		URL:              URL,
-		Headers:          um.Headers,
+		Options:          um.Options,
 		Cookies:          um.Cookies,
 	}
 	return out, nil
@@ -383,21 +359,28 @@ func (mx *Measurer) redirects(
 			// We should skip this endpoint
 			continue
 		}
+		if epnt.Location == nil {
+			// Safety net: don't try to redirect if we don't know where to
+			continue
+		}
 		next, good := uniq[summary]
 		if !good {
+			requestHeaders := mx.newHeadersForRedirect(
+				epnt.Location, epnt.RequestHeaders())
 			next = &URLMeasurement{
-				ID:                    mx.NextID(),
-				EndpointIDs:           []int64{},
-				URL:                   epnt.Location,
-				Cookies:               epnt.Cookies,
-				Headers:               mx.newHeadersForRedirect(epnt.Location, epnt.RequestHeaders()),
-				ForceBothHTTPAndHTTPS: false, // stop testing both for redirects
-				MaxAddressesPerFamily: cur.MaxAddressesPerFamily,
-				SNI:                   epnt.Location.Hostname(),
-				ALPN:                  ALPNForHTTPEndpoint(epnt.Network),
-				Host:                  epnt.Location.Hostname(),
-				DNS:                   []*DNSLookupMeasurement{},
-				Endpoint:              []*EndpointMeasurement{},
+				ID:          mx.NextID(),
+				EndpointIDs: []int64{},
+				URL:         epnt.Location,
+				Cookies:     epnt.Cookies,
+				Options: cur.Options.Chain(&Options{
+					// Note: all other fields intentionally left empty. We do not
+					// want to continue following HTTP and HTTPS after we have done
+					// that for the initial URL we needed to measure.
+					DoNotInitiallyForceHTTPAndHTTPS: true,
+					HTTPRequestHeaders:              requestHeaders,
+				}),
+				DNS:      []*DNSLookupMeasurement{},
+				Endpoint: []*EndpointMeasurement{},
 			}
 			uniq[summary] = next
 		}
@@ -416,7 +399,9 @@ func (mx *Measurer) newHeadersForRedirect(location *url.URL, orig http.Header) h
 	for key, values := range orig {
 		out[key] = values
 	}
-	out.Set("Referer", location.String())
+	if location != nil { // just in case
+		out.Set("Referer", location.String())
+	}
 	return out
 }
 
@@ -424,7 +409,7 @@ func (mx *Measurer) newHeadersForRedirect(location *url.URL, orig http.Header) h
 // queue and to follow a reasonable number of redirects.
 type URLRedirectDeque struct {
 	// cnt counts the depth
-	cnt int
+	cnt int64
 
 	// logger is the logger to use.
 	logger model.Logger
@@ -505,6 +490,6 @@ func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
 }
 
 // Depth returns the number or redirects we followed so far.
-func (r *URLRedirectDeque) Depth() int {
+func (r *URLRedirectDeque) Depth() int64 {
 	return r.cnt
 }

@@ -18,20 +18,15 @@ import (
 // Please, either use NewCrawler to create a new instance or
 // ensure you initialize all this struct's fields.
 type Crawler struct {
-	// DNSParallelism is the DNS parallelism to use.
-	DNSParallelism int
-
-	// EndpointParallelism is the endpoints parallelism to use.
-	EndpointParallelism int
-
 	// Logger is the logger.
 	Logger model.Logger
 
-	// MaxDepth is the maximum visit depth.
-	MaxDepth int
-
 	// Measurer is the measurer to use.
 	Measurer *Measurer
+
+	// Options contains options. If this field is nil, we will
+	// end up using the default option values.
+	Options *Options
 
 	// Resolvers contains the resolvers to use.
 	Resolvers []*DNSResolverInfo
@@ -40,11 +35,9 @@ type Crawler struct {
 // NewCrawler creates a new instance of Crawler.
 func NewCrawler(logger model.Logger, measurer *Measurer) *Crawler {
 	return &Crawler{
-		DNSParallelism:      4,
-		EndpointParallelism: 16,
-		Logger:              logger,
-		Measurer:            measurer,
-		MaxDepth:            7,
+		Logger:   logger,
+		Measurer: measurer,
+		Options:  measurer.Options,
 		Resolvers: []*DNSResolverInfo{{
 			Network: "system",
 			Address: "",
@@ -65,7 +58,7 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 		q := NewURLRedirectDeque(c.Logger)
 		q.Append(initial)
 		for {
-			if q.Depth() >= c.MaxDepth {
+			if q.Depth() >= c.Options.maxCrawlerDepth() {
 				c.Logger.Infof("👋 reached maximum crawling depth")
 				break
 			}
@@ -89,17 +82,17 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 func (c *Crawler) do(ctx context.Context, mx *Measurer, um *URLMeasurement) {
 	c.Logger.Info("🔎 resolving the domain name using all resolvers")
 	dnsPlan := um.NewDNSLookupPlan(c.Resolvers)
-	for m := range mx.DNSLookups(ctx, c.DNSParallelism, dnsPlan) {
+	for m := range mx.DNSLookups(ctx, c.Options.dnsParallelism(), dnsPlan) {
 		um.DNS = append(um.DNS, m)
 	}
 	c.Logger.Info("🔎 visiting all endpoints deriving from DNS")
 	epntPlan, _ := um.NewEndpointPlan()
-	for m := range mx.MeasureEndpoints(ctx, c.EndpointParallelism, epntPlan...) {
+	for m := range mx.MeasureEndpoints(ctx, c.Options.endpointParallelism(), epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
 	c.Logger.Info("🔎 visiting extra endpoints deriving from Alt-Svc (if any)")
 	epntPlan, _ = um.NewEndpointPlan()
-	for m := range mx.MeasureEndpoints(ctx, c.EndpointParallelism, epntPlan...) {
+	for m := range mx.MeasureEndpoints(ctx, c.Options.endpointParallelism(), epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
 }
