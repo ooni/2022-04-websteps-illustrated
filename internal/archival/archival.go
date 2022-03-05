@@ -100,7 +100,7 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTP
 		Request: model.ArchivalHTTPRequest{
 			Body:            model.ArchivalMaybeBinaryData{},
 			BodyIsTruncated: false,
-			HeadersList:     ev.newHTTPHeadersList(ev.RequestHeaders),
+			HeadersList:     NewHTTPHeadersList(ev.RequestHeaders),
 			Headers:         ev.newHTTPHeadersMap(ev.RequestHeaders),
 			Method:          ev.Method,
 			Tor:             model.ArchivalHTTPTor{},
@@ -113,7 +113,7 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTP
 			},
 			BodyIsTruncated: ev.ResponseBodyIsTruncated,
 			Code:            ev.StatusCode,
-			HeadersList:     ev.newHTTPHeadersList(ev.ResponseHeaders),
+			HeadersList:     NewHTTPHeadersList(ev.ResponseHeaders),
 			Headers:         ev.newHTTPHeadersMap(ev.ResponseHeaders),
 			Locations:       ev.ResponseHeaders.Values("Location"), // safe with nil headers
 		},
@@ -122,7 +122,8 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTP
 	}
 }
 
-func (ev *FlatHTTPRoundTripEvent) newHTTPHeadersList(source http.Header) (out []model.ArchivalHTTPHeader) {
+// NewHTTPHeadersList converts a list HTTP headers to a list of archival HTTP headers.
+func NewHTTPHeadersList(source http.Header) (out []model.ArchivalHTTPHeader) {
 	for key, values := range source {
 		for _, value := range values {
 			out = append(out, model.ArchivalHTTPHeader{
