@@ -267,8 +267,8 @@ func (mx *Measurer) newEndpointMeasurement(
 //
 // This function returns to the caller a channel where to read
 // measurements from. The channel is closed when done.
-func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int64,
-	epnts ...*EndpointPlan) <-chan *EndpointMeasurement {
+func (mx *Measurer) MeasureEndpoints(
+	ctx context.Context, epnts ...*EndpointPlan) <-chan *EndpointMeasurement {
 	var (
 		input  = make(chan *EndpointPlan)
 		output = make(chan *EndpointMeasurement)
@@ -280,9 +280,7 @@ func (mx *Measurer) MeasureEndpoints(ctx context.Context, parallelism int64,
 			input <- epnt
 		}
 	}()
-	if parallelism <= 0 {
-		parallelism = 4
-	}
+	parallelism := mx.Options.endpointParallelism()
 	for i := int64(0); i < parallelism; i++ {
 		go func() {
 			for epnt := range input {

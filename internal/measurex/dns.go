@@ -128,7 +128,7 @@ func (p *dnsLookupTarget) resolverAddress() string {
 //
 // This function returns to the caller a channel where to read
 // measurements from. The channel is closed when done.
-func (mx *Measurer) DNSLookups(ctx context.Context, parallelism int64, dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
+func (mx *Measurer) DNSLookups(ctx context.Context, dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
 	var (
 		targets = make(chan *dnsLookupTarget)
 		output  = make(chan *DNSLookupMeasurement)
@@ -145,9 +145,7 @@ func (mx *Measurer) DNSLookups(ctx context.Context, parallelism int64, dnsLookup
 			}
 		}
 	}()
-	if parallelism <= 0 {
-		parallelism = 4
-	}
+	parallelism := mx.Options.dnsParallelism()
 	for i := int64(0); i < parallelism; i++ {
 		go func() {
 			for pair := range targets {

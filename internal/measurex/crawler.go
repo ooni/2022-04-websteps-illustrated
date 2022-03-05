@@ -76,19 +76,19 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 
 // do visits the URL described by um using mx.
 func (c *Crawler) do(ctx context.Context, mx *Measurer, um *URLMeasurement) {
-	c.Logger.Info("🔎 resolving the domain name using all resolvers")
+	c.Logger.Info("📡 resolving the domain name using all resolvers")
 	dnsPlan := um.NewDNSLookupPlan(c.Resolvers)
-	for m := range mx.DNSLookups(ctx, c.Options.dnsParallelism(), dnsPlan) {
+	for m := range mx.DNSLookups(ctx, dnsPlan) {
 		um.DNS = append(um.DNS, m)
 	}
-	c.Logger.Info("🔎 visiting endpoints deriving from DNS")
+	c.Logger.Info("📡 visiting endpoints deriving from DNS")
 	epntPlan, _ := um.NewEndpointPlan()
-	for m := range mx.MeasureEndpoints(ctx, c.Options.endpointParallelism(), epntPlan...) {
+	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
-	c.Logger.Info("🔎 visiting extra endpoints deriving from Alt-Svc (if any)")
+	c.Logger.Info("📡 visiting extra endpoints deriving from Alt-Svc (if any)")
 	epntPlan, _ = um.NewEndpointPlan()
-	for m := range mx.MeasureEndpoints(ctx, c.Options.endpointParallelism(), epntPlan...) {
+	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
 }
