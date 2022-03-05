@@ -382,7 +382,8 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointPlan)
 func (mx *Measurer) tcpEndpointConnectWithSaver(ctx context.Context,
 	epnt *EndpointPlan, saver *archival.Saver) (net.Conn, string, error) {
 	timeout := mx.TCPconnectTimeout
-	ol := NewOperationLogger(mx.Logger, "TCPConnect %s", epnt.Address)
+	ol := NewOperationLogger(mx.Logger, "[#%d] TCPConnect %s",
+		epnt.URLMeasurementID, epnt.Address)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	d := mx.Library.NewDialerWithoutResolver(saver)
@@ -403,7 +404,8 @@ func (mx *Measurer) tlsEndpointHandshakeWithSaver(ctx context.Context,
 		return nil, operation, err
 	}
 	timeout := mx.TLSHandshakeTimeout
-	ol := NewOperationLogger(mx.Logger, "TLSHandshake %s with sni=%s", epnt.Address, epnt.SNI)
+	ol := NewOperationLogger(mx.Logger, "[#%d] TLSHandshake %s with sni=%s",
+		epnt.URLMeasurementID, epnt.Address, epnt.SNI)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	th := saver.WrapTLSHandshaker(mx.TLSHandshaker)
@@ -418,7 +420,8 @@ func (mx *Measurer) tlsEndpointHandshakeWithSaver(ctx context.Context,
 func (mx *Measurer) quicEndpointHandshakeWithSaver(
 	ctx context.Context, epnt *EndpointPlan, saver *archival.Saver) (quic.EarlySession, string, error) {
 	timeout := mx.QUICHandshakeTimeout
-	ol := NewOperationLogger(mx.Logger, "QUICHandshake %s with sni=%s", epnt.Address, epnt.SNI)
+	ol := NewOperationLogger(mx.Logger, "[#%d] QUICHandshake %s with sni=%s",
+		epnt.URLMeasurementID, epnt.Address, epnt.SNI)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	qd := mx.Library.NewQUICDialerWithoutResolver(saver)
@@ -499,8 +502,8 @@ func (mx *Measurer) httpClientDo(ctx context.Context,
 	}
 	req.Header = epnt.Headers.Clone() // must clone because of potential parallel usage
 	timeout := mx.HTTPGETTimeout
-	ol := NewOperationLogger(mx.Logger,
-		"%s %s with %s/%s", req.Method, req.URL.String(), epnt.Address, epnt.Network)
+	ol := NewOperationLogger(mx.Logger, "[#%d] %s %s with %s/%s",
+		epnt.URLMeasurementID, req.Method, req.URL.String(), epnt.Address, epnt.Network)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	resp, err := clnt.Do(req.WithContext(ctx))

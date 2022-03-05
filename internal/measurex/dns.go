@@ -195,7 +195,7 @@ func (mx *Measurer) lookupHostSystem(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverSystem(saver)
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r) // ignore return value
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t.plan.URLMeasurementID)
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
@@ -204,7 +204,7 @@ func (mx *Measurer) lookupHostUDP(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r) // ignore return value
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t.plan.URLMeasurementID)
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
@@ -213,13 +213,14 @@ func (mx *Measurer) lookupHTTPSSvcUDP(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r) // ignore return value
+	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t.plan.URLMeasurementID)
 	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
 }
 
-func (mx *Measurer) doLookupHost(
-	ctx context.Context, domain string, r model.Resolver) ([]string, error) {
-	ol := NewOperationLogger(mx.Logger, "LookupHost %s with %s resolver", domain, r.Network())
+func (mx *Measurer) doLookupHost(ctx context.Context,
+	domain string, r model.Resolver, id int64) ([]string, error) {
+	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHost %s with %s resolver %s",
+		id, domain, r.Network(), r.Address())
 	timeout := mx.DNSLookupTimeout
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -228,9 +229,10 @@ func (mx *Measurer) doLookupHost(
 	return addrs, err
 }
 
-func (mx *Measurer) doLookupHTTPSSvc(
-	ctx context.Context, domain string, r model.Resolver) (*model.HTTPSSvc, error) {
-	ol := NewOperationLogger(mx.Logger, "LookupHTTPSvc %s with %s resolver", domain, r.Network())
+func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context,
+	domain string, r model.Resolver, id int64) (*model.HTTPSSvc, error) {
+	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHTTPSvc %s with %s resolver %s",
+		id, domain, r.Network(), r.Address())
 	timeout := mx.DNSLookupTimeout
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
