@@ -51,11 +51,6 @@ func (um *URLMeasurement) Domain() string {
 	return um.URL.Hostname()
 }
 
-// String returns a string representation of the URLMeasurement.
-func (um *URLMeasurement) String() string {
-	return um.URL.String()
-}
-
 // NewURLMeasurement creates a new URLMeasurement from a string URL.
 func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	parsed, err := url.Parse(input)
@@ -406,11 +401,42 @@ func NewURLRedirectDeque() *URLRedirectDeque {
 	}
 }
 
+// reprURL returns a representation of the given URL that should be
+// more canonical than the random URLs returned by web services.
+//
+// We need as canonical as possible URLs in URLRedirectDeque because
+// their string representation is used to decide whether we need to
+// follow redirects or not.
+//
+// SPDX-License-Identifier: MIT
+//
+// Adapted from: https://github.com/sekimura/go-normalize-url.
+func (r *URLRedirectDeque) reprURL(URL *url.URL) string {
+	u := &url.URL{
+		Scheme:      URL.Scheme,
+		Opaque:      URL.Opaque,
+		User:        URL.User,
+		Host:        URL.Host,
+		Path:        URL.Path,
+		RawPath:     URL.RawPath,
+		ForceQuery:  URL.ForceQuery,
+		RawQuery:    URL.RawQuery,
+		Fragment:    URL.Fragment,
+		RawFragment: URL.RawFragment,
+	}
+	// TODO(bassosimone): canonicalize path if needed?
+	// TODO(bassosimone): how about IDNA?
+	v := u.Query()
+	u.RawQuery = v.Encode()
+	u.RawQuery, _ = url.QueryUnescape(u.RawQuery)
+	return u.String()
+}
+
 // String returns a string representation of the deque.
 func (r *URLRedirectDeque) String() string {
 	var out []string
 	for _, entry := range r.q {
-		out = append(out, entry.String())
+		out = append(out, r.reprURL(entry.URL))
 	}
 	return fmt.Sprintf("%+v", out)
 }
@@ -419,7 +445,7 @@ func (r *URLRedirectDeque) String() string {
 // and only if we've not already visited the related URLs.
 func (r *URLRedirectDeque) Append(um ...*URLMeasurement) {
 	for _, m := range um {
-		if r.mem[m.String()] {
+		if r.mem[r.reprURL(m.URL)] {
 			continue
 		}
 		r.q = append(r.q, m)
@@ -430,7 +456,7 @@ func (r *URLRedirectDeque) Append(um ...*URLMeasurement) {
 // we're not going to visit them again.
 func (r *URLRedirectDeque) RememberVisitedURLs(um *URLMeasurement) {
 	for _, epnt := range um.Endpoint {
-		r.mem[epnt.URL.String()] = true
+		r.mem[r.reprURL(epnt.URL)] = true
 	}
 }
 
