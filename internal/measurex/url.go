@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -96,6 +97,53 @@ func (um *URLMeasurement) NewDNSLookupPlan(ri []*DNSResolverInfo) *DNSLookupPlan
 		Options:          um.Options,
 		Resolvers:        ri,
 	}
+}
+
+// AddFromExternalDNSLookup adds the result of an "external" DNS lookup (i.e., a lookup
+// not performed using measurex) to the URLMeasurement.DNS list. You can use this
+// functionality, for example, for pre-filling the DNS list with selected IP addresses.
+//
+// Each IP address will be added to a single entry. We will skip strings that are
+// not valid IP addresses representations. The fake entry will use the given
+// resolverAddress as the address of the resolver that performed the fake lookup.
+//
+// The entry will fake an HTTPSvc lookup because that also allows you to include ALPN,
+// which you may know, into the generated fake lookup entry. If you don't know the
+// ALPN, pass nil as the alpns argument; we will convert it to an empty list for you.
+func (um *URLMeasurement) AddFromExternalDNSLookup(
+	mx *Measurer, resolverAddress string, alpns []string, addrs ...string) {
+	now := time.Now()
+	if alpns == nil {
+		alpns = []string{}
+	}
+	var goodAddrs []string
+	for _, addr := range addrs {
+		if net.ParseIP(addr) == nil {
+			log.Printf("AddFromExternalDNSLookup: cannot parse IP: %s", addr)
+			continue
+		}
+		goodAddrs = append(goodAddrs, addr)
+	}
+	if len(goodAddrs) < 1 {
+		// Handle the case where there are no good addresses
+		return
+	}
+	um.DNS = append(um.DNS, &DNSLookupMeasurement{
+		ID:               mx.NextID(),
+		URLMeasurementID: um.ID,
+		Lookup: &archival.FlatDNSLookupEvent{
+			ALPNs:           alpns,
+			Addresses:       goodAddrs,
+			Domain:          um.Domain(),
+			Failure:         "",
+			Finished:        now,
+			LookupType:      archival.DNSLookupTypeHTTPS,
+			ResolverAddress: resolverAddress,
+			ResolverNetwork: "",
+			Started:         now,
+		},
+		RoundTrip: []*archival.FlatDNSRoundTripEvent{},
+	})
 }
 
 // URLAddress is an address associated with a given URL.
