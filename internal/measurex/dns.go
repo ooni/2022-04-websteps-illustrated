@@ -92,6 +92,46 @@ func (dlm *DNSLookupMeasurement) ALPNs() []string {
 	return nil
 }
 
+// Domain returns the domain we looked up or an empty string.
+func (dlm *DNSLookupMeasurement) Domain() string {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.Domain
+	}
+	return ""
+}
+
+// Failure returns the flat failure that occurred.
+func (dlm *DNSLookupMeasurement) Failure() archival.FlatFailure {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.Failure
+	}
+	return ""
+}
+
+// LookupType returns the lookup type or empty string.
+func (dlm *DNSLookupMeasurement) LookupType() archival.DNSLookupType {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.LookupType
+	}
+	return ""
+}
+
+// ResolverAddress returns the resolver address.
+func (dlm *DNSLookupMeasurement) ResolverAddress() string {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.ResolverAddress
+	}
+	return ""
+}
+
+// ResolverNetwork returns the resolver network.
+func (dlm *DNSLookupMeasurement) ResolverNetwork() string {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.ResolverNetwork
+	}
+	return ""
+}
+
 // SupportsHTTP3 returns whether this DNSLookupMeasurement includes the
 // "h3" ALPN in the list of ALPNs for this domain.
 func (dlm *DNSLookupMeasurement) SupportsHTTP3() bool {

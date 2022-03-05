@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -43,7 +44,8 @@ func main() {
 	}
 	begin := time.Now()
 	ctx := context.Background()
-	clnt := websteps.StartClient(ctx, log.Log)
+	const thURL = "http://127.0.0.1:9876"
+	clnt := websteps.StartClient(ctx, log.Log, http.DefaultClient, thURL, "")
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go submitInput(ctx, wg, clnt, opts)

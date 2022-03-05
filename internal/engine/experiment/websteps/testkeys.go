@@ -19,14 +19,28 @@ type TestKeys struct {
 	// probe during the "discover" step.
 	Discover *measurex.URLMeasurement
 
-	// TH contains the URLMeasurement performed by the TH.
-	TH *measurex.URLMeasurement
+	// TH contains the response from the test helper.
+	TH *THResponse
 }
 
 // ArchivalTestKeys is the archival data format for the TestKeys.
 type ArchivalTestKeys struct {
 	Discover *measurex.ArchivalURLMeasurement `json:"discover"`
-	TH       *measurex.ArchivalURLMeasurement `json:"th"`
+	TH       *ArchivalTHResponse              `json:"th"`
+}
+
+// ArchivalTHResponse is the archival format of a TH response.
+type ArchivalTHResponse struct {
+	DNS      []measurex.ArchivalDNSLookupMeasurement `json:"dns"`
+	Endpoint []measurex.ArchivalEndpointMeasurement  `json:"endpoint"`
+}
+
+// ToArchival converts a THResponse to its archival format.
+func (r *THResponse) ToArchival(begin time.Time) ArchivalTHResponse {
+	return ArchivalTHResponse{
+		DNS:      measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
+		Endpoint: measurex.NewArchivalEndpointMeasurementList(begin, r.Endpoint),
+	}
 }
 
 // ToArchival converts test keys to the OONI archival data format.

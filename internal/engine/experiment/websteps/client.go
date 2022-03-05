@@ -30,22 +30,57 @@ type Client struct {
 	// Output is the channel for emitting measurements.
 	Output chan *TestKeysOrError
 
+	// httpClient is the HTTPClient to use.
+	httpClient model.HTTPClient
+
 	// logger is the MANDATORY logger to use.
 	logger model.Logger
 
 	// resolvers contains the MANDATORY resolvers to use.
 	resolvers []*measurex.DNSResolverInfo
+
+	// thURL is the base URL of the test helper.
+	thURL string
+
+	// userAgent is the User-Agent to use with the TH.
+	userAgent string
 }
 
-// StartClient starts a new websteps client instance.
-func StartClient(ctx context.Context, logger model.Logger) *Client {
+// THClient is a client for communicating with the test helper.
+type THClient interface {
+	// THRequestAsync performs an async TH request posting the result on the out channel.
+	THRequestAsync(ctx context.Context, thReq *THRequest, out chan<- *THResponseOrError)
+}
+
+// NewTHClient creates a new client that does not perform measurements
+// and is only suitable for speaking with the TH.
+func NewTHClient(logger model.Logger,
+	httpClient model.HTTPClient, thURL, userAgent string) THClient {
+	return newClient(context.Background(), logger, httpClient, thURL, userAgent, false)
+}
+
+// StartClient starts a new websteps client instance in a background goroutine
+// and returns the client instance to submit and collect measurements.
+func StartClient(ctx context.Context, logger model.Logger,
+	httpClient model.HTTPClient, thURL, userAgent string) *Client {
+	return newClient(ctx, logger, httpClient, thURL, userAgent, true)
+}
+
+// newClient implements NewTHClient and StartClient.
+func newClient(ctx context.Context, logger model.Logger, httpClient model.HTTPClient,
+	thURL, userAgent string, startBackgroundWorker bool) *Client {
 	clnt := &Client{
-		Input:     make(chan string),
-		Output:    make(chan *TestKeysOrError),
-		logger:    logger,
-		resolvers: defaultResolvers(),
+		Input:      make(chan string),
+		Output:     make(chan *TestKeysOrError),
+		httpClient: httpClient,
+		logger:     logger,
+		resolvers:  defaultResolvers(),
+		thURL:      thURL,
+		userAgent:  userAgent,
 	}
-	go clnt.loop(ctx)
+	if startBackgroundWorker {
+		go clnt.loop(ctx)
+	}
 	return clnt
 }
 
@@ -94,7 +129,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 
 // defaultResolvers returns the default resolvers.
 func defaultResolvers() []*measurex.DNSResolverInfo {
-	// TODO: randomize the results we use...
+	// TODO: randomize the resolvers we use...
 	return []*measurex.DNSResolverInfo{{
 		Network: "system",
 		Address: "",
@@ -112,11 +147,14 @@ func (c *Client) step(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) *TestKeys {
 	c.dnsLookup(ctx, mx, cur)
 	tk := newTestKeys(cur)
-	epntPlan, _ := cur.NewEndpointPlan()
+	epntPlan, _ := cur.NewEndpointPlan(0)
 	thc := c.th(ctx, cur, epntPlan)
 	c.measureDiscoveredEndpoints(ctx, mx, cur, epntPlan)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
-	tk.TH = <-thc
+	maybeTH := <-thc
+	if maybeTH.Err == nil {
+		tk.TH = maybeTH.Resp
+	}
 	c.measureAdditionalEndpoints(ctx, mx, tk)
 	tk.analyzeResults(c.logger)
 	// TODO(bassosimone): run follow-up experiments
@@ -144,7 +182,7 @@ func (c *Client) measureDiscoveredEndpoints(
 func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
 	c.logger.Info("📡 measuring extra endpoints discovered using Alt-Svc (if any)")
-	epntPlan, _ := cur.NewEndpointPlan()
+	epntPlan, _ := cur.NewEndpointPlan(0)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}
