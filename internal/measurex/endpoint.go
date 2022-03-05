@@ -63,8 +63,8 @@ type EndpointPlan struct {
 
 func (e *EndpointPlan) tlsConfig() *tls.Config {
 	return &tls.Config{
-		ServerName: e.Options.sni(e),
-		NextProtos: e.Options.alpn(e),
+		ServerName: e.Options.sniForEndpointPlan(e),
+		NextProtos: e.Options.alpnForEndpointPlan(e),
 		RootCAs:    netxlite.NewDefaultCertPool(),
 	}
 }
@@ -477,7 +477,7 @@ func (mx *Measurer) httpsGET(ctx context.Context, epnt *EndpointPlan,
 	// the cast should always be possible according to nextlite docs
 	tlsConn := conn.(model.TLSConn)
 	txp := mx.Library.NewHTTPTransportWithTLSConn(saver, tlsConn,
-		epnt.Options.maxHTTPSResponseBodySnapshotSize(epnt))
+		epnt.Options.maxHTTPSResponseBodySnapshotSizeForEndpointPlan(epnt))
 	defer txp.CloseIdleConnections()
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }
@@ -491,7 +491,7 @@ func (mx *Measurer) http3GET(ctx context.Context, epnt *EndpointPlan,
 	// TODO(bassosimone): close session with correct message
 	defer sess.CloseWithError(0, "") // we own it
 	txp := mx.Library.NewHTTPTransportWithQUICSess(saver, sess,
-		epnt.Options.maxHTTPSResponseBodySnapshotSize(epnt))
+		epnt.Options.maxHTTPSResponseBodySnapshotSizeForEndpointPlan(epnt))
 	defer txp.CloseIdleConnections()
 	return mx.httpTransportDo(ctx, epnt, saver, jar, txp)
 }

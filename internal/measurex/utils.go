@@ -14,9 +14,9 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 )
 
-// ALPNForHTTPEndpoint selects the correct ALPN for an HTTP endpoint
+// ALPNForHTTPSEndpoint selects the correct ALPN for an HTTP endpoint
 // given the network. On failure, we return an empty list.
-func ALPNForHTTPEndpoint(network archival.NetworkType) []string {
+func ALPNForHTTPSEndpoint(network archival.NetworkType) []string {
 	switch network {
 	case archival.NetworkTypeQUIC:
 		return []string{"h3"}

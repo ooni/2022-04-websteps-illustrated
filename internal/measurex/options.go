@@ -15,71 +15,77 @@ import (
 // and all the methods works as intended when *Options is nil.
 type Options struct {
 	// ALPN allows to override the QUIC/TLS ALPN we'll use.
-	ALPN []string `json:"alpn"`
+	ALPN []string
 
 	// DNSLookupTimeout is the maximum time we're willing to wait
 	// for any DNS lookup to complete.
-	DNSLookupTimeout time.Duration `json:"dns_lookup_timeout"`
+	DNSLookupTimeout time.Duration
 
 	// DNSParallelism is the number of parallel goroutines we will
 	// use for measuring HTTP/HTTPS/HTTP3 endpoints.
-	DNSParallelism int64 `json:"dns_parallelism"`
+	DNSParallelism int64
 
 	// EndpointParallellism is the number of parallel goroutines we will
 	// use for measuring HTTP/HTTPS/HTTP3 endpoints.
-	EndpointParallelism int64 `json:"endpoint_parallelism"`
+	EndpointParallelism int64
 
 	// HTTPGetTimeout is the maximum time we're willing to wait
 	// for any HTTP GET operation to complete.
-	HTTPGetTimeout time.Duration `json:"http_get_timeout"`
+	HTTPGetTimeout time.Duration
 
 	// HTTPHostHeader allows to override the Host header we'll use.
-	HTTPHostHeader string `json:"http_host_header"`
+	HTTPHostHeader string
 
 	// HTTPRequestHeaders controls the HTTP request headers we'll use in
 	// the first HTTP request. Subsequent requests following redirects
 	// will use the same headers of the first request.
-	HTTPRequestHeaders http.Header `json:"http_request_headers"`
+	HTTPRequestHeaders http.Header
 
 	// DoNotInitiallyForceHTTPAndHTTPS controls whether we're going to
 	// initially force using both HTTP and HTTPS for the first URL.
-	DoNotInitiallyForceHTTPAndHTTPS bool `json:"do_not_initially_force_http_and_https"`
+	DoNotInitiallyForceHTTPAndHTTPS bool
 
 	// MaxAddressesPerFamily controls the maximum number of IP addresses
 	// per family (i.e., A and AAAA) we'll test.
-	MaxAddressesPerFamily int64 `json:"max_addresses_per_family"`
+	MaxAddressesPerFamily int64
 
 	// MaxCrawlerDepth is the maximum exploration depth. Every different
 	// redirection is another depth level. We will stop exploring when we'll
 	// have reached the maximum depth.
-	MaxCrawlerDepth int64 `json:"max_crawler_depth"`
+	MaxCrawlerDepth int64
 
 	// MaxHTTPResponseBodySnapshotSize is the maximum response body
 	// snapshot size for cleartext requests (HTTP).
-	MaxHTTPResponseBodySnapshotSize int64 `json:"max_http_response_body_snapshot_size"`
+	MaxHTTPResponseBodySnapshotSize int64
 
-	// MaxHTTPSResponseBodySnapshotSize is the maximum response body
-	// snapshot size for encrypted requests (HTTPS/HTTP3).
-	MaxHTTPSResponseBodySnapshotSize int64 `json:"max_https_response_body_snapshot_size"`
+	// MaxHTTPSResponseBodySnapshotSizeConnectivity is the maximum response body
+	// snapshot size for encrypted requests (HTTPS/HTTP3), used when we're just
+	// ensuring that we can speak with a given HTTPS endpoint.
+	MaxHTTPSResponseBodySnapshotSizeConnectivity int64
+
+	// MaxHTTPSResponseBodySnapshotSizeThrottling is the maximum response body
+	// snapshot size for encrypted requests (HTTPS/HTTP3), used when we want
+	// to measure the download speed by downloading a sizable body chunk.
+	MaxHTTPSResponseBodySnapshotSizeThrottling int64
 
 	// Parent is the parent Options data structure. By setting this field
 	// you can layer new Options on top of existing Options.
-	Parent *Options `json:"parent"`
+	Parent *Options
 
 	// QUICHandshakeTimeout is the maximum time we're willing to wait
 	// for any QUIC handshake to complete.
-	QUICHandshakeTimeout time.Duration `json:"quic_handshake_timeout"`
+	QUICHandshakeTimeout time.Duration
 
 	// TCPConnectTimeout is the maximum time we're willing to wait
 	// for any TCP connect attempt to complete.
-	TCPconnectTimeout time.Duration `json:"tcp_connect_timeout"`
+	TCPconnectTimeout time.Duration
 
 	// TLSHandshakeTimeout is the maximum time we're willing to wait
 	// for any TLS handshake to complete.
-	TLSHandshakeTimeout time.Duration `json:"tls_handshake_timeout"`
+	TLSHandshakeTimeout time.Duration
 
 	// SNI allows to override the QUIC/TLS SNI we'll use.
-	SNI string `json:"sni"`
+	SNI string
 }
 
 // Chain returns child configured to use the current parent as
@@ -136,16 +142,27 @@ const (
 	DefaultTLSHandshakeTimeout = 10 * time.Second
 )
 
-// alpn returns the ALPN we should be using.
-func (opt *Options) alpn(e *EndpointPlan) (v []string) {
+// alpn returns the value of the ALPN option or the default.
+func (opt *Options) alpn() (v []string) {
 	if opt != nil {
 		v = opt.ALPN
 	}
 	if len(v) <= 0 && opt != nil && opt.Parent != nil {
-		v = opt.Parent.alpn(e)
+		v = opt.Parent.alpn()
+	}
+	return
+}
+
+// alpnForEndpointPlan returns the ALPN we should be using with this plan.
+func (opt *Options) alpnForEndpointPlan(e *EndpointPlan) (v []string) {
+	if opt != nil {
+		v = opt.ALPN
+	}
+	if len(v) <= 0 && opt != nil && opt.Parent != nil {
+		v = opt.Parent.alpnForEndpointPlan(e)
 	}
 	if len(v) <= 0 && e.URL != nil && e.URL.Scheme == "https" {
-		v = ALPNForHTTPEndpoint(e.Network)
+		v = ALPNForHTTPSEndpoint(e.Network)
 	}
 	return
 }
@@ -286,22 +303,43 @@ func (opt *Options) maxHTTPResponseBodySnapshotSize() (v int64) {
 	return
 }
 
-// maxHTTPSResponseBodySnapshotSize returns the maximum snapshot
-// size for an encrypted HTTP response body.
-func (opt *Options) maxHTTPSResponseBodySnapshotSize(e *EndpointPlan) (v int64) {
+// maxHTTPSResponseBodySnapshotSizeConnectivity returns the maximum snapshot
+// size for an encrypted HTTP response body when measuring connectivity.
+func (opt *Options) maxHTTPSResponseBodySnapshotSizeConnectivity() (v int64) {
 	if opt != nil {
-		v = opt.MaxHTTPSResponseBodySnapshotSize
+		v = opt.MaxHTTPSResponseBodySnapshotSizeConnectivity
 	}
 	if v == 0 && opt != nil && opt.Parent != nil {
-		v = opt.Parent.maxHTTPSResponseBodySnapshotSize(e)
+		v = opt.Parent.maxHTTPSResponseBodySnapshotSizeConnectivity()
 	}
 	if v == 0 {
 		v = DefaultMaxHTTPSResponseBodySnapshotSizeConnectivity
-		if e.URL != nil && e.URL.Path != "/" && e.URL.Path != "" {
-			v = DefaultMaxHTTPSResponseBodySnapshotSizeThrottling
-		}
 	}
 	return
+}
+
+// maxHTTPSResponseBodySnapshotSizeThrottling returns the maximum snapshot
+// size for an encrypted HTTP response body when measuring throttling.
+func (opt *Options) maxHTTPSResponseBodySnapshotSizeThrottling() (v int64) {
+	if opt != nil {
+		v = opt.MaxHTTPSResponseBodySnapshotSizeThrottling
+	}
+	if v == 0 && opt != nil && opt.Parent != nil {
+		v = opt.Parent.maxHTTPSResponseBodySnapshotSizeThrottling()
+	}
+	if v == 0 {
+		v = DefaultMaxHTTPSResponseBodySnapshotSizeThrottling
+	}
+	return
+}
+
+// maxHTTPSResponseBodySnapshotSizeForEndpointPlan returns the maximum snapshot
+// size for an encrypted HTTP response body, for the given endpoint plan.
+func (opt *Options) maxHTTPSResponseBodySnapshotSizeForEndpointPlan(e *EndpointPlan) int64 {
+	if e.URL != nil && e.URL.Path != "/" && e.URL.Path != "" {
+		return opt.maxHTTPSResponseBodySnapshotSizeThrottling()
+	}
+	return opt.maxHTTPSResponseBodySnapshotSizeConnectivity()
 }
 
 // quicHandshakeTimeout returns the desired QUIC handshake timeout.
@@ -318,13 +356,24 @@ func (opt *Options) quicHandshakeTimeout() (v time.Duration) {
 	return
 }
 
-// sni returns the SNI we should be using.
-func (opt *Options) sni(e *EndpointPlan) (v string) {
+// sni returns the SNI value or the default.
+func (opt *Options) sni() (v string) {
 	if opt != nil {
 		v = opt.SNI
 	}
 	if v == "" && opt != nil && opt.Parent != nil {
-		v = opt.Parent.sni(e)
+		v = opt.Parent.sni()
+	}
+	return
+}
+
+// sniForEndpointPlan returns the SNI we should be using with this plan.
+func (opt *Options) sniForEndpointPlan(e *EndpointPlan) (v string) {
+	if opt != nil {
+		v = opt.SNI
+	}
+	if v == "" && opt != nil && opt.Parent != nil {
+		v = opt.Parent.sniForEndpointPlan(e)
 	}
 	if v == "" && e.URL != nil {
 		v = e.URL.Hostname()
@@ -358,4 +407,29 @@ func (opt *Options) tlsHandshakeTimeout() (v time.Duration) {
 		v = DefaultTLSHandshakeTimeout
 	}
 	return
+}
+
+// Flatten generates a new Options that contains all the currently
+// configured options (or default values) inside it.
+func (cur *Options) Flatten() *Options {
+	return &Options{
+		ALPN:                            cur.alpn(),
+		DNSLookupTimeout:                cur.dnsLookupTimeout(),
+		DNSParallelism:                  cur.dnsParallelism(),
+		EndpointParallelism:             cur.endpointParallelism(),
+		HTTPGetTimeout:                  cur.httpGETTimeout(),
+		HTTPHostHeader:                  cur.httpHostHeader(),
+		HTTPRequestHeaders:              cur.httpClonedRequestHeaders(),
+		DoNotInitiallyForceHTTPAndHTTPS: cur.doNotInitiallyForceHTTPAndHTTPS(),
+		MaxAddressesPerFamily:           cur.maxAddressesPerFamily(),
+		MaxCrawlerDepth:                 cur.maxCrawlerDepth(),
+		MaxHTTPResponseBodySnapshotSize: cur.maxHTTPResponseBodySnapshotSize(),
+		MaxHTTPSResponseBodySnapshotSizeConnectivity: cur.maxHTTPSResponseBodySnapshotSizeConnectivity(),
+		MaxHTTPSResponseBodySnapshotSizeThrottling:   cur.maxHTTPSResponseBodySnapshotSizeThrottling(),
+		Parent:               nil,
+		QUICHandshakeTimeout: cur.quicHandshakeTimeout(),
+		TCPconnectTimeout:    cur.tcpConnectTimeout(),
+		TLSHandshakeTimeout:  cur.tlsHandshakeTimeout(),
+		SNI:                  cur.sni(),
+	}
 }
