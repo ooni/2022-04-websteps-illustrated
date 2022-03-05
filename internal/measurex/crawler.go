@@ -55,22 +55,25 @@ func NewCrawler(logger model.Logger, measurer *Measurer) *Crawler {
 // Crawl visits the given URL.
 func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement, error) {
 	mx := c.Measurer
-	um, err := mx.NewURLMeasurement(URL)
+	initial, err := mx.NewURLMeasurement(URL)
 	if err != nil {
 		return nil, err
 	}
 	out := make(chan *URLMeasurement)
 	go func() {
 		defer close(out)
-		q := NewURLRedirectDeque()
-		q.Append(um)
-		for !q.Empty() && q.NumRedirects() < c.MaxDepth {
-			um = q.PopLeft()
-			c.Logger.Infof("🧐 crawling %s", um.URL.String())
-			c.do(ctx, mx, um)
-			q.RememberVisitedURLs(um)
-			redirects, _ := mx.Redirects(um)
-			out <- um
+		q := NewURLRedirectDeque(c.Logger)
+		q.Append(initial)
+		for q.NumRedirects() < c.MaxDepth {
+			cur, found := q.PopLeft()
+			if !found {
+				break // we've emptied the queue
+			}
+			c.Logger.Infof("🧐 crawling %s", cur.URL.String())
+			c.do(ctx, mx, cur)
+			q.RememberVisitedURLs(cur)
+			redirects, _ := mx.Redirects(cur)
+			out <- cur
 			q.Append(redirects...)
 			c.Logger.Infof("🪀 work queue: %s", q.String())
 		}

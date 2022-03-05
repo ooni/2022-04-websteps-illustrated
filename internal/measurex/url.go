@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
 // URLMeasurement is the (possibly interim) result of measuring an URL.
@@ -401,6 +402,9 @@ type URLRedirectDeque struct {
 	// cnt counts the depth
 	cnt int
 
+	// logger is the logger to use.
+	logger model.Logger
+
 	// mem contains the URLs we've already visited.
 	mem map[string]bool
 
@@ -409,11 +413,12 @@ type URLRedirectDeque struct {
 }
 
 // NewURLRedirectDeque creates an URLRedirectDeque.
-func NewURLRedirectDeque() *URLRedirectDeque {
+func NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque {
 	return &URLRedirectDeque{
-		cnt: 0,
-		mem: map[string]bool{},
-		q:   []*URLMeasurement{},
+		cnt:    0,
+		logger: logger,
+		mem:    map[string]bool{},
+		q:      []*URLMeasurement{},
 	}
 }
 
@@ -446,15 +451,9 @@ func (r *URLRedirectDeque) String() string {
 	return fmt.Sprintf("%+v", out)
 }
 
-// Append appends one or more URLMeasurement to the right of the deque if
-// and only if we've not already visited the related URLs.
+// Append appends one or more URLMeasurement to the right of the deque.
 func (r *URLRedirectDeque) Append(um ...*URLMeasurement) {
-	for _, m := range um {
-		if r.mem[r.reprURL(m.URL)] {
-			continue
-		}
-		r.q = append(r.q, m)
-	}
+	r.q = append(r.q, um...)
 }
 
 // RememberVisitedURLs register the URLs we've already visited so that
@@ -465,17 +464,20 @@ func (r *URLRedirectDeque) RememberVisitedURLs(um *URLMeasurement) {
 	}
 }
 
-// PopLeft removes the first element in the redirect deque.
-func (r *URLRedirectDeque) PopLeft() (um *URLMeasurement) {
-	um = r.q[0]
-	r.q = r.q[1:]
-	r.cnt++ // we increment the depth when we _remove_ and measure
-	return
-}
-
-// Empty returns true if the deque is empty.
-func (r *URLRedirectDeque) Empty() bool {
-	return len(r.q) <= 0
+// PopLeft removes the first element in the redirect deque. Returns true
+// if we returned an element and false when the deque is empty.
+func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
+	for len(r.q) > 0 {
+		um := r.q[0]
+		r.q = r.q[1:]
+		if repr := r.reprURL(um.URL); r.mem[repr] {
+			r.logger.Infof("skip already visited URL: %s", repr)
+			continue
+		}
+		r.cnt++ // we increment the depth when we _remove_ and measure
+		return um, true
+	}
+	return nil, false
 }
 
 // NumRedirects returns the number or redirects we followed so far.
