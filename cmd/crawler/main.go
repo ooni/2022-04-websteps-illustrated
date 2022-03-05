@@ -13,18 +13,22 @@ import (
 )
 
 type CLI struct {
-	Help    bool     `doc:"prints this help message" short:"h"`
-	Input   []string `doc:"add URL to list of URLs to crawl" short:"i"`
-	Output  string   `doc:"file where to write output (default: crawler.jsonl)" short:"o"`
-	Verbose bool     `doc:"enable verbose mode" short:"v"`
+	Help       bool     `doc:"prints this help message" short:"h"`
+	HostHeader string   `doc:"force using this host header"`
+	Input      []string `doc:"add URL to list of URLs to crawl" short:"i"`
+	Output     string   `doc:"file where to write output (default: crawler.jsonl)" short:"o"`
+	SNI        string   `doc:"force using this SNI"`
+	Verbose    bool     `doc:"enable verbose mode" short:"v"`
 }
 
 func main() {
 	cli := &CLI{
-		Help:    false,
-		Input:   []string{},
-		Output:  "crawler.jsonl",
-		Verbose: false,
+		Help:       false,
+		HostHeader: "",
+		Input:      []string{},
+		Output:     "crawler.jsonl",
+		SNI:        "",
+		Verbose:    false,
 	}
 	parser := getoptx.MustNewParser(cli, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -41,6 +45,10 @@ func main() {
 	}
 	library := measurex.NewDefaultLibrary(log.Log)
 	mx := measurex.NewMeasurer(log.Log, library)
+	mx.Options = &measurex.Options{
+		HTTPHostHeader: cli.HostHeader,
+		SNI:            cli.SNI,
+	}
 	ctx := context.Background()
 	begin := time.Now()
 	for _, input := range cli.Input {
