@@ -44,7 +44,7 @@ func NewCrawler(logger model.Logger, measurer *Measurer) *Crawler {
 		EndpointParallelism: 16,
 		Logger:              logger,
 		Measurer:            measurer,
-		MaxDepth:            10,
+		MaxDepth:            7,
 		Resolvers: []*DNSResolverInfo{{
 			Network: "system",
 			Address: "",
