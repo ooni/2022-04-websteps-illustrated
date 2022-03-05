@@ -41,6 +41,7 @@ func main() {
 	}
 	library := measurex.NewDefaultLibrary(log.Log)
 	mx := measurex.NewMeasurer(log.Log, library)
+	// TODO(bassosimone): allow user to change these options:
 	mx.MaxHTTPResponseBodySnapshotSize = 1 << 10
 	mx.MaxHTTPSResponseBodySnapshotSize = 1 << 10
 	ctx := context.Background()
@@ -51,6 +52,7 @@ func main() {
 			Network: "udp",
 			Address: "8.8.4.4:53",
 		})
+		// TODO(bassosimone): allow user to change these options:
 		crawler.MaxDepth = 1
 		mchan, err := crawler.Crawl(ctx, input)
 		if err != nil {
