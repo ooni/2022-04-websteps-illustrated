@@ -64,7 +64,7 @@ func (s *Saver) writeTo(pconn model.UDPLikeConn, buf []byte, addr net.Addr) (int
 	started := time.Now()
 	count, err := pconn.WriteTo(buf, addr)
 	s.appendNetworkEvent(&FlatNetworkEvent{
-		Count:      count,
+		Count:      int64(count),
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
 		Network:    NetworkType(addr.Network()), // "udp"
@@ -79,7 +79,7 @@ func (s *Saver) readFrom(pconn model.UDPLikeConn, buf []byte) (int, net.Addr, er
 	started := time.Now()
 	count, addr, err := pconn.ReadFrom(buf)
 	s.appendNetworkEvent(&FlatNetworkEvent{
-		Count:      count,
+		Count:      int64(count),
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
 		Network:    NetworkTypeUDP, // must be always set even on failure

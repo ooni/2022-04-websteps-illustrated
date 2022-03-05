@@ -55,6 +55,7 @@ func (s *Saver) httpRoundTrip(
 		Transport:               txp.Network(),
 		URL:                     req.URL.String(),
 	}
+	s.startAggregatingNetworkEvents() // from now on, just sample
 	if err != nil {
 		rt.Finished = time.Now()
 		rt.Failure = NewFlatFailure(err)

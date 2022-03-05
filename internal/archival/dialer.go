@@ -108,7 +108,7 @@ func (s *Saver) read(conn net.Conn, buf []byte) (int, error) {
 	started := time.Now()
 	count, err := conn.Read(buf)
 	s.appendNetworkEvent(&FlatNetworkEvent{
-		Count:      count,
+		Count:      int64(count),
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
 		Network:    NetworkType(network), // "tcp" or "udp"
@@ -125,7 +125,7 @@ func (s *Saver) write(conn net.Conn, buf []byte) (int, error) {
 	started := time.Now()
 	count, err := conn.Write(buf)
 	s.appendNetworkEvent(&FlatNetworkEvent{
-		Count:      count,
+		Count:      int64(count),
 		Failure:    NewFlatFailure(err),
 		Finished:   time.Now(),
 		Network:    NetworkType(network), // "tcp" or "udp"
@@ -138,6 +138,16 @@ func (s *Saver) write(conn net.Conn, buf []byte) (int, error) {
 
 func (s *Saver) appendNetworkEvent(ev *FlatNetworkEvent) {
 	s.mu.Lock()
-	s.trace.Network = append(s.trace.Network, ev)
+	switch ev.Operation {
+	case netxlite.ReadOperation, netxlite.ReadFromOperation:
+		s.nrecv += int64(ev.Count)
+	case netxlite.WriteOperation, netxlite.WriteToOperation:
+		s.nsent += int64(ev.Count)
+	}
+	if s.aggregate {
+		s.maybeEmitIOMetricsLocked()
+	} else {
+		s.trace.Network = append(s.trace.Network, ev)
+	}
 	s.mu.Unlock()
 }
