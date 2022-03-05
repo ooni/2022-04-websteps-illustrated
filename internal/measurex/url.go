@@ -36,6 +36,10 @@ type URLMeasurement struct {
 	// measuring both HTTP and HTTPS.
 	ForceBothHTTPAndHTTPS bool
 
+	// MaxAddressesPerFamily is the maximum number of
+	// addresses we should measure per family.
+	MaxAddressesPerFamily int64
+
 	// SNI contains the SNI.
 	SNI string
 
@@ -67,6 +71,10 @@ func (um *URLMeasurement) IsHTTPS() bool {
 	return um.ForceBothHTTPAndHTTPS || um.URL.Scheme == "https"
 }
 
+// DefaultMaxAddressPerFamily is the default number of IP addresses
+// per address family that we will test using websteps.
+const DefaultMaxAddressPerFamily = 2
+
 // NewURLMeasurement creates a new URLMeasurement from a string URL.
 func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	parsed, err := url.Parse(input)
@@ -93,6 +101,7 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 		Cookies:               []*http.Cookie{},
 		Headers:               NewHTTPRequestHeaderForMeasuring(),
 		ForceBothHTTPAndHTTPS: parsed.Port() == "", // check both unless there's a port
+		MaxAddressesPerFamily: DefaultMaxAddressPerFamily,
 		SNI:                   parsed.Hostname(),
 		ALPN:                  []string{},
 		Host:                  parsed.Hostname(),
@@ -232,7 +241,17 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
 	out := make([]*EndpointPlan, 0, 8)
+	familyCounter := make(map[string]int64)
 	for _, addr := range addrs {
+		family := "A"
+		if strings.Contains(addr.Address, ":") {
+			family = "AAAA"
+		}
+		if familyCounter[family] >= um.MaxAddressesPerFamily {
+			// Do not add more than N IP addrs for each address family.
+			continue
+		}
+		familyCounter[family] += 1
 		if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
 			if err != nil {
@@ -373,6 +392,7 @@ func (mx *Measurer) redirects(
 				Cookies:               epnt.Cookies,
 				Headers:               mx.newHeadersForRedirect(epnt.Location, epnt.RequestHeaders()),
 				ForceBothHTTPAndHTTPS: false, // stop testing both for redirects
+				MaxAddressesPerFamily: cur.MaxAddressesPerFamily,
 				SNI:                   epnt.Location.Hostname(),
 				ALPN:                  ALPNForHTTPEndpoint(epnt.Network),
 				Host:                  epnt.Location.Hostname(),
@@ -484,7 +504,7 @@ func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
 	return nil, false
 }
 
-// NumRedirects returns the number or redirects we followed so far.
-func (r *URLRedirectDeque) NumRedirects() int {
+// Depth returns the number or redirects we followed so far.
+func (r *URLRedirectDeque) Depth() int {
 	return r.cnt
 }

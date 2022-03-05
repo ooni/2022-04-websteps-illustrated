@@ -134,6 +134,10 @@ type ArchivalURLMeasurement struct {
 	// measuring both HTTP and HTTPS.
 	ForceBothHTTPAndHTTPS bool `json:"force_both_http_and_https"`
 
+	// MaxAddressesPerFamily is the maximum number of
+	// addresses we should measure per family.
+	MaxAddressesPerFamily int64 `json:"max_addresses_per_family"`
+
 	// ALPN contains values for ALPN.
 	ALPN []string `json:"alpn,omitempty"`
 
@@ -156,6 +160,7 @@ func (m *URLMeasurement) ToArchival(begin time.Time) ArchivalURLMeasurement {
 		SNI:                   m.SNI,
 		Cookies:               m.toArchivalCookies(),
 		ForceBothHTTPAndHTTPS: m.ForceBothHTTPAndHTTPS,
+		MaxAddressesPerFamily: m.MaxAddressesPerFamily,
 		ALPN:                  m.ALPN,
 		Host:                  m.Host,
 		DNS:                   NewArchivalDNSLookupMeasurementList(begin, m.DNS),

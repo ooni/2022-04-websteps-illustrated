@@ -64,12 +64,16 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 		defer close(out)
 		q := NewURLRedirectDeque(c.Logger)
 		q.Append(initial)
-		for q.NumRedirects() < c.MaxDepth {
+		for {
+			if q.Depth() >= c.MaxDepth {
+				c.Logger.Infof("👋 reached maximum crawling depth")
+				break
+			}
 			cur, found := q.PopLeft()
 			if !found {
 				break // we've emptied the queue
 			}
-			c.Logger.Infof("🧐 crawling %s", cur.URL.String())
+			c.Logger.Infof("🧐 depth=%d; crawling %s", q.Depth(), cur.URL.String())
 			c.do(ctx, mx, cur)
 			q.RememberVisitedURLs(cur)
 			redirects, _ := mx.Redirects(cur)

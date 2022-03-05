@@ -53,7 +53,7 @@ func main() {
 			Address: "8.8.4.4:53",
 		})
 		// TODO(bassosimone): allow user to change these options:
-		crawler.MaxDepth = 1
+		crawler.MaxDepth = 3
 		mchan, err := crawler.Crawl(ctx, input)
 		if err != nil {
 			log.Warnf("cannot start crawler: %s", err.Error())
