@@ -22,7 +22,7 @@ type CLI struct {
 }
 
 func main() {
-	cli := &CLI{
+	opts := &CLI{
 		Help:       false,
 		HostHeader: "",
 		Input:      []string{},
@@ -30,28 +30,28 @@ func main() {
 		SNI:        "",
 		Verbose:    false,
 	}
-	parser := getoptx.MustNewParser(cli, getoptx.NoPositionalArguments())
+	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
-	if cli.Help {
+	if opts.Help {
 		parser.PrintUsage(os.Stdout)
 		os.Exit(0)
 	}
-	if cli.Verbose {
+	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-	filep, err := os.Create(cli.Output)
+	filep, err := os.OpenFile(opts.Output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.WithError(err).Fatal("cannot create output file")
 	}
 	library := measurex.NewDefaultLibrary(log.Log)
 	mx := measurex.NewMeasurer(log.Log, library)
 	mx.Options = &measurex.Options{
-		HTTPHostHeader: cli.HostHeader,
-		SNI:            cli.SNI,
+		HTTPHostHeader: opts.HostHeader,
+		SNI:            opts.SNI,
 	}
 	ctx := context.Background()
 	begin := time.Now()
-	for _, input := range cli.Input {
+	for _, input := range opts.Input {
 		crawler := measurex.NewCrawler(log.Log, mx)
 		crawler.Resolvers = append(crawler.Resolvers, &measurex.DNSResolverInfo{
 			Network: "udp",
