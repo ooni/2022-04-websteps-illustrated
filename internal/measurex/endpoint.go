@@ -95,14 +95,17 @@ type EndpointMeasurement struct {
 	// Address is the address of this endpoint.
 	Address string
 
+	// OrigCookies contains the cookies we originally used.
+	OrigCookies []*http.Cookie
+
 	// Failure is the error that occurred.
 	Failure archival.FlatFailure
 
 	// FailedOperation is the operation that failed.
 	FailedOperation FlatFailedOperation
 
-	// Cookies contains cookies the next redirection (if any) should use.
-	Cookies []*http.Cookie
+	// NewCookies contains cookies the next redirection (if any) should use.
+	NewCookies []*http.Cookie
 
 	// Location is the URL we're redirected to (if any).
 	Location *url.URL
@@ -158,13 +161,48 @@ func (em *EndpointMeasurement) RequestHeaders() http.Header {
 	return http.Header{}
 }
 
-// ResponseStatusCode returns the response status code. If there's no response
+// StatusCode returns the response status code. If there's no response
 // we just return zero to the caller.
-func (em *EndpointMeasurement) ResponseStatusCode() int64 {
+func (em *EndpointMeasurement) StatusCode() int64 {
 	if em.HTTPRoundTrip != nil {
 		return em.HTTPRoundTrip.StatusCode
 	}
 	return 0
+}
+
+// LocationAsString converts the location URL to string. If the location
+// URL is nil, we return an empty string.
+func (em *EndpointMeasurement) LocationAsString() string {
+	if em.Location != nil {
+		return em.Location.String()
+	}
+	return ""
+}
+
+// URLAsString converts the endpoint URL to string. If such an URL
+// is nil, we return an empty string.
+func (em *EndpointMeasurement) URLAsString() string {
+	if em.URL != nil {
+		return em.URL.String()
+	}
+	return ""
+}
+
+// BodyLength returns the body length. If there's no body, it returns zero.
+func (em *EndpointMeasurement) BodyLength() int64 {
+	if em.HTTPRoundTrip != nil {
+		return em.HTTPRoundTrip.ResponseBodyLength
+	}
+	return 0
+}
+
+// BodyIsTruncated returns whether the body is truncated. If there's
+// no body, this function returns false.
+func (em *EndpointMeasurement) BodyIsTruncated() bool {
+	if em.HTTPRoundTrip != nil {
+		return em.HTTPRoundTrip.ResponseBodyIsTruncated
+	}
+	return false
 }
 
 // SupportsAltSvcHTTP3 indicates whether the response in this EndpointMeasurement
@@ -228,7 +266,8 @@ func (mx *Measurer) newEndpointMeasurement(
 		ID:               mx.NextID(),
 		Failure:          archival.NewFlatFailure(err),
 		FailedOperation:  FlatFailedOperation(operation),
-		Cookies:          responseCookies,
+		OrigCookies:      epnt.Cookies,
+		NewCookies:       responseCookies,
 		Location:         location,
 		NetworkEvent:     nil,
 		QUICTLSHandshake: nil,

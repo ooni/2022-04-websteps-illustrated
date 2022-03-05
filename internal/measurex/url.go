@@ -366,7 +366,7 @@ type urlRedirectPolicyDefault struct{}
 
 // Summary implements urlRedirectPolicy.Summary.
 func (*urlRedirectPolicyDefault) Summary(epnt *EndpointMeasurement) (string, bool) {
-	switch epnt.ResponseStatusCode() {
+	switch epnt.StatusCode() {
 	case 301, 302, 303, 306, 307:
 	default:
 		return "", false // skip this entry if it's not a redirect
@@ -379,12 +379,12 @@ func (*urlRedirectPolicyDefault) Summary(epnt *EndpointMeasurement) (string, boo
 		return epnt.Location.String(), true
 	}
 	// If there are no cookies, likewise
-	if len(epnt.Cookies) <= 0 {
+	if len(epnt.NewCookies) <= 0 {
 		return epnt.Location.String(), true
 	}
 	// Otherwise, account for cookies
 	summary := make([]string, 0, 4)
-	for _, cookie := range epnt.Cookies {
+	for _, cookie := range epnt.NewCookies {
 		summary = append(summary, cookie.String())
 	}
 	sort.Strings(summary)
@@ -420,7 +420,7 @@ func (mx *Measurer) redirects(
 				ID:          mx.NextID(),
 				EndpointIDs: []int64{},
 				URL:         epnt.Location,
-				Cookies:     epnt.Cookies,
+				Cookies:     epnt.NewCookies,
 				Options: cur.Options.Chain(&Options{
 					// Note: all other fields intentionally left empty. We do not
 					// want to continue following HTTP and HTTPS after we have done
