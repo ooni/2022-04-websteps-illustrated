@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -408,8 +409,8 @@ func (mx *Measurer) newHeadersForRedirect(location *url.URL, orig http.Header) h
 // URLRedirectDeque is the type we use to manage the redirection
 // queue and to follow a reasonable number of redirects.
 type URLRedirectDeque struct {
-	// cnt counts the depth
-	cnt int64
+	// depth counts the depth
+	depth int64
 
 	// logger is the logger to use.
 	logger model.Logger
@@ -417,17 +418,25 @@ type URLRedirectDeque struct {
 	// mem contains the URLs we've already visited.
 	mem map[string]bool
 
+	// mu provides mutual exclusion.
+	mu sync.Mutex
+
+	// options contains options.
+	options *Options
+
 	// q contains the current deque
 	q []*URLMeasurement
 }
 
 // NewURLRedirectDeque creates an URLRedirectDeque.
-func NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque {
+func (mx *Measurer) NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque {
 	return &URLRedirectDeque{
-		cnt:    0,
-		logger: logger,
-		mem:    map[string]bool{},
-		q:      []*URLMeasurement{},
+		depth:   0,
+		logger:  logger,
+		mem:     map[string]bool{},
+		mu:      sync.Mutex{},
+		options: mx.Options,
+		q:       []*URLMeasurement{},
 	}
 }
 
@@ -453,6 +462,8 @@ func (r *URLRedirectDeque) reprURL(URL *url.URL) string {
 
 // String returns a string representation of the deque.
 func (r *URLRedirectDeque) String() string {
+	defer r.mu.Unlock()
+	r.mu.Lock()
 	var out []string
 	for _, entry := range r.q {
 		out = append(out, r.reprURL(entry.URL))
@@ -462,12 +473,16 @@ func (r *URLRedirectDeque) String() string {
 
 // Append appends one or more URLMeasurement to the right of the deque.
 func (r *URLRedirectDeque) Append(um ...*URLMeasurement) {
+	defer r.mu.Unlock()
+	r.mu.Lock()
 	r.q = append(r.q, um...)
 }
 
 // RememberVisitedURLs register the URLs we've already visited so that
 // we're not going to visit them again.
 func (r *URLRedirectDeque) RememberVisitedURLs(um *URLMeasurement) {
+	defer r.mu.Unlock()
+	r.mu.Lock()
 	for _, epnt := range um.Endpoint {
 		r.mem[r.reprURL(epnt.URL)] = true
 	}
@@ -476,14 +491,20 @@ func (r *URLRedirectDeque) RememberVisitedURLs(um *URLMeasurement) {
 // PopLeft removes the first element in the redirect deque. Returns true
 // if we returned an element and false when the deque is empty.
 func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
+	defer r.mu.Unlock()
+	r.mu.Lock()
+	if r.depth > r.options.maxCrawlerDepth() {
+		r.logger.Info("👋 reached maximum crawler depth")
+		return nil, false
+	}
 	for len(r.q) > 0 {
 		um := r.q[0]
 		r.q = r.q[1:]
 		if repr := r.reprURL(um.URL); r.mem[repr] {
-			r.logger.Infof("skip already visited URL: %s", repr)
+			r.logger.Infof("🧐 skip already visited URL: %s", repr)
 			continue
 		}
-		r.cnt++ // we increment the depth when we _remove_ and measure
+		r.depth++ // we increment the depth when we _remove_ and measure
 		return um, true
 	}
 	return nil, false
@@ -491,5 +512,7 @@ func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
 
 // Depth returns the number or redirects we followed so far.
 func (r *URLRedirectDeque) Depth() int64 {
-	return r.cnt
+	defer r.mu.Unlock()
+	r.mu.Lock()
+	return r.depth
 }

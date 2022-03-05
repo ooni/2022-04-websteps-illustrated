@@ -37,10 +37,11 @@ type Measurer struct {
 // NewMeasurer creates a new Measurer instance using the default settings.
 func NewMeasurer(logger model.Logger, library *Library) *Measurer {
 	return &Measurer{
-		IDGenerator: NewIDGenerator(),
-		Library:     library,
-		Logger:      logger,
-		Options:     nil, // meaning: use default values
+		IDGenerator:   NewIDGenerator(),
+		Library:       library,
+		Logger:        logger,
+		Options:       nil, // meaning: use default values
+		TLSHandshaker: library.NewTLSHandshakerStdlib(),
 	}
 }
 

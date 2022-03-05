@@ -55,13 +55,9 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 	out := make(chan *URLMeasurement)
 	go func() {
 		defer close(out)
-		q := NewURLRedirectDeque(c.Logger)
+		q := mx.NewURLRedirectDeque(c.Logger)
 		q.Append(initial)
 		for {
-			if q.Depth() >= c.Options.maxCrawlerDepth() {
-				c.Logger.Infof("👋 reached maximum crawling depth")
-				break
-			}
 			cur, found := q.PopLeft()
 			if !found {
 				break // we've emptied the queue
@@ -85,7 +81,7 @@ func (c *Crawler) do(ctx context.Context, mx *Measurer, um *URLMeasurement) {
 	for m := range mx.DNSLookups(ctx, c.Options.dnsParallelism(), dnsPlan) {
 		um.DNS = append(um.DNS, m)
 	}
-	c.Logger.Info("🔎 visiting all endpoints deriving from DNS")
+	c.Logger.Info("🔎 visiting endpoints deriving from DNS")
 	epntPlan, _ := um.NewEndpointPlan()
 	for m := range mx.MeasureEndpoints(ctx, c.Options.endpointParallelism(), epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
