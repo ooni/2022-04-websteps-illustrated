@@ -126,6 +126,7 @@ type ArchivalDNSLookupResult struct {
 	ResolverHostname *string             `json:"resolver_hostname"`
 	ResolverPort     *string             `json:"resolver_port"`
 	ResolverAddress  string              `json:"resolver_address"`
+	Started          float64             `json:"started"`
 	T                float64             `json:"t"`
 }
 
@@ -149,10 +150,11 @@ type ArchivalDNSAnswer struct {
 //
 // See https://github.com/ooni/spec/blob/master/data-formats/df-005-tcpconnect.md.
 type ArchivalTCPConnectResult struct {
-	IP     string                   `json:"ip"`
-	Port   int                      `json:"port"`
-	Status ArchivalTCPConnectStatus `json:"status"`
-	T      float64                  `json:"t"`
+	IP      string                   `json:"ip"`
+	Port    int                      `json:"port"`
+	Status  ArchivalTCPConnectStatus `json:"status"`
+	Started float64                  `json:"started"`
+	T       float64                  `json:"t"`
 }
 
 // ArchivalTCPConnectStatus is the status of ArchivalTCPConnectResult.
@@ -178,6 +180,7 @@ type ArchivalTLSOrQUICHandshakeResult struct {
 	PeerCertificates   []ArchivalMaybeBinaryData `json:"peer_certificates"`
 	Proto              string                    `json:"proto"`
 	ServerName         string                    `json:"server_name"`
+	Started            float64                   `json:"started"`
 	T                  float64                   `json:"t"`
 	Tags               []string                  `json:"tags"`
 	TLSVersion         string                    `json:"tls_version"`
@@ -194,6 +197,7 @@ type ArchivalHTTPRequestResult struct {
 	Failure  *string              `json:"failure"`
 	Request  ArchivalHTTPRequest  `json:"request"`
 	Response ArchivalHTTPResponse `json:"response"`
+	Started  float64              `json:"started"`
 	T        float64              `json:"t"`
 }
 
@@ -315,6 +319,7 @@ type ArchivalNetworkEvent struct {
 	NumBytes  int64    `json:"num_bytes,omitempty"`
 	Operation string   `json:"operation"`
 	Proto     string   `json:"proto,omitempty"`
+	Started   float64  `json:"started"`
 	T         float64  `json:"t"`
 	Tags      []string `json:"tags,omitempty"`
 }

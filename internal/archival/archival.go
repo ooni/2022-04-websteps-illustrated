@@ -49,7 +49,8 @@ func (ev *FlatNetworkEvent) ToArchivalTCPConnectResult(begin time.Time) model.Ar
 			Failure: ev.Failure.ToArchivalFailure(),
 			Success: ev.Failure.IsSuccess(),
 		},
-		T: ev.Finished.Sub(begin).Seconds(),
+		Started: ev.Started.Sub(begin).Seconds(),
+		T:       ev.Finished.Sub(begin).Seconds(),
 	}
 }
 
@@ -116,7 +117,8 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTP
 			Headers:         ev.newHTTPHeadersMap(ev.ResponseHeaders),
 			Locations:       ev.ResponseHeaders.Values("Location"), // safe with nil headers
 		},
-		T: ev.Finished.Sub(begin).Seconds(),
+		Started: ev.Started.Sub(begin).Seconds(),
+		T:       ev.Finished.Sub(begin).Seconds(),
 	}
 }
 
@@ -196,6 +198,7 @@ func (ev *FlatDNSLookupEvent) toArchivalHTTPS(begin time.Time) (out []model.Arch
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
 		ResolverAddress:  ev.ResolverAddress,
+		Started:          ev.Started.Sub(begin).Seconds(),
 		T:                ev.Finished.Sub(begin).Seconds(),
 	})
 	return
@@ -234,6 +237,7 @@ func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []mode
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
 		ResolverAddress:  ev.ResolverAddress,
+		Started:          ev.Started.Sub(begin).Seconds(),
 		T:                ev.Finished.Sub(begin).Seconds(),
 	})
 	aaaa := ev.gatherAAAA()
@@ -251,6 +255,7 @@ func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []mode
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
 		ResolverAddress:  ev.ResolverAddress,
+		Started:          ev.Started.Sub(begin).Seconds(),
 		T:                ev.Finished.Sub(begin).Seconds(),
 	})
 	return
@@ -313,6 +318,7 @@ func (ev *FlatNetworkEvent) ToArchivalNetworkEvent(begin time.Time) model.Archiv
 		NumBytes:  int64(ev.Count),
 		Operation: ev.Operation,
 		Proto:     string(ev.Network),
+		Started:   ev.Started.Sub(begin).Seconds(),
 		T:         ev.Finished.Sub(begin).Seconds(),
 		Tags:      nil,
 	}
@@ -349,6 +355,7 @@ func (ev *FlatQUICTLSHandshakeEvent) ToArchival(begin time.Time) model.ArchivalT
 		PeerCertificates:   ev.makePeerCerts(ev.PeerCerts),
 		Proto:              string(ev.Network),
 		ServerName:         ev.SNI,
+		Started:            ev.Started.Sub(begin).Seconds(),
 		T:                  ev.Finished.Sub(begin).Seconds(),
 		Tags:               nil,
 		TLSVersion:         ev.TLSVersion,
