@@ -108,11 +108,6 @@ func (p *dnsLookupTarget) targetDomain() string {
 	return p.plan.URL.Hostname()
 }
 
-// isHTTPS returns whether the targer URL scheme is HTTPS.
-func (p *dnsLookupTarget) isHTTPS() bool {
-	return p.plan.URL.Scheme == "https"
-}
-
 // resolverNetwork returns the resolver network.
 func (p *dnsLookupTarget) resolverNetwork() DNSResolverNetwork {
 	return p.info.Network
@@ -174,18 +169,15 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 	case DNSResolverSystem:
 		output <- mx.lookupHostSystem(ctx, t)
 	case DNSResolverUDP:
-		wg.Add(1)
+		wg.Add(2)
 		go func() {
 			output <- mx.lookupHostUDP(ctx, t)
 			wg.Done()
 		}()
-		if t.isHTTPS() {
-			wg.Add(1)
-			go func() {
-				output <- mx.lookupHTTPSSvcUDP(ctx, t)
-				wg.Done()
-			}()
-		}
+		go func() {
+			output <- mx.lookupHTTPSSvcUDP(ctx, t)
+			wg.Done()
+		}()
 	}
 	wg.Wait()
 }
