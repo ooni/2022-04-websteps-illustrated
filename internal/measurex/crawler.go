@@ -81,7 +81,7 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 	return out, nil
 }
 
-// do visits the URL described by um using the mx Measurer.
+// do visits the URL described by um using mx.
 func (c *Crawler) do(ctx context.Context, mx *Measurer, um *URLMeasurement) {
 	c.Logger.Info("🔎 resolving the domain name using all resolvers")
 	dnsPlan := um.NewDNSLookupPlan(c.Resolvers)

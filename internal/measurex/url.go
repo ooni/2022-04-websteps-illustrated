@@ -11,6 +11,7 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"golang.org/x/net/idna"
 )
 
 // URLMeasurement is the (possibly interim) result of measuring an URL.
@@ -77,6 +78,9 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	default:
 		return nil, ErrUnknownURLScheme
 	}
+	if host, err := idna.ToASCII(parsed.Host); err == nil {
+		parsed.Host = host
+	}
 	// if needed normalize the URL path and fragment
 	if parsed.Path == "" {
 		parsed.Path = "/"
@@ -88,7 +92,7 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 		URL:                   parsed,
 		Cookies:               []*http.Cookie{},
 		Headers:               NewHTTPRequestHeaderForMeasuring(),
-		ForceBothHTTPAndHTTPS: true, // we initially check both HTTP and HTTPS
+		ForceBothHTTPAndHTTPS: parsed.Port() == "", // check both unless there's a port
 		SNI:                   parsed.Hostname(),
 		ALPN:                  []string{},
 		Host:                  parsed.Hostname(),
