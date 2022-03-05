@@ -127,6 +127,13 @@ type ArchivalURLMeasurement struct {
 	// SNI contains the SNI.
 	SNI string `json:"sni,omitempty"`
 
+	// Cookies contatins the cookies.
+	Cookies []string `json:"cookies,omitempty"`
+
+	// ForceBothHTTPAndHTTPS indicates whether to force
+	// measuring both HTTP and HTTPS.
+	ForceBothHTTPAndHTTPS bool `json:"force_both_http_and_https"`
+
 	// ALPN contains values for ALPN.
 	ALPN []string `json:"alpn,omitempty"`
 
@@ -143,15 +150,24 @@ type ArchivalURLMeasurement struct {
 // ToArchival converts URLMeasurement to ArchivalURLMeasurement.
 func (m *URLMeasurement) ToArchival(begin time.Time) ArchivalURLMeasurement {
 	return ArchivalURLMeasurement{
-		ID:          m.ID,
-		EndpointIDs: m.EndpointIDs,
-		URL:         m.URL.String(),
-		SNI:         m.SNI,
-		ALPN:        m.ALPN,
-		Host:        m.Host,
-		DNS:         NewArchivalDNSLookupMeasurementList(begin, m.DNS),
-		Endpoint:    NewArchivalEndpointMeasurementList(begin, m.Endpoint),
+		ID:                    m.ID,
+		EndpointIDs:           m.EndpointIDs,
+		URL:                   m.URL.String(),
+		SNI:                   m.SNI,
+		Cookies:               m.toArchivalCookies(),
+		ForceBothHTTPAndHTTPS: m.ForceBothHTTPAndHTTPS,
+		ALPN:                  m.ALPN,
+		Host:                  m.Host,
+		DNS:                   NewArchivalDNSLookupMeasurementList(begin, m.DNS),
+		Endpoint:              NewArchivalEndpointMeasurementList(begin, m.Endpoint),
 	}
+}
+
+func (m *URLMeasurement) toArchivalCookies() (out []string) {
+	for _, cookie := range m.Cookies {
+		out = append(out, cookie.String())
+	}
+	return
 }
 
 // NewArchivalDNSLookupMeasurementList converts a []*DNSLookupMeasurement into

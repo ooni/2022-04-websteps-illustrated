@@ -30,6 +30,10 @@ type URLMeasurement struct {
 	// Headers contains request headers.
 	Headers http.Header
 
+	// ForceBothHTTPAndHTTPS indicates whether to force
+	// measuring both HTTP and HTTPS.
+	ForceBothHTTPAndHTTPS bool
+
 	// SNI contains the SNI.
 	SNI string
 
@@ -51,6 +55,16 @@ func (um *URLMeasurement) Domain() string {
 	return um.URL.Hostname()
 }
 
+// IsHTTP returns whether this URL is HTTP.
+func (um *URLMeasurement) IsHTTP() bool {
+	return um.ForceBothHTTPAndHTTPS || um.URL.Scheme == "http"
+}
+
+// IsHTTPS returns whether this URL is HTTPS.
+func (um *URLMeasurement) IsHTTPS() bool {
+	return um.ForceBothHTTPAndHTTPS || um.URL.Scheme == "https"
+}
+
 // NewURLMeasurement creates a new URLMeasurement from a string URL.
 func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	parsed, err := url.Parse(input)
@@ -68,16 +82,17 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	}
 	parsed.Fragment = ""
 	out := &URLMeasurement{
-		ID:          mx.NextID(),
-		EndpointIDs: []int64{},
-		URL:         parsed,
-		Cookies:     []*http.Cookie{},
-		Headers:     NewHTTPRequestHeaderForMeasuring(),
-		SNI:         parsed.Hostname(),
-		ALPN:        []string{},
-		Host:        parsed.Hostname(),
-		DNS:         []*DNSLookupMeasurement{},
-		Endpoint:    []*EndpointMeasurement{},
+		ID:                    mx.NextID(),
+		EndpointIDs:           []int64{},
+		URL:                   parsed,
+		Cookies:               []*http.Cookie{},
+		Headers:               NewHTTPRequestHeaderForMeasuring(),
+		ForceBothHTTPAndHTTPS: true, // we initially check both HTTP and HTTPS
+		SNI:                   parsed.Hostname(),
+		ALPN:                  []string{},
+		Host:                  parsed.Hostname(),
+		DNS:                   []*DNSLookupMeasurement{},
+		Endpoint:              []*EndpointMeasurement{},
 	}
 	return out, nil
 }
@@ -213,7 +228,7 @@ func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
 	out := make([]*EndpointPlan, 0, 8)
 	for _, addr := range addrs {
-		if !addr.AlreadyTestedHTTP() {
+		if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
 			if err != nil {
 				log.Printf("cannot make plan: %s", err.Error())
@@ -221,7 +236,7 @@ func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 			}
 			out = append(out, plan)
 		}
-		if !addr.AlreadyTestedHTTPS() {
+		if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
 			if err != nil {
 				log.Printf("cannot make plan: %s", err.Error())
@@ -229,7 +244,7 @@ func (um *URLMeasurement) NewEndpointPlan() ([]*EndpointPlan, bool) {
 			}
 			out = append(out, plan)
 		}
-		if addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
+		if um.IsHTTPS() && addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
 			if err != nil {
 				log.Printf("cannot make plan: %s", err.Error())
@@ -347,16 +362,17 @@ func (mx *Measurer) redirects(
 		next, good := uniq[summary]
 		if !good {
 			next = &URLMeasurement{
-				ID:          mx.NextID(),
-				EndpointIDs: []int64{},
-				URL:         epnt.Location,
-				Cookies:     epnt.Cookies,
-				Headers:     mx.newHeadersForRedirect(epnt.Location, epnt.ResponseHeaders()),
-				SNI:         epnt.Location.Hostname(),
-				ALPN:        ALPNForHTTPEndpoint(epnt.Network),
-				Host:        epnt.Location.Hostname(),
-				DNS:         []*DNSLookupMeasurement{},
-				Endpoint:    []*EndpointMeasurement{},
+				ID:                    mx.NextID(),
+				EndpointIDs:           []int64{},
+				URL:                   epnt.Location,
+				Cookies:               epnt.Cookies,
+				Headers:               mx.newHeadersForRedirect(epnt.Location, epnt.RequestHeaders()),
+				ForceBothHTTPAndHTTPS: false, // stop testing both for redirects
+				SNI:                   epnt.Location.Hostname(),
+				ALPN:                  ALPNForHTTPEndpoint(epnt.Network),
+				Host:                  epnt.Location.Hostname(),
+				DNS:                   []*DNSLookupMeasurement{},
+				Endpoint:              []*EndpointMeasurement{},
 			}
 			uniq[summary] = next
 		}
@@ -412,18 +428,7 @@ func NewURLRedirectDeque() *URLRedirectDeque {
 //
 // Adapted from: https://github.com/sekimura/go-normalize-url.
 func (r *URLRedirectDeque) reprURL(URL *url.URL) string {
-	u := &url.URL{
-		Scheme:      URL.Scheme,
-		Opaque:      URL.Opaque,
-		User:        URL.User,
-		Host:        URL.Host,
-		Path:        URL.Path,
-		RawPath:     URL.RawPath,
-		ForceQuery:  URL.ForceQuery,
-		RawQuery:    URL.RawQuery,
-		Fragment:    URL.Fragment,
-		RawFragment: URL.RawFragment,
-	}
+	u := newURLWithScheme(URL, URL.Scheme)
 	// TODO(bassosimone): canonicalize path if needed?
 	// TODO(bassosimone): how about IDNA?
 	v := u.Query()

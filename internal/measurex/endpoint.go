@@ -154,6 +154,15 @@ func (em *EndpointMeasurement) ResponseHeaders() http.Header {
 	return http.Header{}
 }
 
+// RequestHeaders returns the request headers. If there's no request
+// we just return a set of empty headers.
+func (em *EndpointMeasurement) RequestHeaders() http.Header {
+	if em.HTTPRoundTrip != nil {
+		return em.HTTPRoundTrip.RequestHeaders
+	}
+	return http.Header{}
+}
+
 // ResponseStatusCode returns the response status code. If there's no response
 // we just return zero to the caller.
 func (em *EndpointMeasurement) ResponseStatusCode() int64 {
