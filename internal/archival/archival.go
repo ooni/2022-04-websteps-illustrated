@@ -219,6 +219,7 @@ func (ev *FlatDNSLookupEvent) gatherHTTPS() (out []model.ArchivalDNSAnswer) {
 	for _, alpn := range ev.ALPNs {
 		answer := model.ArchivalDNSAnswer{AnswerType: "ALPN"}
 		answer.ALPN = alpn
+		out = append(out, answer)
 	}
 	return
 }
