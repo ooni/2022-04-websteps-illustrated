@@ -188,6 +188,11 @@ func (thh *THHandler) step(
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
+	// second round where we follow Alt-Svc leads
+	epplan, _ = um.NewEndpointPlan(thh.Logger, measurex.EndpointPlanningExcludeBogons)
+	for m := range mx.MeasureEndpoints(ctx, epplan...) {
+		um.Endpoint = append(um.Endpoint, m)
+	}
 	return thh.serialize(um), nil
 }
 
