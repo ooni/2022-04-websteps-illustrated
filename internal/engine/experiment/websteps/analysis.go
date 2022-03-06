@@ -129,8 +129,8 @@ const (
 
 // AnalysisDNS is the analysis of an invididual query.
 type AnalysisDNS struct {
-	// Ref is the ID of the lookup.
-	Ref int64 `json:"ref"`
+	// Ref references the measurements we used.
+	Refs []int64 `json:"refs"`
 
 	// Flags contains the analysis flags.
 	Flags int64 `json:"flags"`
@@ -154,7 +154,7 @@ func (tk *TestKeys) dnsAnalysis(logger model.Logger) (out []*AnalysisDNS) {
 func (tk *TestKeys) dnsSingleLookupAnalysis(logger model.Logger,
 	pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
 	score := &AnalysisDNS{
-		Ref:   pq.ID,
+		Refs:  []int64{pq.ID},
 		Flags: 0,
 	}
 
@@ -217,6 +217,8 @@ func (tk *TestKeys) dnsSingleLookupAnalysis(logger model.Logger,
 		logger.Warn("[dns] give up analysis because there's no matching TH query")
 		return score
 	}
+
+	score.Refs = append(score.Refs, thq.ID)
 
 	// Next we check whether both us and the TH failed.
 	if pq.Failure() != "" && thq.Failure() != "" {
@@ -355,7 +357,7 @@ func (tk *TestKeys) dnsFindMatchingQuery(
 // AnalysisEndpoint is the analysis of an individual endpoint.
 type AnalysisEndpoint struct {
 	// Ref is the ID of the lookup.
-	Ref int64 `json:"ref"`
+	Refs []int64 `json:"refs"`
 
 	// Flags contains the analysis flags.
 	Flags int64 `json:"flags"`
@@ -385,7 +387,7 @@ func (tk *TestKeys) endpointAnalysis(logger model.Logger) (out []*AnalysisEndpoi
 func (tk *TestKeys) endpointSingleMeasurementAnalysis(logger model.Logger,
 	pe *measurex.EndpointMeasurement, flags int64) *AnalysisEndpoint {
 	score := &AnalysisEndpoint{
-		Ref:   pe.ID,
+		Refs:  []int64{pe.ID},
 		Flags: 0,
 	}
 
@@ -450,6 +452,8 @@ func (tk *TestKeys) endpointSingleMeasurementAnalysis(logger model.Logger,
 		logger.Warn("[endpoint] give up analysis because we cannot find a corresponding measurement")
 		return score
 	}
+
+	score.Refs = append(score.Refs, the.ID)
 
 	// Next, check whether both us and the TH failed.
 	if pe.Failure != "" && the.Failure != "" {
