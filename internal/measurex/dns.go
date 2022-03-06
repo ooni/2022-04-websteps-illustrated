@@ -10,6 +10,7 @@ package measurex
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/url"
 	"sync"
@@ -125,11 +126,27 @@ func (dlm *DNSLookupMeasurement) ResolverAddress() string {
 }
 
 // ResolverNetwork returns the resolver network.
-func (dlm *DNSLookupMeasurement) ResolverNetwork() string {
+func (dlm *DNSLookupMeasurement) ResolverNetwork() archival.NetworkType {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.ResolverNetwork
 	}
 	return ""
+}
+
+// ResolverURL returns the URL that identifies the resolver network and address.
+func (dlm *DNSLookupMeasurement) ResolverURL() string {
+	switch dlm.ResolverNetwork() {
+	case archival.NetworkTypeUDP:
+		return fmt.Sprintf("udp://%s", dlm.ResolverAddress())
+	case archival.NetworkTypeTCP:
+		return fmt.Sprintf("tcp://%s", dlm.ResolverAddress())
+	case archival.NetworkTypeDoT:
+		return fmt.Sprintf("dot://%s", dlm.ResolverAddress())
+	case archival.NetworkTypeDoH:
+		return dlm.ResolverAddress()
+	default:
+		return ""
+	}
 }
 
 // SupportsHTTP3 returns whether this DNSLookupMeasurement includes the

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"regexp"
 	"sort"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -94,4 +95,16 @@ func StringListSortUniq(in []string) (out []string) {
 	}
 	sort.Strings(out)
 	return
+}
+
+// GetWebPageTitle returns the title or an empty string.
+func GetWebPageTitle(webpage []byte) string {
+	// MK used {1,128} but we're making it larger here to get longer titles
+	// e.g. <http://www.isa.gov.il/Pages/default.aspx>'s one
+	re := regexp.MustCompile(`(?i)<title>([^<]{1,512})</title>`)
+	v := re.FindSubmatch(webpage)
+	if len(v) < 2 {
+		return ""
+	}
+	return string(v[1])
 }

@@ -266,6 +266,14 @@ func (em *EndpointMeasurement) BodyIsTruncated() bool {
 	return false
 }
 
+// Scheme returns the URL scheme or an empty string.
+func (em *EndpointMeasurement) Scheme() string {
+	if em.URL != nil {
+		return em.URL.Scheme
+	}
+	return ""
+}
+
 // SupportsAltSvcHTTP3 indicates whether the response in this EndpointMeasurement
 // contains headers claiming the service also supports HTTP3.
 func (em *EndpointMeasurement) SupportsAltSvcHTTP3() bool {
