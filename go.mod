@@ -14,6 +14,7 @@ require (
 require (
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
+	github.com/oschwald/maxminddb-golang v1.8.0 // indirect
 	github.com/pborman/getopt/v2 v2.1.0 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 )
@@ -31,6 +32,8 @@ require (
 	github.com/marten-seemann/qtls-go1-18 v0.1.0-beta.1 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
+	github.com/ooni/probe-assets v0.7.0
+	github.com/oschwald/geoip2-golang v1.6.1
 	gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/mod v0.4.2 // indirect
