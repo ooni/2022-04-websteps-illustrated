@@ -222,6 +222,7 @@ type ArchivalHTTPRequest struct {
 // we have added support for a list since January 2020.
 type ArchivalHTTPResponse struct {
 	Body            ArchivalHTTPBody                   `json:"body"`
+	BodyLength      int64                              `json:"body_length"`
 	BodyIsTruncated bool                               `json:"body_is_truncated"`
 	Code            int64                              `json:"code"`
 	HeadersList     []ArchivalHTTPHeader               `json:"headers_list"`

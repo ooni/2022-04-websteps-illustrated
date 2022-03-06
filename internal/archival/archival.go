@@ -111,6 +111,7 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTP
 			Body: model.ArchivalMaybeBinaryData{
 				Value: string(ev.ResponseBody),
 			},
+			BodyLength:      ev.ResponseBodyLength,
 			BodyIsTruncated: ev.ResponseBodyIsTruncated,
 			Code:            ev.StatusCode,
 			HeadersList:     NewHTTPHeadersList(ev.ResponseHeaders),
