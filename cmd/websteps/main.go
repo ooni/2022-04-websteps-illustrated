@@ -78,6 +78,7 @@ func processOutput(begin time.Time, filep io.Writer, clnt *websteps.Client) {
 			log.Warnf("cannot serialize JSON: %s", err.Error())
 			continue
 		}
+		data = append(data, '\n')
 		if _, err := filep.Write(data); err != nil {
 			log.WithError(err).Fatal("cannot write output file")
 		}
