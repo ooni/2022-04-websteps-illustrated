@@ -75,6 +75,12 @@ type DNSLookupMeasurement struct {
 	RoundTrip []*archival.FlatDNSRoundTripEvent
 }
 
+// Describe describes this measurement.
+func (dlm *DNSLookupMeasurement) Describe() string {
+	return fmt.Sprintf("DNS lookup #%d for %s using %s",
+		dlm.ID, dlm.Domain(), dlm.ResolverURL())
+}
+
 // Addresses returns the list of addresses we looked up. If we didn't lookup
 // any address, we just return a nil list.
 func (dlm *DNSLookupMeasurement) Addresses() []string {
@@ -144,6 +150,8 @@ func (dlm *DNSLookupMeasurement) ResolverURL() string {
 		return fmt.Sprintf("dot://%s", dlm.ResolverAddress())
 	case archival.NetworkTypeDoH:
 		return dlm.ResolverAddress()
+	case "system":
+		return "system:///"
 	default:
 		return ""
 	}

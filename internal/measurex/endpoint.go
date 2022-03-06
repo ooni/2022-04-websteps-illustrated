@@ -126,6 +126,12 @@ type EndpointMeasurement struct {
 	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent
 }
 
+// Describe describes this measurement.
+func (em *EndpointMeasurement) Describe() string {
+	return fmt.Sprintf("endpoint measurement #%d for %s using %s",
+		em.ID, em.URLAsString(), em.EndpointAddress())
+}
+
 // Summary returns a string representing the endpoint's summary. Two
 // endpoints are ~same if they have the same summary.
 //

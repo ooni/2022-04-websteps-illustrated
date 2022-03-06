@@ -23,6 +23,18 @@ type TestKeys struct {
 	// ProbeAdditional contains additional measurements performed
 	// by the probe using extra info from the TH.
 	ProbeAdditional []*measurex.EndpointMeasurement
+
+	// Analysis contains the results analysis.
+	Analysis *TestKeysAnalysis
+}
+
+// TestKeysAnalysis contains the results of the analysis.
+type TestKeysAnalysis struct {
+	// DNS contains the DNS results analysis.
+	DNS []*AnalysisDNS `json:"dns"`
+
+	// Endpoint contains the endpoint results analysis.
+	Endpoint []*AnalysisEndpoint `json:"endpoint"`
 }
 
 // THResponseWithID is a TH response with a ID assigned by the probe.
@@ -42,6 +54,7 @@ type ArchivalTestKeys struct {
 	ProbeInitial    *measurex.ArchivalURLMeasurement       `json:"probe_initial"`
 	TH              *ArchivalTHResponseWithID              `json:"th"`
 	ProbeAdditional []measurex.ArchivalEndpointMeasurement `json:"probe_additional"`
+	Analysis        *TestKeysAnalysis                      `json:"analysis"`
 }
 
 // ArchivalTHResponseWithID is the archival format of a TH response.
@@ -79,6 +92,7 @@ func (tk *TestKeys) ToArchival(begin time.Time) *ArchivalTestKeys {
 		out.ProbeAdditional = measurex.NewArchivalEndpointMeasurementList(
 			begin, tk.ProbeAdditional)
 	}
+	out.Analysis = tk.Analysis
 	return out
 }
 
@@ -86,6 +100,9 @@ func (tk *TestKeys) ToArchival(begin time.Time) *ArchivalTestKeys {
 // the given URLMeasurement to initialize Discover.
 func newTestKeys(discover *measurex.URLMeasurement) *TestKeys {
 	return &TestKeys{
-		ProbeInitial: discover,
+		ProbeInitial:    discover,
+		TH:              &THResponseWithID{},
+		ProbeAdditional: []*measurex.EndpointMeasurement{},
+		Analysis:        &TestKeysAnalysis{},
 	}
 }

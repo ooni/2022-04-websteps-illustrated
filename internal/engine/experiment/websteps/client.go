@@ -181,7 +181,9 @@ func (c *Client) step(ctx context.Context,
 		tk.TH = c.importTHMeasurement(mx, maybeTH.Resp)
 	}
 	c.measureAdditionalEndpoints(ctx, mx, tk)
-	tk.analyzeResults(c.logger)
+	c.logger.Infof("🔬 analyzing the collected results")
+	tk.Analysis.DNS = tk.dnsAnalysis(c.logger)
+	tk.Analysis.Endpoint = tk.endpointAnalysis(c.logger)
 	// TODO(bassosimone): run follow-up experiments
 	return tk
 }
