@@ -29,6 +29,10 @@ type Options struct {
 	// use for measuring HTTP/HTTPS/HTTP3 endpoints.
 	EndpointParallelism int64
 
+	// HTTPExtractTitle tells us whether to attempt to extract the
+	// title once we fetched a webpage.
+	HTTPExtractTitle bool
+
 	// HTTPGetTimeout is the maximum time we're willing to wait
 	// for any HTTP GET operation to complete.
 	HTTPGetTimeout time.Duration
@@ -235,6 +239,17 @@ func (opt *Options) httpClonedRequestHeaders() (v http.Header) {
 	return
 }
 
+// httpExtractTitle returns whether to extract the HTTP title.
+func (opt *Options) httpExtractTitle() (v bool) {
+	if opt != nil {
+		v = opt.HTTPExtractTitle
+	}
+	if !v && opt != nil && opt.Parent != nil {
+		v = opt.Parent.httpExtractTitle()
+	}
+	return
+}
+
 // httpGETTimeout returns the desired HTTP GET timeout.
 func (opt *Options) httpGETTimeout() (v time.Duration) {
 	if opt != nil {
@@ -417,6 +432,7 @@ func (cur *Options) Flatten() *Options {
 		DNSLookupTimeout:                cur.dnsLookupTimeout(),
 		DNSParallelism:                  cur.dnsParallelism(),
 		EndpointParallelism:             cur.endpointParallelism(),
+		HTTPExtractTitle:                cur.httpExtractTitle(),
 		HTTPGetTimeout:                  cur.httpGETTimeout(),
 		HTTPHostHeader:                  cur.httpHostHeader(),
 		HTTPRequestHeaders:              cur.httpClonedRequestHeaders(),

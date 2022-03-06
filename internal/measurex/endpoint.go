@@ -110,6 +110,9 @@ type EndpointMeasurement struct {
 	// Location is the URL we're redirected to (if any).
 	Location *url.URL
 
+	// HTTPTitle is the webpage title (if any).
+	HTTPTitle string
+
 	// NetworkEvent contains network events (if any).
 	NetworkEvent []*archival.FlatNetworkEvent
 
@@ -348,6 +351,9 @@ func (mx *Measurer) newEndpointMeasurement(
 	}
 	if len(trace.HTTPRoundTrip) == 1 {
 		out.HTTPRoundTrip = trace.HTTPRoundTrip[0]
+		if epnt.Options.httpExtractTitle() {
+			out.HTTPTitle = GetWebPageTitle(out.HTTPRoundTrip.ResponseBody)
+		}
 	}
 
 	if len(trace.QUICTLSHandshake) > 1 {
