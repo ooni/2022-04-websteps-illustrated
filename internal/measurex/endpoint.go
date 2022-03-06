@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -124,6 +125,22 @@ type EndpointMeasurement struct {
 
 	// HTTPRoundTrip contains the HTTP round trip event (if any).
 	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent
+}
+
+// TCPQUICConnectRuntime returns the TCP/QUIC connect runtime depending
+// on which network is used by this endpoint.
+func (em *EndpointMeasurement) TCPQUICConnectRuntime() (out time.Duration) {
+	switch em.Network {
+	case archival.NetworkTypeQUIC:
+		if em.QUICTLSHandshake != nil {
+			out = em.QUICTLSHandshake.Finished.Sub(em.QUICTLSHandshake.Started)
+		}
+	case archival.NetworkTypeTCP:
+		if em.TCPConnect != nil {
+			out = em.TCPConnect.Finished.Sub(em.TCPConnect.Started)
+		}
+	}
+	return
 }
 
 // Describe describes this measurement.

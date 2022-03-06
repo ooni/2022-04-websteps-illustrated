@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -73,6 +74,14 @@ type DNSLookupMeasurement struct {
 
 	// RoundTrip contains DNS round trips.
 	RoundTrip []*archival.FlatDNSRoundTripEvent
+}
+
+// Runtime is the runtime of this query.
+func (dlm *DNSLookupMeasurement) Runtime() (out time.Duration) {
+	if dlm.Lookup != nil {
+		out = dlm.Lookup.Finished.Sub(dlm.Lookup.Started)
+	}
+	return
 }
 
 // Describe describes this measurement.

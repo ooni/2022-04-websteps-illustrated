@@ -8,6 +8,7 @@ package websteps
 
 import (
 	"net"
+	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -119,6 +120,7 @@ const (
 	AnalysisFlagHTTPDiffStatusCode = 1 << 35 // the status code differs
 	AnalysisFlagHTTPDiffHeaders    = 1 << 36 // we have different headers
 	AnalysisFlagHTTPDiffTitle      = 1 << 37 // titles do not match
+	AnalysisFlagIPv6NotWorking     = 1 << 38 // IPv6 is not working
 )
 
 //
@@ -154,6 +156,19 @@ func (tk *TestKeys) dnsSingleLookupAnalysis(logger model.Logger,
 	score := &AnalysisDNS{
 		Ref:   pq.ID,
 		Flags: 0,
+	}
+
+	// Corner case: when you don't have IPv6 support, you fail with
+	// "host unreachable" (sometimes "net unreachable") and generally
+	// the failure is super quick (sub-millisecond). We need to
+	// intercept this corner case and just ignore this query.
+	switch pq.Failure() {
+	case netxlite.FailureHostUnreachable,
+		netxlite.FailureNetworkUnreachable:
+		if delta := pq.Runtime(); delta > 0 && delta < time.Millisecond {
+			score.Flags |= AnalysisFlagIPv6NotWorking
+			return score
+		}
 	}
 
 	// If the domain name we're trying to solve is an IP
@@ -376,6 +391,19 @@ func (tk *TestKeys) endpointSingleMeasurementAnalysis(logger model.Logger,
 
 	// Honour flags passed by the caller.
 	score.Flags |= flags
+
+	// Corner case: when you don't have IPv6 support, you fail with
+	// "host unreachable" (sometimes "net unreachable") and generally
+	// the failure is super quick (sub-millisecond). We need to
+	// intercept this corner case and just ignore this measurement.
+	switch pe.Failure {
+	case netxlite.FailureHostUnreachable,
+		netxlite.FailureNetworkUnreachable:
+		if delta := pe.TCPQUICConnectRuntime(); delta > 0 && delta < time.Millisecond {
+			score.Flags |= AnalysisFlagIPv6NotWorking
+			return score
+		}
+	}
 
 	// Start with setting failure or accessible.
 	if pe.Failure != "" {
