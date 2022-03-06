@@ -149,7 +149,7 @@ func (c *Client) step(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) *TestKeys {
 	c.dnsLookup(ctx, mx, cur)
 	tk := newTestKeys(cur)
-	epntPlan, _ := cur.NewEndpointPlan(0)
+	epntPlan, _ := cur.NewEndpointPlan(c.logger, 0)
 	thc := c.th(ctx, cur, epntPlan)
 	c.measureDiscoveredEndpoints(ctx, mx, cur, epntPlan)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
@@ -157,6 +157,7 @@ func (c *Client) step(ctx context.Context,
 	if maybeTH.Err == nil {
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
+		c.logger.Info("🚧️ [th] importing the TH measurements")
 		tk.TH = c.importTHMeasurement(mx, maybeTH.Resp)
 	}
 	c.measureAdditionalEndpoints(ctx, mx, tk)
@@ -167,7 +168,7 @@ func (c *Client) step(ctx context.Context,
 
 func (c *Client) dnsLookup(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
-	c.logger.Info("📡 resolving the domain name using all resolvers")
+	c.logger.Info("📡 [initial] resolving the domain name using all resolvers")
 	dnsPlan := cur.NewDNSLookupPlan(c.resolvers)
 	for m := range mx.DNSLookups(ctx, dnsPlan) {
 		cur.DNS = append(cur.DNS, m)
@@ -177,7 +178,7 @@ func (c *Client) dnsLookup(ctx context.Context,
 func (c *Client) measureDiscoveredEndpoints(
 	ctx context.Context, mx *measurex.Measurer,
 	cur *measurex.URLMeasurement, plan []*measurex.EndpointPlan) {
-	c.logger.Info("📡 measuring endpoints discovered using the DNS")
+	c.logger.Info("📡 [initial] measuring endpoints discovered using the DNS")
 	for m := range mx.MeasureEndpoints(ctx, plan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}
@@ -185,8 +186,8 @@ func (c *Client) measureDiscoveredEndpoints(
 
 func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
-	c.logger.Info("📡 measuring extra endpoints discovered using Alt-Svc (if any)")
-	epntPlan, _ := cur.NewEndpointPlan(0)
+	c.logger.Info("📡 [initial] measuring extra endpoints discovered using Alt-Svc (if any)")
+	epntPlan, _ := cur.NewEndpointPlan(c.logger, 0)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}
@@ -243,25 +244,102 @@ func (c *Client) importTHMeasurement(mx *measurex.Measurer,
 }
 
 func (c *Client) importHTTPRoundTripEvent(now time.Time,
-	in *archival.FlatHTTPRoundTripEvent) *archival.FlatHTTPRoundTripEvent {
-	return &archival.FlatHTTPRoundTripEvent{
-		Failure:                 in.Failure,
-		Finished:                now,
-		Method:                  in.Method,
-		RequestHeaders:          in.RequestHeaders,
-		ResponseBody:            nil,
-		ResponseBodyIsTruncated: in.ResponseBodyIsTruncated,
-		ResponseBodyLength:      in.ResponseBodyLength,
-		ResponseHeaders:         in.ResponseHeaders,
-		Started:                 now,
-		StatusCode:              in.StatusCode,
-		Transport:               in.Transport,
-		URL:                     in.URL,
+	in *archival.FlatHTTPRoundTripEvent) (o *archival.FlatHTTPRoundTripEvent) {
+	if o != nil {
+		o = &archival.FlatHTTPRoundTripEvent{
+			Failure:                 in.Failure,
+			Finished:                now,
+			Method:                  in.Method,
+			RequestHeaders:          in.RequestHeaders,
+			ResponseBody:            nil,
+			ResponseBodyIsTruncated: in.ResponseBodyIsTruncated,
+			ResponseBodyLength:      in.ResponseBodyLength,
+			ResponseHeaders:         in.ResponseHeaders,
+			Started:                 now,
+			StatusCode:              in.StatusCode,
+			Transport:               in.Transport,
+			URL:                     in.URL,
+		}
 	}
+	return
+}
+
+// URLAddressList builds a []*URLAddress from the TH measurement. In case
+// the TH measurement is nil or there are no suitable addresses, the return
+// value is a nil list and false. Otherwise, a valid list and true.
+func (thm *THResponseWithID) URLAddressList() (o []*measurex.URLAddress, v bool) {
+	if thm != nil {
+		o, v = measurex.NewURLAddressList(thm.ID, thm.DNS, thm.Endpoint)
+	}
+	return
 }
 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 	mx *measurex.Measurer, tk *TestKeys) {
-	c.logger.Info("📡 measuring extra endpoints discovered by the TH (if any)")
-	// nothing for now
+	c.logger.Info("📡 [additional] measuring extra endpoints discovered by the TH (if any)")
+	addrslist, _ := c.expandProbeKnowledgeWithTHData(mx, tk.ProbeInitial, tk.TH)
+	plan, _ := tk.ProbeInitial.NewEndpointPlanWithAddressList(c.logger, addrslist, 0)
+	for m := range mx.MeasureEndpoints(ctx, plan...) {
+		tk.ProbeAdditional = append(tk.ProbeAdditional, m)
+	}
+}
+
+// expandProbeKnowledgeWithTHData returns a list of URL addresses that extends
+// the original set of facts known by the probe by adding:
+//
+// 1. information about HTTP3 support for hosts;
+//
+// 2. new IP addresses previously unknown to the probe.
+//
+// If the return value is (nil, false), it means we could not discover any
+// new information. Otherwise, we return a valid list and true.
+func (c *Client) expandProbeKnowledgeWithTHData(mx *measurex.Measurer,
+	probem *measurex.URLMeasurement, thm *THResponseWithID) ([]*measurex.URLAddress, bool) {
+	// 1. gather the lists for the probe and the th
+	pal, good := probem.URLAddressList()
+	if !good {
+		return nil, false
+	}
+	thal, good := thm.URLAddressList()
+	if !good {
+		return nil, false
+	}
+	// 2. build a map of the addresses known by the probe.
+	pam := make(map[string]*measurex.URLAddress)
+	for _, e := range pal {
+		pam[e.Address] = e
+	}
+	// 3. expand probe's knowledge using the TH list.
+	var (
+		o    []*measurex.URLAddress
+		uniq = make(map[string]bool)
+	)
+	for _, the := range thal {
+		if p, found := pam[the.Address]; found {
+			// 3.1. if the test helper knows that a given IP address also known by
+			// the probe supports HTTP3 and the probe does not, we add such an address.
+			if (p.Flags & measurex.URLAddressAlreadyTestedHTTP3) != 0 {
+				continue
+			}
+			if (the.Flags & measurex.URLAddressAlreadyTestedHTTP3) != 0 {
+				mx.Logger.Infof("🙌 the TH told us that %s supports HTTP3", the.Address)
+				p.Flags |= measurex.URLAddressSupportsHTTP3
+				o = append(o, p)
+			}
+			continue
+		}
+		// 3.2. otherwise, if this IP address is unknown to the probe, we're
+		// going to add such an address to the probe's list.
+		if _, found := uniq[the.Address]; found {
+			continue
+		}
+		o = append(o, &measurex.URLAddress{
+			URLMeasurementID: the.URLMeasurementID,
+			Address:          the.Address,
+			Flags:            (the.Flags & measurex.URLAddressSupportsHTTP3),
+		})
+		mx.Logger.Infof("🙌 the TH told us about new %s address for domain", the.Address)
+		uniq[the.Address] = true
+	}
+	return o, len(o) > 0
 }

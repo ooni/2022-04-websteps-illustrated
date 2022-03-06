@@ -184,7 +184,7 @@ func (thh *THHandler) step(
 	thh.addProbeDNS(mx, um, req.Plan)
 	// Implementation note: of course it doesn't make sense here for the
 	// test helper to follow bogons discovered by the client :^)
-	epplan, _ := um.NewEndpointPlan(measurex.EndpointPlanningExcludeBogons)
+	epplan, _ := um.NewEndpointPlan(thh.Logger, measurex.EndpointPlanningExcludeBogons)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}

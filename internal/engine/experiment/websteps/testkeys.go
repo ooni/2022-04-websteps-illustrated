@@ -15,12 +15,15 @@ import (
 
 // TestKeys contains a websteps measurement.
 type TestKeys struct {
-	// Discover contains the URLMeasurement performed by the
-	// probe during the "discover" step.
-	Discover *measurex.URLMeasurement
+	// ProbeInitial contains the initial probe measurement.
+	ProbeInitial *measurex.URLMeasurement
 
 	// TH contains the response from the test helper.
 	TH *THResponseWithID
+
+	// ProbeAdditional contains additional measurements performed
+	// by the probe using extra info from the TH.
+	ProbeAdditional []*measurex.EndpointMeasurement
 }
 
 // THResponseWithID is a TH response with a ID assigned by the probe.
@@ -37,8 +40,9 @@ type THResponseWithID struct {
 
 // ArchivalTestKeys is the archival data format for the TestKeys.
 type ArchivalTestKeys struct {
-	Discover *measurex.ArchivalURLMeasurement `json:"discover"`
-	TH       *ArchivalTHResponseWithID        `json:"th"`
+	ProbeInitial    *measurex.ArchivalURLMeasurement       `json:"probe_initial"`
+	TH              *ArchivalTHResponseWithID              `json:"th"`
+	ProbeAdditional []measurex.ArchivalEndpointMeasurement `json:"probe_additional"`
 }
 
 // ArchivalTHResponseWithID is the archival format of a TH response.
@@ -64,13 +68,17 @@ func (tk *TestKeys) ToArchival(begin time.Time) *ArchivalTestKeys {
 		return nil
 	}
 	out := &ArchivalTestKeys{}
-	if tk.Discover != nil {
-		v := tk.Discover.ToArchival(begin)
-		out.Discover = &v
+	if tk.ProbeInitial != nil {
+		v := tk.ProbeInitial.ToArchival(begin)
+		out.ProbeInitial = &v
 	}
 	if tk.TH != nil {
 		v := tk.TH.ToArchival(begin)
 		out.TH = &v
+	}
+	if len(tk.ProbeAdditional) > 0 {
+		out.ProbeAdditional = measurex.NewArchivalEndpointMeasurementList(
+			begin, tk.ProbeAdditional)
 	}
 	return out
 }
@@ -79,7 +87,7 @@ func (tk *TestKeys) ToArchival(begin time.Time) *ArchivalTestKeys {
 // the given URLMeasurement to initialize Discover.
 func newTestKeys(discover *measurex.URLMeasurement) *TestKeys {
 	return &TestKeys{
-		Discover: discover,
+		ProbeInitial: discover,
 	}
 }
 
@@ -98,6 +106,6 @@ func (tk *TestKeys) redirects(mx *measurex.Measurer) ([]*measurex.URLMeasurement
 
 // analyzeResults computes the probe's analysis of the results.
 func (tk *TestKeys) analyzeResults(logger model.Logger) {
-	logger.Infof("🧐 analyzing the results")
+	logger.Infof("🔬 analyzing the results")
 	// nothing for now
 }

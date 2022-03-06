@@ -156,45 +156,45 @@ type URLAddress struct {
 	// Address is the target IPv4/IPv6 address.
 	Address string
 
-	// Flags contains feature flags.
+	// Flags contains URL flags.
 	Flags int64
 }
 
 const (
-	// urlAddressFlagHTTP3 indicates that a given URL address supports HTTP3.
-	urlAddressFlagHTTP3 = 1 << iota
+	// URLAddressSupportsHTTP3 indicates that a given URL address supports HTTP3.
+	URLAddressSupportsHTTP3 = 1 << iota
 
-	// urlAddressAlreadyTestedHTTP indicates that this address has already
+	// URLAddressAlreadyTestedHTTP indicates that this address has already
 	// been tested using the cleartext HTTP protocol.
-	urlAddressAlreadyTestedHTTP
+	URLAddressAlreadyTestedHTTP
 
-	// urlAddressAlreadyTestedHTTPS indicates that this address has already
+	// URLAddressAlreadyTestedHTTPS indicates that this address has already
 	// been tested using the encrypted HTTPS protocol.
-	urlAddressAlreadyTestedHTTPS
+	URLAddressAlreadyTestedHTTPS
 
-	// urlAddressAlreadyTestedHTTP3 indicates that this address has already
+	// URLAddressAlreadyTestedHTTP3 indicates that this address has already
 	// been tested using the encrypted HTTP3 protocol.
-	urlAddressAlreadyTestedHTTP3
+	URLAddressAlreadyTestedHTTP3
 )
 
 // SupportsHTTP3 returns whether we think this address supports HTTP3.
 func (ua *URLAddress) SupportsHTTP3() bool {
-	return (ua.Flags & urlAddressFlagHTTP3) != 0
+	return (ua.Flags & URLAddressSupportsHTTP3) != 0
 }
 
 // AlreadyTestedHTTP returns whether we've already tested this IP address using HTTP.
 func (ua *URLAddress) AlreadyTestedHTTP() bool {
-	return (ua.Flags & urlAddressAlreadyTestedHTTP) != 0
+	return (ua.Flags & URLAddressAlreadyTestedHTTP) != 0
 }
 
 // AlreadyTestedHTTPS returns whether we've already tested this IP address using HTTPS.
 func (ua *URLAddress) AlreadyTestedHTTPS() bool {
-	return (ua.Flags & urlAddressAlreadyTestedHTTPS) != 0
+	return (ua.Flags & URLAddressAlreadyTestedHTTPS) != 0
 }
 
 // AlreadyTestedHTTP3 returns whether we've already tested this IP address using HTTP3.
 func (ua *URLAddress) AlreadyTestedHTTP3() bool {
-	return (ua.Flags & urlAddressAlreadyTestedHTTP3) != 0
+	return (ua.Flags & URLAddressAlreadyTestedHTTP3) != 0
 }
 
 // NewURLAddressList generates a list of URLAddresses based on DNS lookups and
@@ -207,7 +207,7 @@ func NewURLAddressList(ID int64, dns []*DNSLookupMeasurement,
 	for _, dns := range dns {
 		var flags int64
 		if dns.SupportsHTTP3() {
-			flags |= urlAddressFlagHTTP3
+			flags |= URLAddressSupportsHTTP3
 		}
 		for _, addr := range dns.Addresses() {
 			if net.ParseIP(addr) == nil {
@@ -227,16 +227,16 @@ func NewURLAddressList(ID int64, dns []*DNSLookupMeasurement,
 			continue
 		}
 		if epnt.IsHTTPMeasurement() {
-			uniq[ipAddr] |= urlAddressAlreadyTestedHTTP
+			uniq[ipAddr] |= URLAddressAlreadyTestedHTTP
 		}
 		if epnt.IsHTTPSMeasurement() {
-			uniq[ipAddr] |= urlAddressAlreadyTestedHTTPS
+			uniq[ipAddr] |= URLAddressAlreadyTestedHTTPS
 		}
 		if epnt.IsHTTP3Measurement() {
-			uniq[ipAddr] |= urlAddressAlreadyTestedHTTP3
+			uniq[ipAddr] |= URLAddressAlreadyTestedHTTP3
 		}
 		if epnt.SupportsAltSvcHTTP3() {
-			uniq[ipAddr] |= urlAddressFlagHTTP3
+			uniq[ipAddr] |= URLAddressSupportsHTTP3
 		}
 	}
 	// finally build the result.
@@ -261,8 +261,15 @@ const (
 	EndpointPlanningExcludeBogons = 1 << iota
 )
 
-// NewEndpointPlan creates a new plan for measuring all the endpoints that
-// have not been measured yet in the current URLMeasurement.
+// NewEndpointPlan is a convenience function that calls um.URLAddressList and passes the
+// resulting list to um.NewEndpointPlanWithAddressList.
+func (um *URLMeasurement) NewEndpointPlan(logger model.Logger, flags int64) ([]*EndpointPlan, bool) {
+	addrs, _ := um.URLAddressList()
+	return um.NewEndpointPlanWithAddressList(logger, addrs, flags)
+}
+
+// NewEndpointPlanWithAddressList creates a new plan for measuring all the endpoints
+// derived from the given address list compatibly with options constraints.
 //
 // Note that the returned list will include HTTP, HTTPS, and HTTP3 plans
 // related to the original URL regardless of its scheme.
@@ -270,13 +277,13 @@ const (
 // The flags argument allows to specify flags that modify the planning
 // algorithm. The EndpointPlanningExcludeBogons flag is such that we
 // will not include any bogon IP address into the returned plan.
-func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
-	addrs, _ := um.URLAddressList()
+func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
+	addrs []*URLAddress, flags int64) ([]*EndpointPlan, bool) {
 	out := make([]*EndpointPlan, 0, 8)
 	familyCounter := make(map[string]int64)
 	for _, addr := range addrs {
 		if (flags&EndpointPlanningExcludeBogons) != 0 && netxlite.IsBogon(addr.Address) {
-			// Exclude bogons from planning if we're requested to do so.
+			logger.Infof("🧐 excluding bogon %s as requested", addr.Address)
 			continue
 		}
 
@@ -285,10 +292,10 @@ func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
 			family = "AAAA"
 		}
 		if familyCounter[family] >= um.Options.maxAddressesPerFamily() {
-			// Do not add more than N IP addrs for each address family.
+			logger.Infof("🧐 too many %s addresses already, skipping %s", family, addr.Address)
 			continue
 		}
-		familyCounter[family] += 1
+		added := false
 
 		if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
 			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
@@ -297,6 +304,7 @@ func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
 				continue
 			}
 			out = append(out, plan)
+			added = true
 		}
 
 		if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
@@ -306,6 +314,7 @@ func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
 				continue
 			}
 			out = append(out, plan)
+			added = true
 		}
 
 		if um.IsHTTPS() && addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
@@ -315,6 +324,11 @@ func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
 				continue
 			}
 			out = append(out, plan)
+			added = true
+		}
+
+		if added {
+			familyCounter[family] += 1
 		}
 	}
 	return out, len(out) > 0
