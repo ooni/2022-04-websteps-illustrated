@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -206,6 +207,19 @@ func (r *resolverShortCircuitIPAddr) LookupHost(ctx context.Context, hostname st
 		return []string{hostname}, nil
 	}
 	return r.Resolver.LookupHost(ctx, hostname)
+}
+
+func (r *resolverShortCircuitIPAddr) LookupHTTPS(ctx context.Context, hostname string) (*model.HTTPSSvc, error) {
+	if net.ParseIP(hostname) != nil {
+		https := &model.HTTPSSvc{}
+		if strings.Contains(hostname, ":") {
+			https.IPv6 = append(https.IPv6, hostname)
+		} else {
+			https.IPv4 = append(https.IPv4, hostname)
+		}
+		return https, nil
+	}
+	return r.Resolver.LookupHTTPS(ctx, hostname)
 }
 
 // ErrNoResolver is the type of error returned by "without resolver"
