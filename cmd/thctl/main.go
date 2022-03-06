@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
@@ -18,7 +17,6 @@ import (
 )
 
 type CLI struct {
-	Archival     bool     `doc:"convert to the archival data format"`
 	Both         bool     `doc:"ask the test helper to test both HTTP and HTTPS"`
 	Help         bool     `doc:"prints this help message" short:"h"`
 	Input        string   `doc:"URL to submit to the test helper" short:"i" required:"true"`
@@ -70,7 +68,6 @@ func main() {
 			Cookies: []string{},
 		})
 	}
-	begin := time.Now()
 	clnt := websteps.NewTHClient(log.Log, http.DefaultClient, opts.URL, "")
 	out := make(chan *websteps.THResponseOrError)
 	dump(request)
@@ -79,11 +76,7 @@ func main() {
 	if maybeResp.Err != nil {
 		log.WithError(maybeResp.Err).Fatal("TH failed")
 	}
-	if opts.Archival {
-		dump(maybeResp.Resp.ToArchival(begin))
-	} else {
-		dump(maybeResp.Resp)
-	}
+	dump(maybeResp.Resp)
 }
 
 func dump(v interface{}) {
