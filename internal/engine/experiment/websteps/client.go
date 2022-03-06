@@ -129,6 +129,26 @@ func (c *Client) steps(ctx context.Context, input string) {
 	}
 }
 
+// rememberVisitedURLs inspects all the URLs visited by the
+// probe and stores them into the redirect deque.
+func (tk *TestKeys) rememberVisitedURLs(q *measurex.URLRedirectDeque) {
+	if tk.ProbeInitial != nil {
+		q.RememberVisitedURLs(tk.ProbeInitial.Endpoint)
+	}
+	q.RememberVisitedURLs(tk.ProbeAdditional)
+}
+
+// redirects computes all the redirects from all the results
+// that are stored inside the test keys.
+func (tk *TestKeys) redirects(mx *measurex.Measurer) (o []*measurex.URLMeasurement, v bool) {
+	if tk.ProbeInitial != nil {
+		o, _ = mx.Redirects(tk.ProbeInitial.Endpoint, tk.ProbeInitial.Options)
+	}
+	r, _ := mx.Redirects(tk.ProbeAdditional, tk.ProbeInitial.Options)
+	o = append(o, r...)
+	return o, len(o) > 0
+}
+
 // defaultResolvers returns the default resolvers.
 func defaultResolvers() []*measurex.DNSResolverInfo {
 	// TODO(bassosimone): randomize the resolvers we use...
