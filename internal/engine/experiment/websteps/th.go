@@ -288,19 +288,20 @@ func (thh *THHandler) fillOrRejectOptions(clnto *measurex.Options) (*measurex.Op
 	clnto = clnto.Flatten() // works even if cur is nil
 	tho := &measurex.Options{
 		// options for which we ignore client settings and use defaults
-		ALPN:                  []string{},
-		DNSLookupTimeout:      0,
-		DNSParallelism:        0,
-		EndpointParallelism:   0,
-		HTTPGetTimeout:        0,
-		HTTPHostHeader:        "",
-		MaxAddressesPerFamily: 0,
-		MaxCrawlerDepth:       0,
-		Parent:                nil,
-		QUICHandshakeTimeout:  0,
-		TCPconnectTimeout:     0,
-		TLSHandshakeTimeout:   0,
-		SNI:                   "",
+		ALPN:                 []string{},
+		DNSLookupTimeout:     0,
+		DNSParallelism:       0,
+		EndpointParallelism:  0,
+		HTTPGetTimeout:       0,
+		HTTPHostHeader:       "",
+		MaxCrawlerDepth:      0,
+		Parent:               nil,
+		QUICHandshakeTimeout: 0,
+		TCPconnectTimeout:    0,
+		TLSHandshakeTimeout:  0,
+		SNI:                  "",
+		// options for which the defaults are not good enough
+		MaxAddressesPerFamily: 32,
 		// options for which we use clients settings if they're okay
 		HTTPExtractTitle:                             false,
 		HTTPRequestHeaders:                           map[string][]string{},
