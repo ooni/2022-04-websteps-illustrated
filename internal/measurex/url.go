@@ -197,12 +197,14 @@ func (ua *URLAddress) AlreadyTestedHTTP3() bool {
 	return (ua.Flags & urlAddressAlreadyTestedHTTP3) != 0
 }
 
-// URLAddressList generates a list of URLAddresses based on DNS lookups. The boolean
+// NewURLAddressList generates a list of URLAddresses based on DNS lookups and
+// Endpoint measurements, all relative to the given ID. The boolean
 // return value indicates whether we have at least one IP address in the result.
-func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
+func NewURLAddressList(ID int64, dns []*DNSLookupMeasurement,
+	endpoint []*EndpointMeasurement) ([]*URLAddress, bool) {
 	uniq := make(map[string]int64)
 	// start searching into the DNS lookup results.
-	for _, dns := range um.DNS {
+	for _, dns := range dns {
 		var flags int64
 		if dns.SupportsHTTP3() {
 			flags |= urlAddressFlagHTTP3
@@ -210,14 +212,14 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 		for _, addr := range dns.Addresses() {
 			if net.ParseIP(addr) == nil {
 				// Skip CNAMEs in case they slip through.
-				log.Printf("cannot parse %+v inside um.DNS as IP address", addr)
+				log.Printf("cannot parse %+v inside dns as IP address", addr)
 				continue
 			}
 			uniq[addr] |= flags
 		}
 	}
 	// continue searching into HTTP responses.
-	for _, epnt := range um.Endpoint {
+	for _, epnt := range endpoint {
 		ipAddr, err := epnt.IPAddress()
 		if err != nil {
 			// This may actually be an IPv6 address with explicit scope
@@ -241,12 +243,17 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 	out := make([]*URLAddress, 0, 8)
 	for addr, flags := range uniq {
 		out = append(out, &URLAddress{
-			URLMeasurementID: um.ID,
+			URLMeasurementID: ID,
 			Address:          addr,
 			Flags:            flags,
 		})
 	}
 	return out, len(out) > 0
+}
+
+// URLAddressList calls NewURLAddressList using um.ID, um.DNS, and um.Endpoint.
+func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
+	return NewURLAddressList(um.ID, um.DNS, um.Endpoint)
 }
 
 const (
