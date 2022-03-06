@@ -267,7 +267,7 @@ func (c *Client) importTHMeasurement(mx *measurex.Measurer,
 
 func (c *Client) importHTTPRoundTripEvent(now time.Time,
 	in *archival.FlatHTTPRoundTripEvent) (o *archival.FlatHTTPRoundTripEvent) {
-	if o != nil {
+	if in != nil {
 		o = &archival.FlatHTTPRoundTripEvent{
 			Failure:                 in.Failure,
 			Finished:                now,
