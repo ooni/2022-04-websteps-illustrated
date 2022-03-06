@@ -193,7 +193,7 @@ func (ev *FlatDNSLookupEvent) ToArchival(begin time.Time) []model.ArchivalDNSLoo
 func (ev *FlatDNSLookupEvent) toArchivalHTTPS(begin time.Time) (out []model.ArchivalDNSLookupResult) {
 	out = append(out, model.ArchivalDNSLookupResult{
 		Answers:          ev.gatherHTTPS(),
-		Engine:           ev.ResolverNetwork,
+		Engine:           string(ev.ResolverNetwork),
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         ev.Domain,
 		QueryType:        "HTTPS",
@@ -232,7 +232,7 @@ func (ev *FlatDNSLookupEvent) gatherHTTPS() (out []model.ArchivalDNSAnswer) {
 func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []model.ArchivalDNSLookupResult) {
 	out = append(out, model.ArchivalDNSLookupResult{
 		Answers:          ev.gatherA(),
-		Engine:           ev.ResolverNetwork,
+		Engine:           string(ev.ResolverNetwork),
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         ev.Domain,
 		QueryType:        "A",
@@ -250,7 +250,7 @@ func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []mode
 	}
 	out = append(out, model.ArchivalDNSLookupResult{
 		Answers:          aaaa,
-		Engine:           ev.ResolverNetwork,
+		Engine:           string(ev.ResolverNetwork),
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         ev.Domain,
 		QueryType:        "AAAA",

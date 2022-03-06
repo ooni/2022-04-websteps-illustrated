@@ -63,7 +63,7 @@ func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain stri
 		Finished:        time.Now(),
 		LookupType:      DNSLookupTypeGetaddrinfo,
 		ResolverAddress: reso.Address(),
-		ResolverNetwork: reso.Network(),
+		ResolverNetwork: NetworkType(reso.Network()),
 		Started:         started,
 	})
 	return addrs, err
@@ -86,7 +86,7 @@ func (s *Saver) lookupHTTPS(ctx context.Context, reso model.Resolver, domain str
 		Finished:        time.Now(),
 		LookupType:      DNSLookupTypeHTTPS,
 		ResolverAddress: reso.Address(),
-		ResolverNetwork: reso.Network(),
+		ResolverNetwork: NetworkType(reso.Network()),
 		Started:         started,
 	})
 	return https, err

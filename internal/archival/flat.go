@@ -26,7 +26,7 @@ type FlatDNSLookupEvent struct {
 	Finished        time.Time
 	LookupType      DNSLookupType
 	ResolverAddress string
-	ResolverNetwork string
+	ResolverNetwork NetworkType
 	Started         time.Time
 }
 
