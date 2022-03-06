@@ -64,8 +64,8 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 			}
 			c.Logger.Infof("🧐 depth=%d; crawling %s", q.Depth(), cur.URL.String())
 			c.do(ctx, mx, cur)
-			q.RememberVisitedURLs(cur)
-			redirects, _ := mx.Redirects(cur)
+			q.RememberVisitedURLs(cur.Endpoint)
+			redirects, _ := mx.Redirects(cur.Endpoint, cur.Options)
 			out <- cur
 			q.Append(redirects...)
 			c.Logger.Infof("🪀 work queue: %s", q.String())

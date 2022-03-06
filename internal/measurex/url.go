@@ -383,9 +383,10 @@ func urlMakeEndpoint(URL *url.URL, address string) (string, error) {
 // Redirects returns all the redirects seen in this URLMeasurement as a
 // list of follow-up URLMeasurement instances. This function will return
 // false if the returned list of follow-up measurements is empty.
-func (mx *Measurer) Redirects(cur *URLMeasurement) ([]*URLMeasurement, bool) {
+func (mx *Measurer) Redirects(
+	epnts []*EndpointMeasurement, opts *Options) ([]*URLMeasurement, bool) {
 	uniq := make(map[string]*URLMeasurement)
-	for _, epnt := range cur.Endpoint {
+	for _, epnt := range epnts {
 		summary, good := epnt.RedirectSummary()
 		if !good {
 			// We should skip this endpoint
@@ -400,7 +401,7 @@ func (mx *Measurer) Redirects(cur *URLMeasurement) ([]*URLMeasurement, bool) {
 				EndpointIDs: []int64{},
 				URL:         epnt.Location,
 				Cookies:     epnt.NewCookies,
-				Options: cur.Options.Chain(&Options{
+				Options: opts.Chain(&Options{
 					// Note: all other fields intentionally left empty. We do not
 					// want to continue following HTTP and HTTPS after we have done
 					// that for the initial URL we needed to measure.
@@ -487,10 +488,10 @@ func (r *URLRedirectDeque) Append(um ...*URLMeasurement) {
 
 // RememberVisitedURLs register the URLs we've already visited so that
 // we're not going to visit them again.
-func (r *URLRedirectDeque) RememberVisitedURLs(um *URLMeasurement) {
+func (r *URLRedirectDeque) RememberVisitedURLs(epnts []*EndpointMeasurement) {
 	defer r.mu.Unlock()
 	r.mu.Lock()
-	for _, epnt := range um.Endpoint {
+	for _, epnt := range epnts {
 		r.mem[CanonicalURLString(epnt.URL)] = true
 	}
 }

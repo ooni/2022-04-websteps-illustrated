@@ -116,7 +116,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 		if !found {
 			break // we've emptied the queue
 		}
-		c.logger.Infof("🧐 depth=%d; crawling %s", q.Depth(), cur.URL.String())
+		c.logger.Infof("📌 depth=%d; crawling %s", q.Depth(), cur.URL.String())
 		// Implementation note: here we use a background context for the
 		// measurement step because we don't want to interrupt web measurements
 		// midway. We'll stop when we enter into the next iteration.
@@ -131,7 +131,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 
 // defaultResolvers returns the default resolvers.
 func defaultResolvers() []*measurex.DNSResolverInfo {
-	// TODO: randomize the resolvers we use...
+	// TODO(bassosimone): randomize the resolvers we use...
 	return []*measurex.DNSResolverInfo{{
 		Network: "system",
 		Address: "",
@@ -296,14 +296,8 @@ func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 func (c *Client) expandProbeKnowledgeWithTHData(mx *measurex.Measurer,
 	probem *measurex.URLMeasurement, thm *THResponseWithID) ([]*measurex.URLAddress, bool) {
 	// 1. gather the lists for the probe and the th
-	pal, good := probem.URLAddressList()
-	if !good {
-		return nil, false
-	}
-	thal, good := thm.URLAddressList()
-	if !good {
-		return nil, false
-	}
+	pal, _ := probem.URLAddressList()
+	thal, _ := thm.URLAddressList()
 	// 2. build a map of the addresses known by the probe.
 	pam := make(map[string]*measurex.URLAddress)
 	for _, e := range pal {

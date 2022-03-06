@@ -94,14 +94,21 @@ func newTestKeys(discover *measurex.URLMeasurement) *TestKeys {
 // rememberVisitedURLs inspects all the URLs visited by the
 // probe and stores them into the redirect deque.
 func (tk *TestKeys) rememberVisitedURLs(q *measurex.URLRedirectDeque) {
-	// nothing for now
+	if tk.ProbeInitial != nil {
+		q.RememberVisitedURLs(tk.ProbeInitial.Endpoint)
+	}
+	q.RememberVisitedURLs(tk.ProbeAdditional)
 }
 
 // redirects computes all the redirects from all the results
 // that are stored inside the test keys.
-func (tk *TestKeys) redirects(mx *measurex.Measurer) ([]*measurex.URLMeasurement, bool) {
-	// nothing for now
-	return nil, false
+func (tk *TestKeys) redirects(mx *measurex.Measurer) (o []*measurex.URLMeasurement, v bool) {
+	if tk.ProbeInitial != nil {
+		o, _ = mx.Redirects(tk.ProbeInitial.Endpoint, tk.ProbeInitial.Options)
+	}
+	r, _ := mx.Redirects(tk.ProbeAdditional, tk.ProbeInitial.Options)
+	o = append(o, r...)
+	return o, len(o) > 0
 }
 
 // analyzeResults computes the probe's analysis of the results.
