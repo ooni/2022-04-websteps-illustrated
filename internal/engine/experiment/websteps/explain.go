@@ -64,8 +64,10 @@ type Explainable interface {
 
 // ExplainFailureFlags explains the DNS flags assigned ta measurement.
 func ExplainFailureFlags(logger model.Logger, ei Explainable, flags int64) {
-	if (flags & AnalysisFlagGiveUp) != 0 {
-		logger.Infof("🤷 give up analysis for %s", ei.Describe())
+	if (flags & AnalysisFlagUnexpected) != 0 {
+		verb := explainFlagsToVerb(flags)
+		failures := explainFlagsToFailureTags(flags)
+		logger.Infof("❗ %s %s blocked (%s)", ei.Describe(), verb, failures)
 		return
 	}
 	if (flags & AnalysisFlagAccessible) != 0 {
@@ -73,9 +75,8 @@ func ExplainFailureFlags(logger model.Logger, ei Explainable, flags int64) {
 		logger.Infof("🙌️️ %s %s accessible", ei.Describe(), verb)
 		return
 	}
-	if (flags & AnalysisFlagUnexpected) != 0 {
-		verb := explainFlagsToVerb(flags)
-		failures := explainFlagsToFailureTags(flags)
-		logger.Infof("❗ %s %s blocked (%s)", ei.Describe(), verb, failures)
+	if (flags & AnalysisFlagGiveUp) != 0 {
+		logger.Infof("🤷 give up analysis for %s", ei.Describe())
+		return
 	}
 }
