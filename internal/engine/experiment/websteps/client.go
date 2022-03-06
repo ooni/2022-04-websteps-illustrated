@@ -8,7 +8,9 @@ package websteps
 
 import (
 	"context"
+	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
@@ -153,7 +155,9 @@ func (c *Client) step(ctx context.Context,
 	c.measureAltSvcEndpoints(ctx, mx, cur)
 	maybeTH := <-thc
 	if maybeTH.Err == nil {
-		tk.TH = maybeTH.Resp
+		// Implementation note: the purpose of this "import" is to have
+		// timing and IDs compatible with our measurements.
+		tk.TH = c.importTHMeasurement(mx, maybeTH.Resp)
 	}
 	c.measureAdditionalEndpoints(ctx, mx, tk)
 	tk.analyzeResults(c.logger)
@@ -185,6 +189,74 @@ func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 	epntPlan, _ := cur.NewEndpointPlan(0)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
+	}
+}
+
+// importTHMeasurement returns a copy of the input measurement with
+// adjusted IDs (related to the measurer) and times.
+func (c *Client) importTHMeasurement(mx *measurex.Measurer,
+	in *THResponse) (out *THResponseWithID) {
+	urlMeasurementID := mx.NextID()
+	out = &THResponseWithID{
+		ID:       urlMeasurementID,
+		DNS:      []*measurex.DNSLookupMeasurement{},
+		Endpoint: []*measurex.EndpointMeasurement{},
+	}
+	now := time.Now()
+	for _, e := range in.DNS {
+		out.DNS = append(out.DNS, &measurex.DNSLookupMeasurement{
+			ID:               mx.NextID(),
+			URLMeasurementID: urlMeasurementID,
+			Lookup: &archival.FlatDNSLookupEvent{
+				ALPNs:           e.ALPNs(),
+				Addresses:       e.Addresses(),
+				Domain:          e.Domain(),
+				Failure:         e.Failure(),
+				Finished:        now,
+				LookupType:      e.LookupType(),
+				ResolverAddress: e.ResolverAddress(),
+				ResolverNetwork: e.ResolverNetwork(),
+				Started:         now,
+			},
+			RoundTrip: []*archival.FlatDNSRoundTripEvent{},
+		})
+	}
+	for _, e := range in.Endpoint {
+		out.Endpoint = append(out.Endpoint, &measurex.EndpointMeasurement{
+			ID:               mx.NextID(),
+			URLMeasurementID: urlMeasurementID,
+			URL:              e.URL,
+			Network:          e.Network,
+			Address:          e.Address,
+			OrigCookies:      e.OrigCookies,
+			Failure:          e.Failure,
+			FailedOperation:  e.FailedOperation,
+			NewCookies:       e.NewCookies,
+			Location:         e.Location,
+			NetworkEvent:     []*archival.FlatNetworkEvent{},
+			TCPConnect:       nil,
+			QUICTLSHandshake: nil,
+			HTTPRoundTrip:    c.importHTTPRoundTripEvent(now, e.HTTPRoundTrip),
+		})
+	}
+	return
+}
+
+func (c *Client) importHTTPRoundTripEvent(now time.Time,
+	in *archival.FlatHTTPRoundTripEvent) *archival.FlatHTTPRoundTripEvent {
+	return &archival.FlatHTTPRoundTripEvent{
+		Failure:                 in.Failure,
+		Finished:                now,
+		Method:                  in.Method,
+		RequestHeaders:          in.RequestHeaders,
+		ResponseBody:            nil,
+		ResponseBodyIsTruncated: in.ResponseBodyIsTruncated,
+		ResponseBodyLength:      in.ResponseBodyLength,
+		ResponseHeaders:         in.ResponseHeaders,
+		Started:                 now,
+		StatusCode:              in.StatusCode,
+		Transport:               in.Transport,
+		URL:                     in.URL,
 	}
 }
 

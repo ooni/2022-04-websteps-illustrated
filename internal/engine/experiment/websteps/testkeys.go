@@ -20,24 +20,38 @@ type TestKeys struct {
 	Discover *measurex.URLMeasurement
 
 	// TH contains the response from the test helper.
-	TH *THResponse
+	TH *THResponseWithID
+}
+
+// THResponseWithID is a TH response with a ID assigned by the probe.
+type THResponseWithID struct {
+	// ID is the unique ID of this measurement.
+	ID int64
+
+	// DNS contains DNS measurements.
+	DNS []*measurex.DNSLookupMeasurement
+
+	// Endpoint contains the endpoints.
+	Endpoint []*measurex.EndpointMeasurement
 }
 
 // ArchivalTestKeys is the archival data format for the TestKeys.
 type ArchivalTestKeys struct {
 	Discover *measurex.ArchivalURLMeasurement `json:"discover"`
-	TH       *ArchivalTHResponse              `json:"th"`
+	TH       *ArchivalTHResponseWithID        `json:"th"`
 }
 
-// ArchivalTHResponse is the archival format of a TH response.
-type ArchivalTHResponse struct {
+// ArchivalTHResponseWithID is the archival format of a TH response.
+type ArchivalTHResponseWithID struct {
+	ID       int64                                   `json:"id"`
 	DNS      []measurex.ArchivalDNSLookupMeasurement `json:"dns"`
 	Endpoint []measurex.ArchivalEndpointMeasurement  `json:"endpoint"`
 }
 
 // ToArchival converts a THResponse to its archival format.
-func (r *THResponse) ToArchival(begin time.Time) ArchivalTHResponse {
-	return ArchivalTHResponse{
+func (r *THResponseWithID) ToArchival(begin time.Time) ArchivalTHResponseWithID {
+	return ArchivalTHResponseWithID{
+		ID:       r.ID,
 		DNS:      measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
 		Endpoint: measurex.NewArchivalEndpointMeasurementList(begin, r.Endpoint),
 	}
