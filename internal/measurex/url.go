@@ -105,19 +105,21 @@ func (um *URLMeasurement) NewDNSLookupPlan(ri []*DNSResolverInfo) *DNSLookupPlan
 //
 // Each IP address will be added to a single entry. We will skip strings that are
 // not valid IP addresses representations. The fake entry will use the given
-// resolverAddress as the address of the resolver that performed the fake lookup.
+// resolver network and address (you may want to, e.g., set them to "probe" or "th").
 //
 // The entry will fake an HTTPSvc lookup because that also allows you to include ALPN,
 // which you may know, into the generated fake lookup entry. If you don't know the
 // ALPN, pass nil as the alpns argument; we will convert it to an empty list for you.
-func (um *URLMeasurement) AddFromExternalDNSLookup(
-	mx *Measurer, resolverAddress string, alpns []string, addrs ...string) {
+//
+// If there are duplicate entries, they will be collapsed by this function.
+func (um *URLMeasurement) AddFromExternalDNSLookup(mx *Measurer,
+	resolverNetwork, resolverAddress string, alpns []string, addrs ...string) {
 	now := time.Now()
 	if alpns == nil {
 		alpns = []string{}
 	}
 	var goodAddrs []string
-	for _, addr := range addrs {
+	for _, addr := range StringListSortUniq(addrs) {
 		if net.ParseIP(addr) == nil {
 			log.Printf("AddFromExternalDNSLookup: cannot parse IP: %s", addr)
 			continue
@@ -139,7 +141,7 @@ func (um *URLMeasurement) AddFromExternalDNSLookup(
 			Finished:        now,
 			LookupType:      archival.DNSLookupTypeHTTPS,
 			ResolverAddress: resolverAddress,
-			ResolverNetwork: "",
+			ResolverNetwork: resolverNetwork,
 			Started:         now,
 		},
 		RoundTrip: []*archival.FlatDNSRoundTripEvent{},

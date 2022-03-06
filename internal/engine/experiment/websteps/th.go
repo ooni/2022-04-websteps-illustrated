@@ -353,7 +353,7 @@ func (thh *THHandler) addProbeDNS(mx *measurex.Measurer,
 		}
 		addrs = append(addrs, addr)
 	}
-	um.AddFromExternalDNSLookup(mx, "probe", nil, addrs...)
+	um.AddFromExternalDNSLookup(mx, "external", "probe", nil, addrs...)
 }
 
 // NewTHHandler creates a new TH handler with default settings.

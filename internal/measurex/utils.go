@@ -81,3 +81,17 @@ func CanonicalURLString(URL *url.URL) string {
 	u.RawQuery, _ = url.QueryUnescape(u.RawQuery)
 	return u.String()
 }
+
+// StringListSortUniq ensures a []string returns a sorted copy of the
+// original list that does not contain any duplicate strings.
+func StringListSortUniq(in []string) (out []string) {
+	uniq := make(map[string]int64)
+	for _, e := range in {
+		uniq[e] += 1
+	}
+	for e := range uniq {
+		out = append(out, e)
+	}
+	sort.Strings(out)
+	return
+}
