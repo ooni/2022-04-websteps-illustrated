@@ -153,9 +153,6 @@ type URLAddress struct {
 	// URLMeasurementID is the ID of the parent URLMeasurement.
 	URLMeasurementID int64
 
-	// URL is the original URL.
-	URL *url.URL
-
 	// Address is the target IPv4/IPv6 address.
 	Address string
 
@@ -179,12 +176,6 @@ const (
 	// been tested using the encrypted HTTP3 protocol.
 	urlAddressAlreadyTestedHTTP3
 )
-
-// Domain returns the domain for which the address should be valid. Because the
-// DNS may be lying to us, we cannot be sure about that, though.
-func (ua *URLAddress) Domain() string {
-	return ua.URL.Hostname()
-}
 
 // SupportsHTTP3 returns whether we think this address supports HTTP3.
 func (ua *URLAddress) SupportsHTTP3() bool {
@@ -251,7 +242,6 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 	for addr, flags := range uniq {
 		out = append(out, &URLAddress{
 			URLMeasurementID: um.ID,
-			URL:              um.URL,
 			Address:          addr,
 			Flags:            flags,
 		})
