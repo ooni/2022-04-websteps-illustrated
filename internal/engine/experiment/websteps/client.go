@@ -178,7 +178,7 @@ func (c *Client) step(ctx context.Context,
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
 		c.logger.Info("🚧️ [th] importing the TH measurements")
-		tk.TH = c.importTHMeasurement(mx, maybeTH.Resp)
+		tk.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
 	}
 	c.measureAdditionalEndpoints(ctx, mx, tk)
 	c.logger.Infof("🔬 analyzing the collected results")
@@ -217,13 +217,14 @@ func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 
 // importTHMeasurement returns a copy of the input measurement with
 // adjusted IDs (related to the measurer) and times.
-func (c *Client) importTHMeasurement(mx *measurex.Measurer,
-	in *THResponse) (out *THResponseWithID) {
+func (c *Client) importTHMeasurement(mx *measurex.Measurer, in *THResponse,
+	cur *measurex.URLMeasurement) (out *THResponseWithID) {
 	urlMeasurementID := mx.NextID()
 	out = &THResponseWithID{
-		ID:       urlMeasurementID,
-		DNS:      []*measurex.DNSLookupMeasurement{},
-		Endpoint: []*measurex.EndpointMeasurement{},
+		ProbeURLID: cur.ID,
+		ID:         urlMeasurementID,
+		DNS:        []*measurex.DNSLookupMeasurement{},
+		Endpoint:   []*measurex.EndpointMeasurement{},
 	}
 	now := time.Now()
 	for _, e := range in.DNS {

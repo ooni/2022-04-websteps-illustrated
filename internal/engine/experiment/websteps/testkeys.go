@@ -39,6 +39,9 @@ type TestKeysAnalysis struct {
 
 // THResponseWithID is a TH response with a ID assigned by the probe.
 type THResponseWithID struct {
+	// ProbeURLID is the unique ID of the related probe URL.
+	ProbeURLID int64
+
 	// ID is the unique ID of this measurement.
 	ID int64
 
@@ -59,17 +62,19 @@ type ArchivalTestKeys struct {
 
 // ArchivalTHResponseWithID is the archival format of a TH response.
 type ArchivalTHResponseWithID struct {
-	ID       int64                                   `json:"id"`
-	DNS      []measurex.ArchivalDNSLookupMeasurement `json:"dns"`
-	Endpoint []measurex.ArchivalEndpointMeasurement  `json:"endpoint"`
+	ProbeURLID int64                                   `json:"probe_url_id"`
+	ID         int64                                   `json:"id"`
+	DNS        []measurex.ArchivalDNSLookupMeasurement `json:"dns"`
+	Endpoint   []measurex.ArchivalEndpointMeasurement  `json:"endpoint"`
 }
 
 // ToArchival converts a THResponse to its archival format.
 func (r *THResponseWithID) ToArchival(begin time.Time) ArchivalTHResponseWithID {
 	return ArchivalTHResponseWithID{
-		ID:       r.ID,
-		DNS:      measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
-		Endpoint: measurex.NewArchivalEndpointMeasurementList(begin, r.Endpoint),
+		ProbeURLID: r.ProbeURLID,
+		ID:         r.ID,
+		DNS:        measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
+		Endpoint:   measurex.NewArchivalEndpointMeasurementList(begin, r.Endpoint),
 	}
 }
 
