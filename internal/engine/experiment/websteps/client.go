@@ -182,8 +182,8 @@ func (c *Client) step(ctx context.Context,
 	}
 	c.measureAdditionalEndpoints(ctx, mx, tk)
 	c.logger.Infof("🔬 analyzing the collected results")
-	tk.Analysis.DNS = tk.dnsAnalysis(c.logger)
-	tk.Analysis.Endpoint = tk.endpointAnalysis(c.logger)
+	tk.Analysis.DNS = tk.dnsAnalysis(mx, c.logger)
+	tk.Analysis.Endpoint = tk.endpointAnalysis(mx, c.logger)
 	// TODO(bassosimone): run follow-up experiments
 	return tk
 }

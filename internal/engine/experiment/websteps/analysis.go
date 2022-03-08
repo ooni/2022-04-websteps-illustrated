@@ -129,6 +129,9 @@ const (
 
 // AnalysisDNS is the analysis of an invididual query.
 type AnalysisDNS struct {
+	// ID is the unique ID of this analysis.
+	ID int64 `json:"id"`
+
 	// Ref references the measurements we used.
 	Refs []int64 `json:"refs"`
 
@@ -138,12 +141,13 @@ type AnalysisDNS struct {
 
 // dnsAnalysis analyzes the probe's DNS lookups. This function returns
 // nil when there's no DNS lookup data to analyze.
-func (tk *TestKeys) dnsAnalysis(logger model.Logger) (out []*AnalysisDNS) {
+func (tk *TestKeys) dnsAnalysis(
+	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisDNS) {
 	if tk.ProbeInitial == nil {
 		return nil
 	}
 	for _, pq := range tk.ProbeInitial.DNS {
-		score := tk.dnsSingleLookupAnalysis(logger, pq)
+		score := tk.dnsSingleLookupAnalysis(mx, logger, pq)
 		ExplainFailureFlags(logger, pq, score.Flags)
 		out = append(out, score)
 	}
@@ -151,9 +155,10 @@ func (tk *TestKeys) dnsAnalysis(logger model.Logger) (out []*AnalysisDNS) {
 }
 
 // dnsSingleLookupAnalysis analyzes a single DNS lookup.
-func (tk *TestKeys) dnsSingleLookupAnalysis(logger model.Logger,
-	pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
+func (tk *TestKeys) dnsSingleLookupAnalysis(mx *measurex.Measurer,
+	logger model.Logger, pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
 	score := &AnalysisDNS{
+		ID:    mx.NextID(),
 		Refs:  []int64{pq.ID},
 		Flags: 0,
 	}
@@ -359,6 +364,9 @@ func (tk *TestKeys) dnsFindMatchingQuery(
 
 // AnalysisEndpoint is the analysis of an individual endpoint.
 type AnalysisEndpoint struct {
+	// ID is the unique ID of this analysis.
+	ID int64 `json:"id"`
+
 	// Ref is the ID of the lookup.
 	Refs []int64 `json:"refs"`
 
@@ -368,18 +376,19 @@ type AnalysisEndpoint struct {
 
 // endpointAnalysis analyzes the probe's endpoint measurements. This function
 // returns nil when there's no endpoint data to analyze.
-func (tk *TestKeys) endpointAnalysis(logger model.Logger) (out []*AnalysisEndpoint) {
+func (tk *TestKeys) endpointAnalysis(
+	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisEndpoint) {
 	var flags int64
 	if tk.ProbeInitial != nil {
 		for _, pe := range tk.ProbeInitial.Endpoint {
-			score := tk.endpointSingleMeasurementAnalysis(logger, pe, flags)
+			score := tk.endpointSingleMeasurementAnalysis(mx, logger, pe, flags)
 			ExplainFailureFlags(logger, pe, score.Flags)
 			out = append(out, score)
 		}
 	}
 	flags |= AnalysisFlagEndpointAdditional
 	for _, pe := range tk.ProbeAdditional {
-		score := tk.endpointSingleMeasurementAnalysis(logger, pe, flags)
+		score := tk.endpointSingleMeasurementAnalysis(mx, logger, pe, flags)
 		ExplainFailureFlags(logger, pe, score.Flags)
 		out = append(out, score)
 	}
@@ -387,9 +396,10 @@ func (tk *TestKeys) endpointAnalysis(logger model.Logger) (out []*AnalysisEndpoi
 }
 
 // endpointSingleMeasurementAnalysis analyzes a single DNS lookup.
-func (tk *TestKeys) endpointSingleMeasurementAnalysis(logger model.Logger,
-	pe *measurex.EndpointMeasurement, flags int64) *AnalysisEndpoint {
+func (tk *TestKeys) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
+	logger model.Logger, pe *measurex.EndpointMeasurement, flags int64) *AnalysisEndpoint {
 	score := &AnalysisEndpoint{
+		ID:    mx.NextID(),
 		Refs:  []int64{pe.ID},
 		Flags: 0,
 	}
