@@ -13,6 +13,7 @@ import (
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
+	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
 type CLI struct {
@@ -68,20 +69,34 @@ func submitInput(ctx context.Context, wg *sync.WaitGroup, clnt *websteps.Client,
 	}
 }
 
+// TODO(bassosimone): websteps.TestKeys is not the correct name.
+
+// result is the result of running websteps on an input URL.
+type result struct {
+	// TestKeys contains the experiment test keys.
+	TestKeys *testKeys `json:"test_keys"`
+}
+
+type testKeys struct {
+	// Steps contains the steps we performed.
+	Steps []*websteps.ArchivalTestKeys `json:"steps"`
+}
+
 func processOutput(begin time.Time, filep io.Writer, clnt *websteps.Client) {
+	r := &result{
+		TestKeys: &testKeys{},
+	}
 	for tkor := range clnt.Output {
 		if err := tkor.Err; err != nil {
 			log.Warn(err.Error())
 			continue
 		}
-		data, err := json.Marshal(tkor.TestKeys.ToArchival(begin))
-		if err != nil {
-			log.Warnf("cannot serialize JSON: %s", err.Error())
-			continue
-		}
-		data = append(data, '\n')
-		if _, err := filep.Write(data); err != nil {
-			log.WithError(err).Fatal("cannot write output file")
-		}
+		r.TestKeys.Steps = append(r.TestKeys.Steps, tkor.TestKeys.ToArchival(begin))
+	}
+	data, err := json.Marshal(r)
+	runtimex.PanicOnError(err, "json.Marshal failed")
+	data = append(data, '\n')
+	if _, err := filep.Write(data); err != nil {
+		log.WithError(err).Fatal("cannot write output file")
 	}
 }
