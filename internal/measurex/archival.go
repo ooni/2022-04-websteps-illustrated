@@ -21,6 +21,18 @@ type ArchivalDNSLookupMeasurement struct {
 	// URLMeasurementID is the ID of the parent URLMeasurement.
 	URLMeasurementID int64 `json:"url_measurement_id"`
 
+	// Domain is the domain this lookup refers to.
+	Domain string `json:"domain"`
+
+	// Failure is the failure that occurred.
+	Failure *string `json:"failure"`
+
+	// Addresses contains the resolved addresses.
+	Addresses []string `json:"addresses"`
+
+	// ALPNs contains the ALPNs obtained using this lookup (if any).
+	ALPNs []string `json:"alpns"`
+
 	// DNSRoundTrips contains DNS round trips.
 	DNSRoundTrips []model.ArchivalDNSRoundTripEvent `json:"dns_round_trips"`
 
@@ -33,6 +45,10 @@ func (m *DNSLookupMeasurement) ToArchival(begin time.Time) ArchivalDNSLookupMeas
 	return ArchivalDNSLookupMeasurement{
 		ID:               m.ID,
 		URLMeasurementID: m.URLMeasurementID,
+		Domain:           m.Domain(),
+		Failure:          m.Failure().ToArchivalFailure(),
+		Addresses:        m.Addresses(),
+		ALPNs:            m.ALPNs(),
 		DNSRoundTrips:    archival.NewArchivalDNSRoundTripEventList(begin, m.RoundTrip),
 		Queries:          m.Lookup.ToArchival(begin),
 	}
@@ -68,7 +84,7 @@ type ArchivalEndpointMeasurement struct {
 	QUICTLSHandshake *model.ArchivalTLSOrQUICHandshakeResult `json:"quic_tls_handshake"`
 
 	// HTTPRoundTrip contains the HTTP round trip event (if any).
-	HTTPRoundTrip *model.ArchivalHTTPRequestResult `json:"request"`
+	HTTPRoundTrip *model.ArchivalHTTPRequestResult `json:"requests"`
 }
 
 // ToArchival converts a EndpointMeasurement to ArchivalEndpointMeasurement.
