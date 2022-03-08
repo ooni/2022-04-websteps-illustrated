@@ -142,7 +142,12 @@ func (tk *TestKeys) rememberVisitedURLs(q *measurex.URLRedirectDeque) {
 // that are stored inside the test keys.
 func (tk *TestKeys) redirects(mx *measurex.Measurer) (o []*measurex.URLMeasurement, v bool) {
 	if tk.ProbeInitial != nil {
-		o, _ = mx.Redirects(tk.ProbeInitial.Endpoint, tk.ProbeInitial.Options)
+		r, _ := mx.Redirects(tk.ProbeInitial.Endpoint, tk.ProbeInitial.Options)
+		o = append(o, r...)
+	}
+	if tk.TH != nil {
+		r, _ := mx.Redirects(tk.TH.Endpoint, tk.ProbeInitial.Options)
+		o = append(o, r...)
 	}
 	r, _ := mx.Redirects(tk.ProbeAdditional, tk.ProbeInitial.Options)
 	o = append(o, r...)
