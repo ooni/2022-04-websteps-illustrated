@@ -263,18 +263,16 @@ func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 // adjusted IDs (related to the measurer) and times.
 func (c *Client) importTHMeasurement(mx *measurex.Measurer, in *THResponse,
 	cur *measurex.URLMeasurement) (out *THResponseWithID) {
-	urlMeasurementID := mx.NextID()
 	out = &THResponseWithID{
-		ProbeURLID: cur.ID,
-		ID:         urlMeasurementID,
-		DNS:        []*measurex.DNSLookupMeasurement{},
-		Endpoint:   []*measurex.EndpointMeasurement{},
+		id:       cur.ID,
+		DNS:      []*measurex.DNSLookupMeasurement{},
+		Endpoint: []*measurex.EndpointMeasurement{},
 	}
 	now := time.Now()
 	for _, e := range in.DNS {
 		out.DNS = append(out.DNS, &measurex.DNSLookupMeasurement{
 			ID:               mx.NextID(),
-			URLMeasurementID: urlMeasurementID,
+			URLMeasurementID: cur.ID,
 			Lookup: &archival.FlatDNSLookupEvent{
 				ALPNs:           e.ALPNs(),
 				Addresses:       e.Addresses(),
@@ -292,7 +290,7 @@ func (c *Client) importTHMeasurement(mx *measurex.Measurer, in *THResponse,
 	for _, e := range in.Endpoint {
 		out.Endpoint = append(out.Endpoint, &measurex.EndpointMeasurement{
 			ID:               mx.NextID(),
-			URLMeasurementID: urlMeasurementID,
+			URLMeasurementID: cur.ID,
 			URL:              e.URL,
 			Network:          e.Network,
 			Address:          e.Address,
@@ -336,7 +334,7 @@ func (c *Client) importHTTPRoundTripEvent(now time.Time,
 // value is a nil list and false. Otherwise, a valid list and true.
 func (thm *THResponseWithID) URLAddressList() (o []*measurex.URLAddress, v bool) {
 	if thm != nil {
-		o, v = measurex.NewURLAddressList(thm.ID, thm.DNS, thm.Endpoint)
+		o, v = measurex.NewURLAddressList(thm.id, thm.DNS, thm.Endpoint)
 	}
 	return
 }
