@@ -134,7 +134,7 @@ const (
 	// DefaultMaxHTTPSResponseBodySnapshotSizeThrottling is the default value
 	// of Options.MaxHTTPSResponseBodySnapshotSize when the URL path is no "/",
 	// where we assume we want to detect signs of throttling.
-	DefaultMaxHTTPSResponseBodySnapshotSizeThrottling = 1 << 18
+	DefaultMaxHTTPSResponseBodySnapshotSizeThrottling = 1 << 19
 
 	// DefaultQUICHandshakeTimeout is the default Options.QUICHandshakeTimeout value.
 	DefaultQUICHandshakeTimeout = 10 * time.Second
