@@ -280,6 +280,9 @@ func (tk *TestKeys) dnsSingleLookupAnalysis(logger model.Logger,
 	// Because this algorithm is an heuristic, we cannot say _for sure_
 	// that its result is correct (also because the ANS database may
 	// for example be a bit old), so we're going to flag as inconclusive.
+	//
+	// TODO(bassosimone): double check that the following is exactly the
+	// same algorithm implemented by Web Connectivity.
 	score.Flags |= tk.dnsWebConnectivityDNSDiff(pq, thq)
 	score.Flags |= AnalysisFlagInconclusive
 
@@ -441,6 +444,9 @@ func (tk *TestKeys) endpointSingleMeasurementAnalysis(logger model.Logger,
 		}
 		// Special case: the TH will not follow bogon addresses, so
 		// when following a bogon we'll only have probe data.
+		//
+		// TODO(bassosimone): as discussed with @hellais, we should
+		// consider whether moving this check earlier.
 		if addr, err := pe.IPAddress(); err == nil && netxlite.IsBogon(addr) {
 			score.Flags &= ^AnalysisFlagInconclusive // a bogon is very conclusive
 			score.Flags |= AnalysisFlagDNSBogon | AnalysisFlagUnexpected
@@ -501,6 +507,12 @@ func (tk *TestKeys) endpointSingleMeasurementAnalysis(logger model.Logger,
 	// possible blockpage for HTTP and perhaps sanctions for HTTPS and HTTP3.
 	//
 	// These are heuristics and by definition they are inconclusive.
+	//
+	// TODO(bassosimone): double check that the following is exactly the
+	// same algorithm implemented by Web Connectivity. I am not sure about
+	// this because I think in Web Connectivity we check whether at least
+	// one of them matches. Here, instead, we just test for each
+	// condition independently of the others.
 	score.Flags |= AnalysisFlagInconclusive
 	score.Flags |= tk.endpointWebConnectivityBodyLengthChecks(pe, the)
 	score.Flags |= tk.endpointWebConnectivityStatusCodeMatch(pe, the)

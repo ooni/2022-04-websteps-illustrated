@@ -104,6 +104,9 @@ func (c *Client) newTHRequestEndpointPlan(
 // THRequestAsync performs an async TH request posting the result on the out channel.
 func (c *Client) THRequestAsync(
 	ctx context.Context, thReq *THRequest, out chan<- *THResponseOrError) {
+	// TODO(bassosimone): consider the possibility that the TH would run for a
+	// long-enough time that some middlebox could forcibly close the conn. We may
+	// consider using a different protocol, e.g., WebSocket or long polling.
 	tmpl := httpx.APIClientTemplate{
 		BaseURL:    c.thURL,
 		HTTPClient: c.httpClient,
