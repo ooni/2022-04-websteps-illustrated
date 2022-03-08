@@ -8,6 +8,7 @@ package websteps
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -17,18 +18,25 @@ import (
 
 // TestKeys contains the experiment test keys.
 type TestKeys struct {
+	// URL is the URL this measurement refers to.
+	URL string
+
 	// Steps contains all the steps.
 	Steps []*SingleStepMeasurement
 }
 
 // ArchivalTestKeys contains the archival test keys.
 type ArchivalTestKeys struct {
+	URL   string                           `json:"url"`
 	Steps []*ArchivalSingleStepMeasurement `json:"steps"`
 }
 
 // ToArchival converts TestKeys to the archival data format.
 func (tk *TestKeys) ToArchival(begin time.Time) (out *ArchivalTestKeys) {
-	out = &ArchivalTestKeys{}
+	out = &ArchivalTestKeys{
+		URL:   tk.URL,
+		Steps: []*ArchivalSingleStepMeasurement{},
+	}
 	for _, entry := range tk.Steps {
 		out.Steps = append(out.Steps, entry.ToArchival(begin))
 	}
@@ -126,14 +134,20 @@ func (c *Client) steps(ctx context.Context, input string) {
 	initial, err := mx.NewURLMeasurement(input)
 	if err != nil {
 		c.logger.Warnf("❌ cannot parse input as URL: %s", err.Error())
-		c.Output <- &TestKeysOrError{Err: err}
+		c.Output <- &TestKeysOrError{
+			Err:      fmt.Errorf("cannot parse %s: %w", input, err),
+			TestKeys: nil,
+		}
 		return
 	}
 	q := mx.NewURLRedirectDeque(c.logger)
 	q.Append(initial)
 	tkoe := &TestKeysOrError{
-		Err:      nil,
-		TestKeys: &TestKeys{},
+		Err: nil,
+		TestKeys: &TestKeys{
+			URL:   input,
+			Steps: []*SingleStepMeasurement{},
+		},
 	}
 	for ctx.Err() == nil { // know that a user has requested to stop
 		cur, found := q.PopLeft()
