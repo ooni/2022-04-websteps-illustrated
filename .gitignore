@@ -1,10 +1,11 @@
+.DS_Store
 /crawler
 /crawler.exe
 /crawler.jsonl
+/report.jsonl
 /thctl
 /thctl.exe
 /thd
 /thd.exe
-/report.jsonl
 /websteps
 /websteps.exe
