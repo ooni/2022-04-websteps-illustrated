@@ -7,13 +7,13 @@ import (
 )
 
 //
-// TestKeys
+// SingleStepMeasurement
 //
-// Definition of the TestKeys struct.
+// Definition of the SingleStepMeasurement struct.
 //
 
-// TestKeys contains a websteps measurement.
-type TestKeys struct {
+// SingleStepMeasurement contains a a single-step measurement.
+type SingleStepMeasurement struct {
 	// ProbeInitial contains the initial probe measurement.
 	ProbeInitial *measurex.URLMeasurement
 
@@ -25,11 +25,11 @@ type TestKeys struct {
 	ProbeAdditional []*measurex.EndpointMeasurement
 
 	// Analysis contains the results analysis.
-	Analysis *TestKeysAnalysis
+	Analysis *Analysis
 }
 
-// TestKeysAnalysis contains the results of the analysis.
-type TestKeysAnalysis struct {
+// Analysis contains the results of the analysis.
+type Analysis struct {
 	// DNS contains the DNS results analysis.
 	DNS []*AnalysisDNS `json:"dns"`
 
@@ -52,12 +52,13 @@ type THResponseWithID struct {
 	Endpoint []*measurex.EndpointMeasurement
 }
 
-// ArchivalTestKeys is the archival data format for the TestKeys.
-type ArchivalTestKeys struct {
+// ArchivalSingleStepMeasurement is the archival data format
+// for SingleStepMeasurement.
+type ArchivalSingleStepMeasurement struct {
 	ProbeInitial    *measurex.ArchivalURLMeasurement       `json:"probe_initial"`
 	TH              *ArchivalTHResponseWithID              `json:"th"`
 	ProbeAdditional []measurex.ArchivalEndpointMeasurement `json:"probe_additional"`
-	Analysis        *TestKeysAnalysis                      `json:"analysis"`
+	Analysis        *Analysis                              `json:"analysis"`
 }
 
 // ArchivalTHResponseWithID is the archival format of a TH response.
@@ -79,35 +80,35 @@ func (r *THResponseWithID) ToArchival(begin time.Time) ArchivalTHResponseWithID 
 }
 
 // ToArchival converts test keys to the OONI archival data format.
-func (tk *TestKeys) ToArchival(begin time.Time) *ArchivalTestKeys {
-	if tk == nil {
+func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleStepMeasurement {
+	if ssm == nil {
 		// just in case...
 		return nil
 	}
-	out := &ArchivalTestKeys{}
-	if tk.ProbeInitial != nil {
-		v := tk.ProbeInitial.ToArchival(begin)
+	out := &ArchivalSingleStepMeasurement{}
+	if ssm.ProbeInitial != nil {
+		v := ssm.ProbeInitial.ToArchival(begin)
 		out.ProbeInitial = &v
 	}
-	if tk.TH != nil {
-		v := tk.TH.ToArchival(begin)
+	if ssm.TH != nil {
+		v := ssm.TH.ToArchival(begin)
 		out.TH = &v
 	}
-	if len(tk.ProbeAdditional) > 0 {
+	if len(ssm.ProbeAdditional) > 0 {
 		out.ProbeAdditional = measurex.NewArchivalEndpointMeasurementList(
-			begin, tk.ProbeAdditional)
+			begin, ssm.ProbeAdditional)
 	}
-	out.Analysis = tk.Analysis
+	out.Analysis = ssm.Analysis
 	return out
 }
 
-// newTestKeys creates a new TestKeys instance and uses
+// newSingleStepMeasurement creates a new SingleStepMeasurement and uses
 // the given URLMeasurement to initialize Discover.
-func newTestKeys(discover *measurex.URLMeasurement) *TestKeys {
-	return &TestKeys{
+func newSingleStepMeasurement(discover *measurex.URLMeasurement) *SingleStepMeasurement {
+	return &SingleStepMeasurement{
 		ProbeInitial:    discover,
 		TH:              &THResponseWithID{},
 		ProbeAdditional: []*measurex.EndpointMeasurement{},
-		Analysis:        &TestKeysAnalysis{},
+		Analysis:        &Analysis{},
 	}
 }

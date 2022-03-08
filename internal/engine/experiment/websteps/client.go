@@ -15,6 +15,26 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
+// TestKeys contains the experiment test keys.
+type TestKeys struct {
+	// Steps contains all the steps.
+	Steps []*SingleStepMeasurement
+}
+
+// ArchivalTestKeys contains the archival test keys.
+type ArchivalTestKeys struct {
+	Steps []*ArchivalSingleStepMeasurement `json:"steps"`
+}
+
+// ToArchival converts TestKeys to the archival data format.
+func (tk *TestKeys) ToArchival(begin time.Time) (out *ArchivalTestKeys) {
+	out = &ArchivalTestKeys{}
+	for _, entry := range tk.Steps {
+		out.Steps = append(out.Steps, entry.ToArchival(begin))
+	}
+	return
+}
+
 // TestKeysOrError contains either test keys or an error.
 type TestKeysOrError struct {
 	// Err is the error that occurred.
@@ -111,6 +131,10 @@ func (c *Client) steps(ctx context.Context, input string) {
 	}
 	q := mx.NewURLRedirectDeque(c.logger)
 	q.Append(initial)
+	tkoe := &TestKeysOrError{
+		Err:      nil,
+		TestKeys: &TestKeys{},
+	}
 	for ctx.Err() == nil { // know that a user has requested to stop
 		cur, found := q.PopLeft()
 		if !found {
@@ -120,36 +144,37 @@ func (c *Client) steps(ctx context.Context, input string) {
 		// Implementation note: here we use a background context for the
 		// measurement step because we don't want to interrupt web measurements
 		// midway. We'll stop when we enter into the next iteration.
-		tk := c.step(context.Background(), mx, cur)
-		tk.rememberVisitedURLs(q)
-		redirects, _ := tk.redirects(mx)
-		c.Output <- &TestKeysOrError{TestKeys: tk}
+		ssm := c.step(context.Background(), mx, cur)
+		ssm.rememberVisitedURLs(q)
+		redirects, _ := ssm.redirects(mx)
+		tkoe.TestKeys.Steps = append(tkoe.TestKeys.Steps, ssm)
 		q.Append(redirects...)
 		c.logger.Infof("🪀 work queue: %s", q.String())
 	}
+	c.Output <- tkoe
 }
 
 // rememberVisitedURLs inspects all the URLs visited by the
 // probe and stores them into the redirect deque.
-func (tk *TestKeys) rememberVisitedURLs(q *measurex.URLRedirectDeque) {
-	if tk.ProbeInitial != nil {
-		q.RememberVisitedURLs(tk.ProbeInitial.Endpoint)
+func (ssm *SingleStepMeasurement) rememberVisitedURLs(q *measurex.URLRedirectDeque) {
+	if ssm.ProbeInitial != nil {
+		q.RememberVisitedURLs(ssm.ProbeInitial.Endpoint)
 	}
-	q.RememberVisitedURLs(tk.ProbeAdditional)
+	q.RememberVisitedURLs(ssm.ProbeAdditional)
 }
 
 // redirects computes all the redirects from all the results
 // that are stored inside the test keys.
-func (tk *TestKeys) redirects(mx *measurex.Measurer) (o []*measurex.URLMeasurement, v bool) {
-	if tk.ProbeInitial != nil {
-		r, _ := mx.Redirects(tk.ProbeInitial.Endpoint, tk.ProbeInitial.Options)
+func (ssm *SingleStepMeasurement) redirects(mx *measurex.Measurer) (o []*measurex.URLMeasurement, v bool) {
+	if ssm.ProbeInitial != nil {
+		r, _ := mx.Redirects(ssm.ProbeInitial.Endpoint, ssm.ProbeInitial.Options)
 		o = append(o, r...)
 	}
-	if tk.TH != nil {
-		r, _ := mx.Redirects(tk.TH.Endpoint, tk.ProbeInitial.Options)
+	if ssm.TH != nil {
+		r, _ := mx.Redirects(ssm.TH.Endpoint, ssm.ProbeInitial.Options)
 		o = append(o, r...)
 	}
-	r, _ := mx.Redirects(tk.ProbeAdditional, tk.ProbeInitial.Options)
+	r, _ := mx.Redirects(ssm.ProbeAdditional, ssm.ProbeInitial.Options)
 	o = append(o, r...)
 	return o, len(o) > 0
 }
@@ -171,9 +196,9 @@ func defaultResolvers() []*measurex.DNSResolverInfo {
 
 // step performs a single step.
 func (c *Client) step(ctx context.Context,
-	mx *measurex.Measurer, cur *measurex.URLMeasurement) *TestKeys {
+	mx *measurex.Measurer, cur *measurex.URLMeasurement) *SingleStepMeasurement {
 	c.dnsLookup(ctx, mx, cur)
-	tk := newTestKeys(cur)
+	ssm := newSingleStepMeasurement(cur)
 	epntPlan, _ := cur.NewEndpointPlan(c.logger, 0)
 	thc := c.th(ctx, cur, epntPlan)
 	c.measureDiscoveredEndpoints(ctx, mx, cur, epntPlan)
@@ -183,14 +208,14 @@ func (c *Client) step(ctx context.Context,
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
 		c.logger.Info("🚧️ [th] importing the TH measurements")
-		tk.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
+		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
 	}
-	c.measureAdditionalEndpoints(ctx, mx, tk)
+	c.measureAdditionalEndpoints(ctx, mx, ssm)
 	c.logger.Infof("🔬 analyzing the collected results")
-	tk.Analysis.DNS = tk.dnsAnalysis(mx, c.logger)
-	tk.Analysis.Endpoint = tk.endpointAnalysis(mx, c.logger)
+	ssm.Analysis.DNS = ssm.dnsAnalysis(mx, c.logger)
+	ssm.Analysis.Endpoint = ssm.endpointAnalysis(mx, c.logger)
 	// TODO(bassosimone): run follow-up experiments
-	return tk
+	return ssm
 }
 
 func (c *Client) dnsLookup(ctx context.Context,
@@ -303,12 +328,12 @@ func (thm *THResponseWithID) URLAddressList() (o []*measurex.URLAddress, v bool)
 }
 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
-	mx *measurex.Measurer, tk *TestKeys) {
+	mx *measurex.Measurer, ssm *SingleStepMeasurement) {
 	c.logger.Info("📡 [additional] measuring extra endpoints discovered by the TH (if any)")
-	addrslist, _ := c.expandProbeKnowledgeWithTHData(mx, tk.ProbeInitial, tk.TH)
-	plan, _ := tk.ProbeInitial.NewEndpointPlanWithAddressList(c.logger, addrslist, 0)
+	addrslist, _ := c.expandProbeKnowledgeWithTHData(mx, ssm.ProbeInitial, ssm.TH)
+	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(c.logger, addrslist, 0)
 	for m := range mx.MeasureEndpoints(ctx, plan...) {
-		tk.ProbeAdditional = append(tk.ProbeAdditional, m)
+		ssm.ProbeAdditional = append(ssm.ProbeAdditional, m)
 	}
 }
 

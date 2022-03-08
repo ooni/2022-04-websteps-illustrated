@@ -16,7 +16,7 @@ import (
 
 // dnsWebConnectivityDNSDiff is the DNSDiff algorithm originally
 // designed for Web Connectivity and now adapted to websteps.
-func (tk *TestKeys) dnsWebConnectivityDNSDiff(
+func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 	pq, thq *measurex.DNSLookupMeasurement) (flags int64) {
 	// 1. stop if measurement and control returned IP addresses
 	// that belong to the same Autonomous System(s).
@@ -35,10 +35,10 @@ func (tk *TestKeys) dnsWebConnectivityDNSDiff(
 	)
 	asnmap := make(map[uint]int64)
 	for _, addr := range pq.Addresses() {
-		asnmap[tk.dnsMapAddrToASN(addr)] |= inMeasurement
+		asnmap[ssm.dnsMapAddrToASN(addr)] |= inMeasurement
 	}
 	for _, addr := range thq.Addresses() {
-		asnmap[tk.dnsMapAddrToASN(addr)] |= inControl
+		asnmap[ssm.dnsMapAddrToASN(addr)] |= inControl
 	}
 	for key, value := range asnmap {
 		// Note: zero means that the ASN lookup failed
@@ -70,14 +70,14 @@ func (tk *TestKeys) dnsWebConnectivityDNSDiff(
 
 // dnsMapAddrToASN maps an IP address to an ASN number. In cae
 // of failure, this function returns zero.
-func (tk *TestKeys) dnsMapAddrToASN(addr string) uint {
+func (ssm *SingleStepMeasurement) dnsMapAddrToASN(addr string) uint {
 	asn, _, _ := geolocate.LookupASN(addr)
 	return asn
 }
 
 // endpointWebConnectivityBodyLengthChecks is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-func (tk *TestKeys) endpointWebConnectivityBodyLengthChecks(
+func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	// We expect truncated bodies to have the same size because we are
 	// sharing settings with the TH. If that's not the case, we've just
@@ -104,7 +104,7 @@ func (tk *TestKeys) endpointWebConnectivityBodyLengthChecks(
 
 // endpointWebConnectivityStatusCodeMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-func (tk *TestKeys) endpointWebConnectivityStatusCodeMatch(
+func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	match := pe.StatusCode() == the.StatusCode()
 	if match {
@@ -126,7 +126,7 @@ func (tk *TestKeys) endpointWebConnectivityStatusCodeMatch(
 
 // endpointWebConnectivityHeadersMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-func (tk *TestKeys) endpointWebConnectivityHeadersMatch(
+func (ssm *SingleStepMeasurement) endpointWebConnectivityHeadersMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	// Implementation note: using map because we only care about the
 	// keys being different and we ignore the values.
@@ -201,7 +201,7 @@ func (tk *TestKeys) endpointWebConnectivityHeadersMatch(
 
 // endpointWebConnectivityTitleMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-func (tk *TestKeys) endpointWebConnectivityTitleMatch(
+func (ssm *SingleStepMeasurement) endpointWebConnectivityTitleMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	control := the.HTTPTitle
 	measurement := pe.HTTPTitle

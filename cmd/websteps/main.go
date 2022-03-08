@@ -74,29 +74,21 @@ func submitInput(ctx context.Context, wg *sync.WaitGroup, clnt *websteps.Client,
 // result is the result of running websteps on an input URL.
 type result struct {
 	// TestKeys contains the experiment test keys.
-	TestKeys *testKeys `json:"test_keys"`
-}
-
-type testKeys struct {
-	// Steps contains the steps we performed.
-	Steps []*websteps.ArchivalTestKeys `json:"steps"`
+	TestKeys *websteps.ArchivalTestKeys `json:"test_keys"`
 }
 
 func processOutput(begin time.Time, filep io.Writer, clnt *websteps.Client) {
-	r := &result{
-		TestKeys: &testKeys{},
-	}
-	for tkor := range clnt.Output {
-		if err := tkor.Err; err != nil {
+	for tkoe := range clnt.Output {
+		if err := tkoe.Err; err != nil {
 			log.Warn(err.Error())
 			continue
 		}
-		r.TestKeys.Steps = append(r.TestKeys.Steps, tkor.TestKeys.ToArchival(begin))
-	}
-	data, err := json.Marshal(r)
-	runtimex.PanicOnError(err, "json.Marshal failed")
-	data = append(data, '\n')
-	if _, err := filep.Write(data); err != nil {
-		log.WithError(err).Fatal("cannot write output file")
+		r := &result{TestKeys: tkoe.TestKeys.ToArchival(begin)}
+		data, err := json.Marshal(r)
+		runtimex.PanicOnError(err, "json.Marshal failed")
+		data = append(data, '\n')
+		if _, err := filep.Write(data); err != nil {
+			log.WithError(err).Fatal("cannot write output file")
+		}
 	}
 }

@@ -141,13 +141,13 @@ type AnalysisDNS struct {
 
 // dnsAnalysis analyzes the probe's DNS lookups. This function returns
 // nil when there's no DNS lookup data to analyze.
-func (tk *TestKeys) dnsAnalysis(
+func (ssm *SingleStepMeasurement) dnsAnalysis(
 	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisDNS) {
-	if tk.ProbeInitial == nil {
+	if ssm.ProbeInitial == nil {
 		return nil
 	}
-	for _, pq := range tk.ProbeInitial.DNS {
-		score := tk.dnsSingleLookupAnalysis(mx, logger, pq)
+	for _, pq := range ssm.ProbeInitial.DNS {
+		score := ssm.dnsSingleLookupAnalysis(mx, logger, pq)
 		ExplainFailureFlags(logger, pq, score.Flags)
 		out = append(out, score)
 	}
@@ -155,7 +155,7 @@ func (tk *TestKeys) dnsAnalysis(
 }
 
 // dnsSingleLookupAnalysis analyzes a single DNS lookup.
-func (tk *TestKeys) dnsSingleLookupAnalysis(mx *measurex.Measurer,
+func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	logger model.Logger, pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
 	score := &AnalysisDNS{
 		ID:    mx.NextID(),
@@ -199,14 +199,14 @@ func (tk *TestKeys) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		// Countries like Iran censor returning bogon addresses. A
 		// bogon for a publicly accessible website is very suspicious
 		// so, we're going to flag it as an expected failure.
-		if tk.dnsBogonsCheck(pq) {
+		if ssm.dnsBogonsCheck(pq) {
 			score.Flags |= AnalysisFlagUnexpected | AnalysisFlagDNSBogon
 			return score
 		}
 		// If we could use all the IP addresses returned by this query
 		// for establishing TLS connections, we're ~confident that we've
 		// been given legitimate IP addresses by the resolver.
-		if tk.dnsCrossCheckWithHTTPS(pq) {
+		if ssm.dnsCrossCheckWithHTTPS(pq) {
 			score.Flags |= AnalysisFlagAccessible | AnalysisFlagDNSValidViaHTTPS
 			return score
 		}
@@ -214,7 +214,7 @@ func (tk *TestKeys) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	}
 
 	// Let's now see to compare with what the TH did.
-	thq, found := tk.dnsFindMatchingQuery(pq)
+	thq, found := ssm.dnsFindMatchingQuery(pq)
 	if !found {
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
@@ -288,14 +288,14 @@ func (tk *TestKeys) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	//
 	// TODO(bassosimone): double check that the following is exactly the
 	// same algorithm implemented by Web Connectivity.
-	score.Flags |= tk.dnsWebConnectivityDNSDiff(pq, thq)
+	score.Flags |= ssm.dnsWebConnectivityDNSDiff(pq, thq)
 	score.Flags |= AnalysisFlagInconclusive
 
 	return score
 }
 
 // dnsBogonsCheck checks whether a successful reply contains bogons.
-func (tk *TestKeys) dnsBogonsCheck(pq *measurex.DNSLookupMeasurement) bool {
+func (ssm *SingleStepMeasurement) dnsBogonsCheck(pq *measurex.DNSLookupMeasurement) bool {
 	if pq.Failure() != "" {
 		// Just in case there's some bug
 		return false
@@ -310,14 +310,14 @@ func (tk *TestKeys) dnsBogonsCheck(pq *measurex.DNSLookupMeasurement) bool {
 
 // dnsCrossCheckWithHTTPS checks whether the TH could use the IP addrs
 // returned by the probe to perform any HTTPS measurement.
-func (tk *TestKeys) dnsCrossCheckWithHTTPS(pq *measurex.DNSLookupMeasurement) bool {
-	if tk.TH == nil || pq.Failure() != "" {
+func (ssm *SingleStepMeasurement) dnsCrossCheckWithHTTPS(pq *measurex.DNSLookupMeasurement) bool {
+	if ssm.TH == nil || pq.Failure() != "" {
 		// Just in case there's some bug
 		return false
 	}
 	var count int64
 	for _, probeAddr := range pq.Addresses() {
-		for _, epnt := range tk.TH.Endpoint {
+		for _, epnt := range ssm.TH.Endpoint {
 			thAddr, err := epnt.IPAddress()
 			if err != nil {
 				// This also seems a bug or an edge case
@@ -341,12 +341,12 @@ func (tk *TestKeys) dnsCrossCheckWithHTTPS(pq *measurex.DNSLookupMeasurement) bo
 
 // dnsFindMatchingQuery takes in input a probe's query and
 // returns in output the corresponding TH query.
-func (tk *TestKeys) dnsFindMatchingQuery(
+func (ssm *SingleStepMeasurement) dnsFindMatchingQuery(
 	pq *measurex.DNSLookupMeasurement) (*measurex.DNSLookupMeasurement, bool) {
-	if tk.TH == nil {
+	if ssm.TH == nil {
 		return nil, false
 	}
-	for _, thq := range tk.TH.DNS {
+	for _, thq := range ssm.TH.DNS {
 		if pq.Domain() != thq.Domain() {
 			continue
 		}
@@ -376,19 +376,19 @@ type AnalysisEndpoint struct {
 
 // endpointAnalysis analyzes the probe's endpoint measurements. This function
 // returns nil when there's no endpoint data to analyze.
-func (tk *TestKeys) endpointAnalysis(
+func (ssm *SingleStepMeasurement) endpointAnalysis(
 	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisEndpoint) {
 	var flags int64
-	if tk.ProbeInitial != nil {
-		for _, pe := range tk.ProbeInitial.Endpoint {
-			score := tk.endpointSingleMeasurementAnalysis(mx, logger, pe, flags)
+	if ssm.ProbeInitial != nil {
+		for _, pe := range ssm.ProbeInitial.Endpoint {
+			score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe, flags)
 			ExplainFailureFlags(logger, pe, score.Flags)
 			out = append(out, score)
 		}
 	}
 	flags |= AnalysisFlagEndpointAdditional
-	for _, pe := range tk.ProbeAdditional {
-		score := tk.endpointSingleMeasurementAnalysis(mx, logger, pe, flags)
+	for _, pe := range ssm.ProbeAdditional {
+		score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe, flags)
 		ExplainFailureFlags(logger, pe, score.Flags)
 		out = append(out, score)
 	}
@@ -396,7 +396,7 @@ func (tk *TestKeys) endpointAnalysis(
 }
 
 // endpointSingleMeasurementAnalysis analyzes a single DNS lookup.
-func (tk *TestKeys) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
+func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
 	logger model.Logger, pe *measurex.EndpointMeasurement, flags int64) *AnalysisEndpoint {
 	score := &AnalysisEndpoint{
 		ID:    mx.NextID(),
@@ -442,7 +442,7 @@ func (tk *TestKeys) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
 	}
 
 	// Let's now see to compare with what the TH did.
-	the, found := tk.endpointFindMatchingMeasurement(pe)
+	the, found := ssm.endpointFindMatchingMeasurement(pe)
 	if !found {
 		// Special case: if we are using HTTPS (or HTTP3) and we
 		// succeded, we're going to consider this as a success even
@@ -524,22 +524,22 @@ func (tk *TestKeys) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
 	// one of them matches. Here, instead, we just test for each
 	// condition independently of the others.
 	score.Flags |= AnalysisFlagInconclusive
-	score.Flags |= tk.endpointWebConnectivityBodyLengthChecks(pe, the)
-	score.Flags |= tk.endpointWebConnectivityStatusCodeMatch(pe, the)
-	score.Flags |= tk.endpointWebConnectivityHeadersMatch(pe, the)
-	score.Flags |= tk.endpointWebConnectivityTitleMatch(pe, the)
+	score.Flags |= ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
+	score.Flags |= ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
+	score.Flags |= ssm.endpointWebConnectivityHeadersMatch(pe, the)
+	score.Flags |= ssm.endpointWebConnectivityTitleMatch(pe, the)
 
 	return score
 }
 
 // endpointFindMatchingMeasurement takes in input a probe's endpoin and
 // returns in output the corresponding TH endpoint measurement.
-func (tk *TestKeys) endpointFindMatchingMeasurement(
+func (ssm *SingleStepMeasurement) endpointFindMatchingMeasurement(
 	pe *measurex.EndpointMeasurement) (*measurex.EndpointMeasurement, bool) {
-	if tk.TH == nil {
+	if ssm.TH == nil {
 		return nil, false
 	}
-	for _, the := range tk.TH.Endpoint {
+	for _, the := range ssm.TH.Endpoint {
 		p, _ := pe.Summary()
 		t, _ := the.Summary()
 		if p != t {
