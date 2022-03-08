@@ -132,6 +132,9 @@ type AnalysisDNS struct {
 	// ID is the unique ID of this analysis.
 	ID int64 `json:"id"`
 
+	// URLMeasurementID is the related URL measurement ID.
+	URLMeasurementID int64 `json:"url_measurement_id"`
+
 	// Ref references the measurements we used.
 	Refs []int64 `json:"refs"`
 
@@ -158,9 +161,10 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(
 func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	logger model.Logger, pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
 	score := &AnalysisDNS{
-		ID:    mx.NextID(),
-		Refs:  []int64{pq.ID},
-		Flags: 0,
+		ID:               mx.NextID(),
+		URLMeasurementID: pq.URLMeasurementID,
+		Refs:             []int64{pq.ID},
+		Flags:            0,
 	}
 
 	// Corner case: when you don't have IPv6 support, you fail with
@@ -367,6 +371,9 @@ type AnalysisEndpoint struct {
 	// ID is the unique ID of this analysis.
 	ID int64 `json:"id"`
 
+	// URLMeasurementID is the related URL measurement ID.
+	URLMeasurementID int64 `json:"url_measurement_id"`
+
 	// Ref is the ID of the lookup.
 	Refs []int64 `json:"refs"`
 
@@ -399,9 +406,10 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(
 func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
 	logger model.Logger, pe *measurex.EndpointMeasurement, flags int64) *AnalysisEndpoint {
 	score := &AnalysisEndpoint{
-		ID:    mx.NextID(),
-		Refs:  []int64{pe.ID},
-		Flags: 0,
+		ID:               mx.NextID(),
+		URLMeasurementID: pe.URLMeasurementID,
+		Refs:             []int64{pe.ID},
+		Flags:            0,
 	}
 
 	// Honour flags passed by the caller.
