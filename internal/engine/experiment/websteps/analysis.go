@@ -330,11 +330,9 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	// Because this algorithm is an heuristic, we cannot say _for sure_
 	// that its result is correct (also because the ANS database may
 	// for example be a bit old), so we're going to flag as inconclusive.
-	//
-	// TODO(bassosimone): double check that the following is exactly the
-	// same algorithm implemented by Web Connectivity.
-	score.Flags |= ssm.dnsWebConnectivityDNSDiff(pq, thq)
-	score.Flags |= AnalysisFlagInconclusive
+	if flags := ssm.dnsWebConnectivityDNSDiff(pq, thq); flags != 0 {
+		score.Flags |= AnalysisFlagInconclusive | flags
+	}
 
 	return score
 }
@@ -565,24 +563,29 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	// We're now approaching Web Connectivity territory. A DiffHTTP indicates a
 	// possible blockpage for HTTP and perhaps sanctions for HTTPS and HTTP3.
 	//
-	// These are heuristics and by definition they are inconclusive with HTTP
-	// but they are much more conclusive for HTTPS.
-	//
-	// TODO(bassosimone): double check that the following is exactly the
-	// same algorithm implemented by Web Connectivity. I am not sure about
-	// this because I think in Web Connectivity we check whether at least
-	// one of them matches. Here, instead, we just test for each
-	// condition independently of the others.
-	var httpDiff int64
-	httpDiff |= ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
-	httpDiff |= ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
-	httpDiff |= ssm.endpointWebConnectivityHeadersMatch(pe, the)
-	httpDiff |= ssm.endpointWebConnectivityTitleMatch(pe, the)
-	if httpDiff != 0 || pe.Scheme() != "https" {
-		score.Flags |= AnalysisFlagInconclusive
+	// This set of conditions is adapted from MK v0.10.11.
+	flags = ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
+	score.Flags |= flags
+	if flags == 0 {
+		flags = ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
+		if flags == 0 {
+			return score
+		}
+		score.Flags |= flags
+		flags = ssm.endpointWebConnectivityHeadersMatch(pe, the)
+		if flags == 0 {
+			return score
+		}
+		score.Flags |= flags
+		flags := ssm.endpointWebConnectivityTitleMatch(pe, the)
+		if flags == 0 {
+			return score
+		}
+		score.Flags |= flags
+		// fallthrough
 	}
-	score.Flags |= httpDiff
-
+	score.Flags |= AnalysisFlagDiffHTTP | AnalysisFlagUnexpected
+	score.Flags |= AnalysisFlagInconclusive // heuristics so we cannot be 100% sure
 	return score
 }
 

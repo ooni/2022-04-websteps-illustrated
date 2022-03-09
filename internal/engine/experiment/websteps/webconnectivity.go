@@ -77,6 +77,9 @@ func (ssm *SingleStepMeasurement) dnsMapAddrToASN(addr string) uint {
 
 // endpointWebConnectivityBodyLengthChecks is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
+//
+// Remark: this function DOES NOT set DiffHTTP or Unexpected because
+// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	// We expect truncated bodies to have the same size because we are
@@ -97,13 +100,16 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 	}
 	mismatch := proportion <= bodyProportionFactor
 	if mismatch {
-		flags |= AnalysisFlagDiffHTTP | AnalysisFlagHTTPDiffBodyLength | AnalysisFlagUnexpected
+		flags |= AnalysisFlagHTTPDiffBodyLength
 	}
 	return
 }
 
 // endpointWebConnectivityStatusCodeMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
+//
+// Remark: this function DOES NOT set DiffHTTP or Unexpected because
+// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	match := pe.StatusCode() == the.StatusCode()
@@ -120,12 +126,15 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 		flags |= AnalysisFlagProbeBug // tell us the TH is misbehaving?!
 		return
 	}
-	flags |= AnalysisFlagDiffHTTP | AnalysisFlagHTTPDiffStatusCode | AnalysisFlagUnexpected
+	flags |= AnalysisFlagHTTPDiffStatusCode
 	return
 }
 
 // endpointWebConnectivityHeadersMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
+//
+// Remark: this function DOES NOT set DiffHTTP or Unexpected because
+// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityHeadersMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	// Implementation note: using map because we only care about the
@@ -195,12 +204,15 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityHeadersMatch(
 	if intersection > 0 {
 		return
 	}
-	flags |= AnalysisFlagDiffHTTP | AnalysisFlagHTTPDiffHeaders | AnalysisFlagUnexpected
+	flags |= AnalysisFlagHTTPDiffHeaders
 	return
 }
 
 // endpointWebConnectivityTitleMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
+//
+// Remark: this function DOES NOT set DiffHTTP or Unexpected because
+// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityTitleMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	control := the.HTTPTitle
@@ -230,7 +242,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityTitleMatch(
 	}
 	for _, score := range words {
 		if (score & inBoth) != inBoth {
-			flags |= AnalysisFlagDiffHTTP | AnalysisFlagHTTPDiffTitle | AnalysisFlagUnexpected
+			flags |= AnalysisFlagHTTPDiffTitle
 			return
 		}
 	}
