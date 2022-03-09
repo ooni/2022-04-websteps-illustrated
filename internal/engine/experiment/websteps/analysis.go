@@ -27,61 +27,63 @@ import (
 //
 // Data consumers SHOULD NOT rely on the reserved bits.
 const (
-	AnalysisDNSNXDOMAIN           = 1 << 0
-	AnalysisDNSTimeout            = 1 << 1
-	AnalysisDNSBogon              = 1 << 2
-	AnalysisDNSNoAnswer           = 1 << 3
-	AnalysisDNSRefused            = 1 << 4
-	AnalysisDNSNotLying           = 1 << 5
-	AnalysisDNSDiff               = 1 << 6
-	AnalysisDNSUnassigned7        = 1 << 7
-	AnalysisDNSUnassigned8        = 1 << 8
-	AnalysisDNSUnassigned9        = 1 << 9
-	AnalysisDNSUnassigned10       = 1 << 10
-	AnalysisDNSUnassigned11       = 1 << 11
-	AnalysisDNSUnassigned12       = 1 << 12
-	AnalysisDNSUnassigned13       = 1 << 13
-	AnalysisDNSUnassigned14       = 1 << 14
-	AnalysisDNSOther              = 1 << 15
-	AnalysisEpntTCPTimeout        = 1 << 16
-	AnalysisEpntTCPRefused        = 1 << 17
-	AnalysisEpntQUICTimeout       = 1 << 18
-	AnalysisEpntTLSTimeout        = 1 << 19
-	AnalysisEpntTLSEOF            = 1 << 20
-	AnalysisEpntTLSReset          = 1 << 21
-	AnalysisEpntCertificate       = 1 << 22
-	AnalysisEpntUnassigned23      = 1 << 23
-	AnalysisEpntUnassigned24      = 1 << 24
-	AnalysisEpntUnassigned25      = 1 << 25
-	AnalysisEpntUnassigned26      = 1 << 26
-	AnalysisEpntUnassigned27      = 1 << 27
-	AnalysisEpntUnassigned28      = 1 << 28
-	AnalysisEpntUnassigned29      = 1 << 29
-	AnalysisEpntUnassigned30      = 1 << 30
-	AnalysisEpntOther             = 1 << 31
-	AnalysisHTTPSecure            = 1 << 32
-	AnalysisHTTPTimeout           = 1 << 33
-	AnalysisHTTPReset             = 1 << 34
-	AnalysisHTTPEOF               = 1 << 35
-	AnalysisHTTPDiffStatusCode    = 1 << 36
-	AnalysisHTTPDiffHeaders       = 1 << 37
-	AnalysisHTTPDiffTitle         = 1 << 38
-	AnalysisHTTPDiffBodyLength    = 1 << 39
-	AnalysisHTTPUnassigned40      = 1 << 40
-	AnalysisHTTPUnassigned41      = 1 << 41
-	AnalysisHTTPUnassigned42      = 1 << 42
-	AnalysisHTTPUnassigned43      = 1 << 43
-	AnalysisHTTPUnassigned44      = 1 << 44
-	AnalysisHTTPUnassigned45      = 1 << 45
-	AnalysisHTTPUnassigned46      = 1 << 46
-	AnalysisHTTPOther             = 1 << 47
-	AnalysisPrivateGiveUp         = 1 << 48
-	AnalysisPrivateAdditionalEpnt = 1 << 49
-	AnalysisPrivateIPv6Broken     = 1 << 50
-	AnalysisPrivateProbeBug       = 1 << 51
-	AnalysisPrivateAccessible     = 1 << 52
-	AnalysisPrivateInconsistent   = 1 << 52
-	AnalysisPrivateConsistent     = 1 << 53
+	AnalysisDNSNXDOMAIN        = 1 << 0
+	AnalysisDNSTimeout         = 1 << 1
+	AnalysisDNSBogon           = 1 << 2
+	AnalysisDNSNoAnswer        = 1 << 3
+	AnalysisDNSRefused         = 1 << 4
+	AnalysisDNSUnassigned5     = 1 << 5
+	AnalysisDNSDiff            = 1 << 6
+	AnalysisDNSUnassigned7     = 1 << 7
+	AnalysisDNSUnassigned8     = 1 << 8
+	AnalysisDNSUnassigned9     = 1 << 9
+	AnalysisDNSUnassigned10    = 1 << 10
+	AnalysisDNSUnassigned11    = 1 << 11
+	AnalysisDNSUnassigned12    = 1 << 12
+	AnalysisDNSUnassigned13    = 1 << 13
+	AnalysisDNSUnassigned14    = 1 << 14
+	AnalysisDNSOther           = 1 << 15
+	AnalysisEpntTCPTimeout     = 1 << 16
+	AnalysisEpntTCPRefused     = 1 << 17
+	AnalysisEpntQUICTimeout    = 1 << 18
+	AnalysisEpntTLSTimeout     = 1 << 19
+	AnalysisEpntTLSEOF         = 1 << 20
+	AnalysisEpntTLSReset       = 1 << 21
+	AnalysisEpntCertificate    = 1 << 22
+	AnalysisEpntUnassigned23   = 1 << 23
+	AnalysisEpntUnassigned24   = 1 << 24
+	AnalysisEpntUnassigned25   = 1 << 25
+	AnalysisEpntUnassigned26   = 1 << 26
+	AnalysisEpntUnassigned27   = 1 << 27
+	AnalysisEpntUnassigned28   = 1 << 28
+	AnalysisEpntUnassigned29   = 1 << 29
+	AnalysisEpntUnassigned30   = 1 << 30
+	AnalysisEpntOther          = 1 << 31
+	AnalysisHTTPUnassigned32   = 1 << 32
+	AnalysisHTTPTimeout        = 1 << 33
+	AnalysisHTTPReset          = 1 << 34
+	AnalysisHTTPEOF            = 1 << 35
+	AnalysisHTTPDiffStatusCode = 1 << 36
+	AnalysisHTTPDiffHeaders    = 1 << 37
+	AnalysisHTTPDiffTitle      = 1 << 38
+	AnalysisHTTPDiffBodyLength = 1 << 39
+	AnalysisHTTPUnassigned40   = 1 << 40
+	AnalysisHTTPUnassigned41   = 1 << 41
+	AnalysisHTTPUnassigned42   = 1 << 42
+	AnalysisHTTPUnassigned43   = 1 << 43
+	AnalysisHTTPUnassigned44   = 1 << 44
+	AnalysisHTTPUnassigned45   = 1 << 45
+	AnalysisHTTPUnassigned46   = 1 << 46
+	AnalysisHTTPOther          = 1 << 47
+	AnalysisGiveUp             = 1 << 48
+	AnalysisAdditionalEpnt     = 1 << 49
+	AnalysisBrokenIPv6         = 1 << 50
+	AnalysisProbeBug           = 1 << 51
+	AnalysisAccessible         = 1 << 52
+	AnalysisInconsistent       = 1 << 53
+	AnalysisConsistent         = 1 << 54
+	AnalysisDNSNotLying        = 1 << 55
+	AnalysisHTTPSecure         = 1 << 56
 )
 
 //
@@ -176,7 +178,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	case netxlite.FailureHostUnreachable,
 		netxlite.FailureNetworkUnreachable:
 		if delta := pq.Runtime(); delta > 0 && delta < 3*time.Millisecond {
-			score.Flags |= AnalysisPrivateIPv6Broken
+			score.Flags |= AnalysisBrokenIPv6
 			return score
 		}
 	}
@@ -185,7 +187,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	// IP address, which happens with, e.g., https://1.1.1.1/,
 	// then the case is immediately closed.
 	if net.ParseIP(pq.Domain()) != nil {
-		score.Flags |= AnalysisPrivateAccessible
+		score.Flags |= AnalysisAccessible
 		return score
 	}
 
@@ -213,7 +215,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	if !found {
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
-		score.Flags |= AnalysisPrivateGiveUp
+		score.Flags |= AnalysisGiveUp
 		logger.Warn("[dns] give up analysis because there's no matching TH query")
 		return score
 	}
@@ -223,14 +225,14 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	// Next we check whether both us and the TH failed.
 	if pq.Failure() != "" && thq.Failure() != "" {
 		if pq.Failure() == thq.Failure() {
-			score.Flags |= AnalysisPrivateConsistent
+			score.Flags |= AnalysisConsistent
 			return score
 		}
 		// Because the resolvers failed differently, we
 		// lean towards inconclusive. There may be differences
 		// in getaddrinfo implementation leading to this
 		// result (see, e.g., https://github.com/ooni/probe/issues/2029).
-		score.Flags |= AnalysisPrivateInconsistent
+		score.Flags |= AnalysisInconsistent
 		return score
 	}
 
@@ -239,7 +241,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		// If only the TH failed, then this is also quite
 		// strange/unexpected. We could dig in more but, for
 		// now, let's just give up for now.
-		score.Flags |= AnalysisPrivateGiveUp
+		score.Flags |= AnalysisGiveUp
 		logger.Warn("[dns] give up analysis because just the TH failed")
 		return score
 	}
@@ -367,7 +369,7 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(
 	}
 	for _, pe := range ssm.ProbeAdditional {
 		score := ssm.endpointSingleMeasurementAnalysis(
-			mx, logger, pe, AnalysisPrivateAdditionalEpnt)
+			mx, logger, pe, AnalysisAdditionalEpnt)
 		ExplainFlagsWithLogging(logger, pe, score.Flags)
 		out = append(out, score)
 	}
@@ -395,7 +397,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	case netxlite.FailureHostUnreachable,
 		netxlite.FailureNetworkUnreachable:
 		if delta := pe.TCPQUICConnectRuntime(); delta > 0 && delta < 3*time.Millisecond {
-			score.Flags |= AnalysisPrivateIPv6Broken
+			score.Flags |= AnalysisBrokenIPv6
 			return score
 		}
 	}
@@ -421,7 +423,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		}
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
-		score.Flags |= AnalysisPrivateGiveUp
+		score.Flags |= AnalysisGiveUp
 		logger.Warn(
 			"[endpoint] give up analysis because we cannot find a corresponding measurement")
 		return score
@@ -435,12 +437,12 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 			pe.FailedOperation == the.FailedOperation {
 			// Both have observed the same failure in the
 			// same failed operation.
-			score.Flags |= AnalysisPrivateConsistent
+			score.Flags |= AnalysisConsistent
 			return score
 		}
 		// If they failed differently, for now we're going
 		// to consider this case as "meh".
-		score.Flags |= AnalysisPrivateInconsistent
+		score.Flags |= AnalysisInconsistent
 		return score
 	}
 
@@ -449,7 +451,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		// It's strange/unexpected but there may be some bug in
 		// the backend or some other backend-side issue, so we're
 		// just going to give up making a sense of the result.
-		score.Flags |= AnalysisPrivateGiveUp
+		score.Flags |= AnalysisGiveUp
 		logger.Warn("[endpoint] give up analysis because just the TH failed")
 		return score
 	}
@@ -502,7 +504,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		default:
 			// We should not have a different failed operation, so
 			// it's clearly a bug if we end up here
-			score.Flags |= AnalysisPrivateProbeBug
+			score.Flags |= AnalysisProbeBug
 		}
 		return score
 	}

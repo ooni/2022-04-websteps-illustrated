@@ -86,7 +86,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 	// found a bug in the way in which we share settings.
 	if pe.BodyIsTruncated() && the.BodyIsTruncated() == pe.BodyIsTruncated() {
 		if pe.BodyLength() != the.BodyLength() {
-			flags |= AnalysisPrivateProbeBug
+			flags |= AnalysisProbeBug
 		}
 		return
 	}
@@ -119,7 +119,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 	// implementations, this implementation avoids a false positive
 	// when both measurement and control statuses are 500.
 	if the.StatusCode()/100 == 5 {
-		flags |= AnalysisPrivateProbeBug // tell us the TH is misbehaving?!
+		flags |= AnalysisProbeBug // tell us the TH is misbehaving?!
 		return
 	}
 	flags |= AnalysisHTTPDiffStatusCode
