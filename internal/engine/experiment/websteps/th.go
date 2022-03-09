@@ -254,38 +254,35 @@ type THHandler struct {
 // THHMaxAcceptableWebSocketMessage is the maximum websocket message size.
 const THHMaxAcceptableWebSocketMessage = 1 << 20
 
-// logger returns a suitable logger.
-func (thh *THHandler) logger() model.Logger {
-	if thh.Options != nil && thh.Options.Logger != nil {
-		return thh.Options.Logger
-	}
-	return model.DiscardLogger
-}
-
 // ServeHTTP implements http.Handler.ServeHTTP.
 func (thh *THHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	conn, err := thh.upgrade(w, req)
+	thr := thh.newTHRequestHandler()
+	thr.do(w, req)
+}
+
+func (thr *THRequestHandler) do(w http.ResponseWriter, req *http.Request) {
+	conn, err := thr.upgrade(w, req)
 	if err != nil {
 		return // error already logged
 	}
 	defer conn.Close()
-	thReq, err := thh.readMsg(conn)
+	thReq, err := thr.readMsg(conn)
 	if err != nil {
 		return // error already logged
 	}
-	go thh.discardIncomingMessages(conn)
-	out := thh.waitForCompletion(conn, thh.stepAsync(thReq))
+	go thr.discardIncomingMessages(conn)
+	out := thr.waitForCompletion(conn, thr.stepAsync(thReq))
 	if out.Err != nil {
 		return // error already printed
 	}
-	if err := thh.writeToClient(conn, out.Resp); err != nil {
+	if err := thr.writeToClient(conn, out.Resp); err != nil {
 		return // error already printed
 	}
-	_ = thh.gracefulClose(conn)
+	_ = thr.gracefulClose(conn)
 }
 
 // gracefulClose closes the websocket connection gracefully.
-func (thh *THHandler) gracefulClose(conn *websocket.Conn) error {
+func (thr *THRequestHandler) gracefulClose(conn *websocket.Conn) error {
 	const closeTimeout = time.Second
 	deadline := time.Now().Add(closeTimeout)
 	msg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
@@ -294,7 +291,8 @@ func (thh *THHandler) gracefulClose(conn *websocket.Conn) error {
 
 // upgrade will upgrade to WebSocket or fail. The returned connection has
 // a strict maximum deadline that guarantees liveness.
-func (thh *THHandler) upgrade(w http.ResponseWriter, req *http.Request) (*websocket.Conn, error) {
+func (thr *THRequestHandler) upgrade(
+	w http.ResponseWriter, req *http.Request) (*websocket.Conn, error) {
 	upgrader := &websocket.Upgrader{
 		HandshakeTimeout: 10 * time.Second,
 		ReadBufferSize:   0,
@@ -309,7 +307,7 @@ func (thh *THHandler) upgrade(w http.ResponseWriter, req *http.Request) (*websoc
 	}
 	conn, err := upgrader.Upgrade(w, req, http.Header{})
 	if err != nil {
-		thh.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
+		thr.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
 		return nil, err
 	}
 	const timeout = 90 * time.Second
@@ -320,35 +318,34 @@ func (thh *THHandler) upgrade(w http.ResponseWriter, req *http.Request) (*websoc
 }
 
 // readMsg will read the client request or fail.
-func (thh *THHandler) readMsg(conn *websocket.Conn) (*THRequest, error) {
+func (thr *THRequestHandler) readMsg(conn *websocket.Conn) (*THRequest, error) {
 	mtype, reader, err := conn.NextReader()
 	if err != nil {
-		thh.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
+		thr.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
 		return nil, err
 	}
 	if mtype != websocket.TextMessage {
-		thh.logger().Warn("received non-text message")
+		thr.logger().Warn("received non-text message")
 		return nil, err
 	}
 	reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
 	data, err := netxlite.ReadAllContext(context.Background(), reader)
 	if err != nil {
-		thh.logger().Warnf("cannot read websocket message: %s", err.Error())
+		thr.logger().Warnf("cannot read websocket message: %s", err.Error())
 		return nil, err
 	}
 	var thReq THRequest
 	if err := json.Unmarshal(data, &thReq); err != nil {
-		thh.logger().Warnf("cannot unmarshal websocket message: %s", err.Error())
+		thr.logger().Warnf("cannot unmarshal websocket message: %s", err.Error())
 		return nil, err
 	}
 	return &thReq, nil
 }
 
 // stepAsync performs a websteps step asynchronously.
-func (thh *THHandler) stepAsync(thReq *THRequest) <-chan *THResponseOrError {
+func (thr *THRequestHandler) stepAsync(thReq *THRequest) <-chan *THResponseOrError {
 	outch := make(chan *THResponseOrError)
 	go func() {
-		thr := thh.newTHRequestHandler()
 		r := &THResponseOrError{}
 		r.Resp, r.Err = thr.step(context.Background(), thReq)
 		outch <- r
@@ -358,7 +355,7 @@ func (thh *THHandler) stepAsync(thReq *THRequest) <-chan *THResponseOrError {
 
 // discardIncomingMessages just discards incoming messages. We need to
 // be reading because of how gorilla/websocket works.
-func (thh *THHandler) discardIncomingMessages(conn *websocket.Conn) {
+func (thr *THRequestHandler) discardIncomingMessages(conn *websocket.Conn) {
 	for {
 		if _, _, err := conn.NextReader(); err != nil {
 			return
@@ -368,7 +365,7 @@ func (thh *THHandler) discardIncomingMessages(conn *websocket.Conn) {
 
 // waitForCompletion waits for the async step to complete and, while there,
 // periodically sends status updates.
-func (thh *THHandler) waitForCompletion(conn *websocket.Conn,
+func (thr *THRequestHandler) waitForCompletion(conn *websocket.Conn,
 	outch <-chan *THResponseOrError) *THResponseOrError {
 	const interval = 500 * time.Millisecond
 	ticker := time.NewTicker(interval)
@@ -383,7 +380,7 @@ func (thh *THHandler) waitForCompletion(conn *websocket.Conn,
 				DNS:          []*measurex.DNSLookupMeasurement{},
 				Endpoint:     []*measurex.EndpointMeasurement{},
 			}
-			if err := thh.writeToClient(conn, thResp); err != nil {
+			if err := thr.writeToClient(conn, thResp); err != nil {
 				return &THResponseOrError{Err: err} // error already printed
 			}
 		}
@@ -391,13 +388,13 @@ func (thh *THHandler) waitForCompletion(conn *websocket.Conn,
 }
 
 // writeToClient writes a message to the client.
-func (thh *THHandler) writeToClient(conn *websocket.Conn, thResp *THResponse) error {
+func (thr *THRequestHandler) writeToClient(conn *websocket.Conn, thResp *THResponse) error {
 	// We assume that the following call cannot fail because it's a
 	// clearly serializable data structure.
 	data, err := json.Marshal(thResp)
 	runtimex.PanicOnError(err, "json.Marshal failed")
 	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
-		thh.logger().Warnf("cannot write messsge to client: %s", err.Error())
+		thr.logger().Warnf("cannot write messsge to client: %s", err.Error())
 		return err
 	}
 	return nil
