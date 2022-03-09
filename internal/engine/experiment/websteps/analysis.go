@@ -124,8 +124,47 @@ const (
 )
 
 //
+// URL
+//
+
+// AnalysisURL is the analysis of an URL measurement.
+type AnalysisURL struct {
+	// ID is the unique ID of this analysis.
+	ID int64 `json:"id"`
+
+	// URLMeasurementID is the related URL measurement ID.
+	URLMeasurementID int64 `json:"url_measurement_id"`
+
+	// Ref references the analyses we used.
+	Refs []int64 `json:"refs"`
+
+	// Flags contains the analysis flags.
+	Flags int64 `json:"flags"`
+}
+
+//
 // DNS
 //
+
+// urlAnalysis computes overall analysis for a given URL.
+func (ssm *SingleStepMeasurement) urlAnalysis(
+	mx *measurex.Measurer, logger model.Logger) (out *AnalysisURL) {
+	out = &AnalysisURL{
+		ID:               mx.NextID(),
+		URLMeasurementID: ssm.ID(),
+		Refs:             []int64{},
+		Flags:            0,
+	}
+	for _, score := range ssm.Analysis.DNS {
+		out.Flags |= score.Flags
+		out.Refs = append(out.Refs, score.ID)
+	}
+	for _, score := range ssm.Analysis.Endpoint {
+		out.Flags |= score.Flags
+		out.Refs = append(out.Refs, score.ID)
+	}
+	return out
+}
 
 // AnalysisDNS is the analysis of an invididual query.
 type AnalysisDNS struct {
@@ -147,6 +186,7 @@ type AnalysisDNS struct {
 func (ssm *SingleStepMeasurement) dnsAnalysis(
 	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisDNS) {
 	if ssm.ProbeInitial == nil {
+		// should not happen in practice, just a safety net.
 		return nil
 	}
 	for _, pq := range ssm.ProbeInitial.DNS {

@@ -227,6 +227,7 @@ func (c *Client) step(ctx context.Context,
 	c.logger.Infof("🔬 analyzing the collected results")
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx, c.logger)
 	ssm.Analysis.Endpoint = ssm.endpointAnalysis(mx, c.logger)
+	ssm.Analysis.URL = ssm.urlAnalysis(mx, c.logger)
 	// TODO(bassosimone): run follow-up experiments
 	return ssm
 }

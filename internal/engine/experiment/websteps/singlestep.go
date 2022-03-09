@@ -28,6 +28,13 @@ type SingleStepMeasurement struct {
 	Analysis *Analysis
 }
 
+func (ssm *SingleStepMeasurement) ID() (out int64) {
+	if ssm.ProbeInitial != nil {
+		out = ssm.ProbeInitial.ID
+	}
+	return
+}
+
 // Analysis contains the results of the analysis.
 type Analysis struct {
 	// DNS contains the DNS results analysis.
@@ -35,6 +42,9 @@ type Analysis struct {
 
 	// Endpoint contains the endpoint results analysis.
 	Endpoint []*AnalysisEndpoint `json:"endpoint"`
+
+	// URL contains the whole URL analysis.
+	URL *AnalysisURL `json:"url"`
 }
 
 // THResponseWithID is a TH response with a ID assigned by the probe.
