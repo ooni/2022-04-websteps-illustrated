@@ -9,6 +9,7 @@ package websteps
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -193,19 +194,77 @@ func (ssm *SingleStepMeasurement) redirects(mx *measurex.Measurer) (o []*measure
 	return o, len(o) > 0
 }
 
-// defaultResolvers returns the default resolvers.
-func defaultResolvers() []*measurex.DNSResolverInfo {
-	// TODO(bassosimone): randomize the resolvers we use...
+// clientCandidateResolversA returns the candidate resolvers with an A address.
+func clientCandidateResolversA() []*measurex.DNSResolverInfo {
 	return []*measurex.DNSResolverInfo{{
-		Network: "system",
-		Address: "",
-	}, {
 		Network: "udp",
 		Address: "8.8.8.8:53",
 	}, {
 		Network: "udp",
-		Address: "[2001:4860:4860::8844]:53",
+		Address: "8.8.4.4:53",
+	}, {
+		Network: "udp",
+		Address: "1.1.1.1:53",
+	}, {
+		Network: "udp",
+		Address: "1.0.0.1:53",
+	}, {
+		Network: "udp",
+		Address: "9.9.9.9:53",
+	}, {
+		Network: "udp",
+		Address: "149.112.112.112:53",
 	}}
+}
+
+// clientCandidateResolversAAAA returns the candidate resolvers with an AAAA address.
+func clientCandidateResolversAAAA() []*measurex.DNSResolverInfo {
+	return []*measurex.DNSResolverInfo{{
+		Network: "udp",
+		Address: "[2001:4860:4860::8844]:53",
+	}, {
+		Network: "udp",
+		Address: "[2001:4860:4860::8888]:53",
+	}, {
+		Network: "udp",
+		Address: "[2606:4700:4700::1001]:53",
+	}, {
+		Network: "udp",
+		Address: "[2606:4700:4700::1111]:53",
+	}, {
+		Network: "udp",
+		Address: "[2620:fe::fe]:53",
+	}, {
+		Network: "udp",
+		Address: "[2620:fe::9]:53",
+	}}
+}
+
+// shuffleResolversList shuffles a list of resolvers using a rand.
+func shuffleResolversList(r *rand.Rand, list []*measurex.DNSResolverInfo) {
+	r.Shuffle(len(list), func(i, j int) {
+		list[i], list[j] = list[j], list[i]
+	})
+}
+
+// defaultResolvers returns the default resolvers.
+func defaultResolvers() (out []*measurex.DNSResolverInfo) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	craaaa := clientCandidateResolversAAAA()
+	shuffleResolversList(r, craaaa)
+	if len(craaaa) > 0 {
+		out = append(out, craaaa[0])
+	}
+	cra := clientCandidateResolversA()
+	shuffleResolversList(r, cra)
+	if len(cra) > 0 {
+		out = append(out, cra[0])
+	}
+	out = append(out, &measurex.DNSResolverInfo{
+		Network: "system",
+		Address: "",
+	})
+	return out
 }
 
 // step performs a single step.
