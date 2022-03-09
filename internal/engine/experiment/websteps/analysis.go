@@ -524,18 +524,23 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	// We're now approaching Web Connectivity territory. A DiffHTTP indicates a
 	// possible blockpage for HTTP and perhaps sanctions for HTTPS and HTTP3.
 	//
-	// These are heuristics and by definition they are inconclusive.
+	// These are heuristics and by definition they are inconclusive with HTTP
+	// but they are much more conclusive for HTTPS.
 	//
 	// TODO(bassosimone): double check that the following is exactly the
 	// same algorithm implemented by Web Connectivity. I am not sure about
 	// this because I think in Web Connectivity we check whether at least
 	// one of them matches. Here, instead, we just test for each
 	// condition independently of the others.
-	score.Flags |= AnalysisFlagInconclusive
-	score.Flags |= ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
-	score.Flags |= ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
-	score.Flags |= ssm.endpointWebConnectivityHeadersMatch(pe, the)
-	score.Flags |= ssm.endpointWebConnectivityTitleMatch(pe, the)
+	var httpDiff int64
+	httpDiff |= ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
+	httpDiff |= ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
+	httpDiff |= ssm.endpointWebConnectivityHeadersMatch(pe, the)
+	httpDiff |= ssm.endpointWebConnectivityTitleMatch(pe, the)
+	if httpDiff != 0 || pe.Scheme() != "https" {
+		score.Flags |= AnalysisFlagInconclusive
+	}
+	score.Flags |= httpDiff
 
 	return score
 }
