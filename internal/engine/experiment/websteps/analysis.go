@@ -207,10 +207,10 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 			score.Flags |= AnalysisFlagUnexpected | AnalysisFlagDNSBogon
 			return score
 		}
-		// If we could use all the IP addresses returned by this query
+		// If we could use any of the IP addresses returned by this query
 		// for establishing TLS connections, we're ~confident that we've
 		// been given legitimate IP addresses by the resolver.
-		if ssm.dnsCrossCheckWithHTTPS(pq) {
+		if ssm.dnsAnyIPAddrsWorkWithHTTPS(pq) {
 			score.Flags |= AnalysisFlagAccessible | AnalysisFlagDNSValidViaHTTPS
 			return score
 		}
@@ -312,9 +312,10 @@ func (ssm *SingleStepMeasurement) dnsBogonsCheck(pq *measurex.DNSLookupMeasureme
 	return false
 }
 
-// dnsCrossCheckWithHTTPS checks whether the TH could use the IP addrs
+// dnsAnyIPAddrsWorkWithHTTPS checks whether the TH could use the IP addrs
 // returned by the probe to perform any HTTPS measurement.
-func (ssm *SingleStepMeasurement) dnsCrossCheckWithHTTPS(pq *measurex.DNSLookupMeasurement) bool {
+func (ssm *SingleStepMeasurement) dnsAnyIPAddrsWorkWithHTTPS(
+	pq *measurex.DNSLookupMeasurement) bool {
 	if ssm.TH == nil || pq.Failure() != "" {
 		// Just in case there's some bug
 		return false
@@ -327,15 +328,14 @@ func (ssm *SingleStepMeasurement) dnsCrossCheckWithHTTPS(pq *measurex.DNSLookupM
 				// This also seems a bug or an edge case
 				continue
 			}
-			if probeAddr != thAddr {
+			if probeAddr != thAddr || epnt.Scheme() != "https" {
 				// Not the droids we were looking for
 				continue
 			}
 			if epnt.Failure != "" {
-				// So, in principle we could be more lax and say that it
-				// suffices for some of the returned IP addresses to work,
-				// but I'd rather err on the safe side here.
-				return false
+				// If at least a single IP address works we assume that
+				// the DNS is not returning us lies.
+				continue
 			}
 			count++
 		}
