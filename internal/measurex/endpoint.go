@@ -145,8 +145,8 @@ func (em *EndpointMeasurement) TCPQUICConnectRuntime() (out time.Duration) {
 
 // Describe describes this measurement.
 func (em *EndpointMeasurement) Describe() string {
-	return fmt.Sprintf("endpoint measurement #%d for %s using %s",
-		em.ID, em.URLAsString(), em.EndpointAddress())
+	return fmt.Sprintf("[#%d] endpoint measurement #%d for %s using %s",
+		em.URLMeasurementID, em.ID, em.URLAsString(), em.EndpointAddress())
 }
 
 // Summary returns a string representing the endpoint's summary. Two

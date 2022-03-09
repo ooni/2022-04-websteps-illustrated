@@ -17,7 +17,7 @@ import (
 // dnsWebConnectivityDNSDiff is the DNSDiff algorithm originally
 // designed for Web Connectivity and now adapted to websteps.
 func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
-	pq, thq *measurex.DNSLookupMeasurement) (flags int64) {
+	pq, thq *measurex.DNSLookupMeasurement) bool {
 	// 1. stop if measurement and control returned IP addresses
 	// that belong to the same Autonomous System(s).
 	//
@@ -43,7 +43,7 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 	for key, value := range asnmap {
 		// Note: zero means that the ASN lookup failed
 		if key != 0 && (value&inBoth) == inBoth {
-			return
+			return false // no diff
 		}
 	}
 
@@ -59,13 +59,12 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 	for key, value := range ipmap {
 		// just in case an empty string slipped through
 		if key != "" && (value&inBoth) == inBoth {
-			return
+			return false // no diff
 		}
 	}
 
 	// 3. conclude that measurement and control are inconsistent
-	flags |= AnalysisFlagDiffDNS | AnalysisFlagUnexpected
-	return
+	return true
 }
 
 // dnsMapAddrToASN maps an IP address to an ASN number. In cae
@@ -87,7 +86,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 	// found a bug in the way in which we share settings.
 	if pe.BodyIsTruncated() && the.BodyIsTruncated() == pe.BodyIsTruncated() {
 		if pe.BodyLength() != the.BodyLength() {
-			flags |= AnalysisFlagProbeBug
+			flags |= AnalysisPrivateProbeBug
 		}
 		return
 	}
@@ -100,16 +99,13 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 	}
 	mismatch := proportion <= bodyProportionFactor
 	if mismatch {
-		flags |= AnalysisFlagHTTPDiffBodyLength
+		flags |= AnalysisHTTPDiffBodyLength
 	}
 	return
 }
 
 // endpointWebConnectivityStatusCodeMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-//
-// Remark: this function DOES NOT set DiffHTTP or Unexpected because
-// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	match := pe.StatusCode() == the.StatusCode()
@@ -123,18 +119,15 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 	// implementations, this implementation avoids a false positive
 	// when both measurement and control statuses are 500.
 	if the.StatusCode()/100 == 5 {
-		flags |= AnalysisFlagProbeBug // tell us the TH is misbehaving?!
+		flags |= AnalysisPrivateProbeBug // tell us the TH is misbehaving?!
 		return
 	}
-	flags |= AnalysisFlagHTTPDiffStatusCode
+	flags |= AnalysisHTTPDiffStatusCode
 	return
 }
 
 // endpointWebConnectivityHeadersMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-//
-// Remark: this function DOES NOT set DiffHTTP or Unexpected because
-// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityHeadersMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	// Implementation note: using map because we only care about the
@@ -204,15 +197,12 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityHeadersMatch(
 	if intersection > 0 {
 		return
 	}
-	flags |= AnalysisFlagHTTPDiffHeaders
+	flags |= AnalysisHTTPDiffHeaders
 	return
 }
 
 // endpointWebConnectivityTitleMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-//
-// Remark: this function DOES NOT set DiffHTTP or Unexpected because
-// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityTitleMatch(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	control := the.HTTPTitle
@@ -242,7 +232,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityTitleMatch(
 	}
 	for _, score := range words {
 		if (score & inBoth) != inBoth {
-			flags |= AnalysisFlagHTTPDiffTitle
+			flags |= AnalysisHTTPDiffTitle
 			return
 		}
 	}

@@ -12,71 +12,133 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
-// explainFlagsToVerb returns the right verb depending on inconclusive
-func explainFlagsToVerb(flags int64) string {
-	if (flags & AnalysisFlagInconclusive) != 0 {
-		return "seems"
-	}
-	return "is"
+// AnalysisDescription maps an analysis flag to information useful
+// to describe the same flag in a human readable way.
+type AnalysisDescription struct {
+	// Flag is the flag value.
+	Flag int64
+
+	// Hashtag is the related hashtag.
+	Hashtag string
+
+	// Severity is the related emoji.
+	Severity int64
 }
 
-// explainFlagsToFailureTags returns a string describing the failures we saw.
-func explainFlagsToFailureTags(flags int64) string {
-	var out []string
-	if (flags & AnalysisFlagFailureDNS) != 0 {
-		out = append(out, "#dns_failure")
+const (
+	// AnalysisSeverityConfirmed is used when see anomalies that
+	// are most likely symptoms of censorship.
+	AnalysisSeverityConfirmed = 1 << iota
+
+	// AnalysisSeverityUnexpected is used when we see anomalies that
+	// may be symptoms of censorship but are less conclusive.
+	AnalysisSeverityUnexpected
+)
+
+// analysisDescriptions contains all the analysis flags descriptions.
+var analysisDescriptions = []*AnalysisDescription{{
+	Flag:     AnalysisDNSNXDOMAIN,
+	Hashtag:  "#nxdomain",
+	Severity: AnalysisSeverityConfirmed,
+}, {
+	Flag:     AnalysisDNSTimeout,
+	Hashtag:  "#dnsTimeout",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisDNSBogon,
+	Hashtag:  "#bogon",
+	Severity: AnalysisSeverityConfirmed,
+}, {
+	Flag:     AnalysisDNSDiff,
+	Hashtag:  "#dnsDiff",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisEpntTCPTimeout,
+	Hashtag:  "#tcpTimeout",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisEpntTCPRefused,
+	Hashtag:  "#tcpRefused",
+	Severity: AnalysisSeverityConfirmed,
+}, {
+	Flag:     AnalysisEpntQUICTimeout,
+	Hashtag:  "#quicTimeout",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisEpntTLSTimeout,
+	Hashtag:  "#tlsTimeout",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisEpntTLSEOF,
+	Hashtag:  "#tlsEOF",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisEpntTLSReset,
+	Hashtag:  "#tlsReset",
+	Severity: AnalysisSeverityConfirmed,
+}, {
+	Flag:     AnalysisEpntCertificate,
+	Hashtag:  "#certificate",
+	Severity: AnalysisSeverityConfirmed,
+}, {
+	Flag:     AnalysisHTTPTimeout,
+	Hashtag:  "#httpTimeout",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisHTTPReset,
+	Hashtag:  "#httpReset",
+	Severity: AnalysisSeverityConfirmed,
+}, {
+	Flag:     AnalysisHTTPEOF,
+	Hashtag:  "#httpEOF",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisHTTPDiffStatusCode,
+	Hashtag:  "#httpDiffStatusCode",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisHTTPDiffHeaders,
+	Hashtag:  "#httpDiffHeaders",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisHTTPDiffTitle,
+	Hashtag:  "#httpDiffTitle",
+	Severity: AnalysisSeverityUnexpected,
+}, {
+	Flag:     AnalysisHTTPDiffBodyLength,
+	Hashtag:  "#httpDiffBodyLength",
+	Severity: AnalysisSeverityUnexpected,
+}}
+
+// ExplainFlagsUsingTagsAndSeverity provides an explanation of a given set of flags
+// in terms of a list of hashtags and a severity level.
+func ExplainFlagsUsingTagsAndSeverity(flags int64) (tags []string, severity int64) {
+	for _, e := range analysisDescriptions {
+		if (flags & e.Flag) != 0 {
+			tags = append(tags, e.Hashtag)
+			severity |= e.Severity
+		}
 	}
-	if (flags & AnalysisFlagFailureTCP) != 0 {
-		out = append(out, "#tcp_failure")
-	}
-	if (flags & AnalysisFlagFailureQUIC) != 0 {
-		out = append(out, "#quic_failure")
-	}
-	if (flags & AnalysisFlagFailureHTTP) != 0 {
-		out = append(out, "#http_failure")
-	}
-	if (flags & AnalysisFlagDiffDNS) != 0 {
-		out = append(out, "#dns_diff")
-	}
-	if (flags & AnalysisFlagDNSBogon) != 0 {
-		out = append(out, "#dns_bogon")
-	}
-	if (flags & AnalysisFlagHTTPDiffBodyLength) != 0 {
-		out = append(out, "#http_diff_body")
-	}
-	if (flags & AnalysisFlagHTTPDiffHeaders) != 0 {
-		out = append(out, "#http_diff_headers")
-	}
-	if (flags & AnalysisFlagHTTPDiffStatusCode) != 0 {
-		out = append(out, "#http_diff_status_code")
-	}
-	if (flags & AnalysisFlagHTTPDiffTitle) != 0 {
-		out = append(out, "#http_diff_title")
-	}
-	return strings.Join(out, " ")
+	return
 }
 
-// Explainable is something we can explain.
+// Explainable is something for which we can explain a set of flags.
 type Explainable interface {
 	// Describe returns a description of the explainable.
 	Describe() string
 }
 
-// ExplainFailureFlags explains the DNS flags assigned ta measurement.
-func ExplainFailureFlags(logger model.Logger, ei Explainable, flags int64) {
-	if (flags & AnalysisFlagUnexpected) != 0 {
-		verb := explainFlagsToVerb(flags)
-		failures := explainFlagsToFailureTags(flags)
-		logger.Infof("❗ %s %s blocked (%s)", ei.Describe(), verb, failures)
-		return
+// ExplainFlagsWithLogging logs an explanation of the given flags.
+func ExplainFlagsWithLogging(logger model.Logger, ei Explainable, flags int64) {
+	tags, severity := ExplainFlagsUsingTagsAndSeverity(flags)
+	var emoji string
+	switch {
+	case (severity & AnalysisSeverityConfirmed) != 0:
+		emoji = "🔥"
+	case (severity & AnalysisSeverityUnexpected) != 0:
+		emoji = "❓"
+	default:
+		return // just show what needs the most attention
 	}
-	if (flags & AnalysisFlagAccessible) != 0 {
-		verb := explainFlagsToVerb(flags)
-		logger.Infof("🙌️️ %s %s accessible", ei.Describe(), verb)
-		return
-	}
-	if (flags & AnalysisFlagGiveUp) != 0 {
-		logger.Infof("🤷 give up analysis for %s", ei.Describe())
-		return
-	}
+	logger.Infof("<%s> %s: %s", emoji, ei.Describe(), strings.Join(tags, " "))
 }

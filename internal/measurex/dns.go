@@ -86,8 +86,8 @@ func (dlm *DNSLookupMeasurement) Runtime() (out time.Duration) {
 
 // Describe describes this measurement.
 func (dlm *DNSLookupMeasurement) Describe() string {
-	return fmt.Sprintf("DNS lookup #%d for %s using %s",
-		dlm.ID, dlm.Domain(), dlm.ResolverURL())
+	return fmt.Sprintf("[#%d] DNS lookup #%d for %s using %s",
+		dlm.URLMeasurementID, dlm.ID, dlm.Domain(), dlm.ResolverURL())
 }
 
 // Addresses returns the list of addresses we looked up. If we didn't lookup
