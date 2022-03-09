@@ -262,6 +262,12 @@ const (
 
 	// EndpointPlanningOnlyHTTP3 ensures we only test HTTP3.
 	EndpointPlanningOnlyHTTP3
+
+	// EndpointPlanningIncludeAll ensures that we include all the IP addresses
+	// regardless on any options based restriction on the maximum number of
+	// addresses per domain. This flag is used to ensure the TH receives the
+	// whole list of IP addresses discovered by the client.
+	EndpointPlanningIncludeAll
 )
 
 // NewEndpointPlan is a convenience function that calls um.URLAddressList and passes the
@@ -294,7 +300,8 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 		if strings.Contains(addr.Address, ":") {
 			family = "AAAA"
 		}
-		if familyCounter[family] >= um.Options.maxAddressesPerFamily() {
+		if (flags&EndpointPlanningIncludeAll) == 0 &&
+			familyCounter[family] >= um.Options.maxAddressesPerFamily() {
 			logger.Infof("🧐 too many %s addresses already, skipping %s", family, addr.Address)
 			continue
 		}

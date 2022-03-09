@@ -42,8 +42,8 @@ type THResponse struct {
 }
 
 // th runs the test helper client in a background goroutine.
-func (c *Client) th(ctx context.Context, cur *measurex.URLMeasurement,
-	plan []*measurex.EndpointPlan) <-chan *THResponseOrError {
+func (c *Client) th(ctx context.Context, cur *measurex.URLMeasurement) <-chan *THResponseOrError {
+	plan, _ := cur.NewEndpointPlan(c.logger, measurex.EndpointPlanningIncludeAll)
 	out := make(chan *THResponseOrError)
 	thReq := c.newTHRequest(cur, plan)
 	go c.THRequestAsync(ctx, thReq, out)

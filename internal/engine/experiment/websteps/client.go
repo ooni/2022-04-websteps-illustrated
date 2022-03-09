@@ -213,9 +213,8 @@ func (c *Client) step(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) *SingleStepMeasurement {
 	c.dnsLookup(ctx, mx, cur)
 	ssm := newSingleStepMeasurement(cur)
-	epntPlan, _ := cur.NewEndpointPlan(c.logger, 0)
-	thc := c.th(ctx, cur, epntPlan)
-	c.measureDiscoveredEndpoints(ctx, mx, cur, epntPlan)
+	thc := c.th(ctx, cur)
+	c.measureDiscoveredEndpoints(ctx, mx, cur)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
 	maybeTH := <-thc
 	if maybeTH.Err == nil {
@@ -241,10 +240,10 @@ func (c *Client) dnsLookup(ctx context.Context,
 	}
 }
 
-func (c *Client) measureDiscoveredEndpoints(
-	ctx context.Context, mx *measurex.Measurer,
-	cur *measurex.URLMeasurement, plan []*measurex.EndpointPlan) {
+func (c *Client) measureDiscoveredEndpoints(ctx context.Context,
+	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
 	c.logger.Info("📡 [initial] measuring endpoints discovered using the DNS")
+	plan, _ := cur.NewEndpointPlan(c.logger, 0)
 	for m := range mx.MeasureEndpoints(ctx, plan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}
