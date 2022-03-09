@@ -69,8 +69,6 @@ func submitInput(ctx context.Context, wg *sync.WaitGroup, clnt *websteps.Client,
 	}
 }
 
-// TODO(bassosimone): websteps.TestKeys is not the correct name.
-
 // result is the result of running websteps on an input URL.
 type result struct {
 	// TestKeys contains the experiment test keys.
