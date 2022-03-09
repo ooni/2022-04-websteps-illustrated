@@ -10,6 +10,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
@@ -487,6 +488,8 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 				netxlite.FailureSSLInvalidHostname,
 				netxlite.FailureSSLUnknownAuthority:
 				score.Flags |= AnalysisCertificate
+			case netxlite.FailureEOFError:
+				score.Flags |= AnalysisTLSEOF
 			default:
 				score.Flags |= AnalysisEndpointOther
 			}
@@ -502,13 +505,52 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 				score.Flags |= AnalysisEndpointOther
 			}
 		case netxlite.HTTPRoundTripOperation:
+			// Here we need to attribute the failure to the adversary-
+			// observable highest-level protocol.
+			var (
+				isHTTPS = pe.Scheme() == "https" && pe.Network == archival.NetworkTypeTCP
+				isHTTP3 = pe.Scheme() == "https" && pe.Network == archival.NetworkTypeQUIC
+				isHTTP  = pe.Scheme() == "http"
+			)
 			switch pe.Failure {
 			case netxlite.FailureGenericTimeoutError:
-				score.Flags |= AnalysisHTTPTimeout
+				switch {
+				case isHTTP:
+					score.Flags |= AnalysisHTTPTimeout
+				case isHTTP3:
+					score.Flags |= AnalysisQUICTimeout
+				case isHTTPS:
+					score.Flags |= AnalysisTLSTimeout
+				default:
+					score.Flags |= AnalysisProbeBug // what scheme is this?!
+				}
 			case netxlite.FailureConnectionReset:
-				score.Flags |= AnalysisHTTPReset
+				switch {
+				case isHTTP:
+					score.Flags |= AnalysisHTTPReset
+				case isHTTPS:
+					score.Flags |= AnalysisTLSReset
+				default:
+					score.Flags |= AnalysisProbeBug // what scheme is this?!
+				}
+			case netxlite.FailureEOFError:
+				switch {
+				case isHTTP:
+					score.Flags |= AnalysisHTTPEOF
+				case isHTTPS:
+					score.Flags |= AnalysisTLSEOF
+				default:
+					score.Flags |= AnalysisProbeBug // what scheme is this?!
+				}
 			default:
-				score.Flags |= AnalysisHTTPOther
+				switch {
+				case isHTTP:
+					score.Flags |= AnalysisHTTPOther
+				case isHTTPS, isHTTP3:
+					score.Flags |= AnalysisEndpointOther
+				default:
+					score.Flags |= AnalysisProbeBug // what scheme is this?!
+				}
 			}
 		default:
 			// We should not have a different failed operation, so
