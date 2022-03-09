@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -17,7 +16,7 @@ import (
 )
 
 type CLI struct {
-	Backend string   `doc:"backend URL (default: http://127.0.0.1:9876)" short:"b"`
+	Backend string   `doc:"backend URL (default: ws://127.0.0.1:9876)" short:"b"`
 	Help    bool     `doc:"prints this help message" short:"h"`
 	Input   []string `doc:"add URL to list of URLs to crawl" short:"i"`
 	Output  string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
@@ -26,7 +25,7 @@ type CLI struct {
 
 func main() {
 	opts := &CLI{
-		Backend: "http://127.0.0.1:9876/",
+		Backend: "ws://127.0.0.1:9876/",
 		Help:    false,
 		Input:   []string{},
 		Output:  "report.jsonl",
@@ -47,7 +46,7 @@ func main() {
 	}
 	begin := time.Now()
 	ctx := context.Background()
-	clnt := websteps.StartClient(ctx, log.Log, http.DefaultClient, opts.Backend, "")
+	clnt := websteps.StartClient(ctx, log.Log, nil, nil, opts.Backend)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go submitInput(ctx, wg, clnt, opts)

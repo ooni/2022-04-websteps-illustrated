@@ -8,6 +8,7 @@ package websteps
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,11 +18,11 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/httpx"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
+	"github.com/gorilla/websocket"
 )
 
 // THResponseOrError is a thResponse or an error.
@@ -35,6 +36,10 @@ type THResponseOrError struct {
 
 // THResponse is the response from the TH.
 type THResponse struct {
+	// StillRunning is a boolean flag that tells the client that
+	// the test helper is still alive and running.
+	StillRunning bool
+
 	// DNS contains DNS measurements.
 	DNS []*measurex.DNSLookupMeasurement
 
@@ -105,24 +110,125 @@ func (c *Client) newTHRequestEndpointPlan(
 // THRequestAsync performs an async TH request posting the result on the out channel.
 func (c *Client) THRequestAsync(
 	ctx context.Context, thReq *THRequest, out chan<- *THResponseOrError) {
-	// TODO(bassosimone): consider the possibility that the TH would run for a
-	// long-enough time that some middlebox could forcibly close the conn. We may
-	// consider using a different protocol, e.g., WebSocket or long polling.
-	tmpl := httpx.APIClientTemplate{
-		BaseURL:    c.thURL,
-		HTTPClient: c.httpClient,
-		Logger:     c.logger,
-		UserAgent:  c.userAgent,
-	}
-	apic := tmpl.Build()
-	var thResp THResponse
-	err := apic.PostJSON(ctx, "/", thReq, &thResp)
+	conn, err := c.websocketDial(ctx)
 	if err != nil {
-		c.logger.Warnf("websteps: TH API call failed: %s", err.Error())
 		out <- &THResponseOrError{Err: err}
-		return
+		return // error already printed
 	}
-	out <- &THResponseOrError{Resp: &thResp}
+	defer conn.Close()
+	if err := c.websocketSend(conn, thReq); err != nil {
+		out <- &THResponseOrError{Err: err}
+		return // error already printed
+	}
+	bout := make(chan *THResponseOrError, 1) // buffered channel!
+	go c.websocketRecvAsync(conn, bout)
+	select {
+	case <-ctx.Done():
+		out <- &THResponseOrError{Err: ctx.Err()}
+	case m := <-bout:
+		out <- m
+	}
+}
+
+// websocketDial establishes a websocket conn with the test helper. The returned
+// conn has hard deadlines, so we can ensure liveness.
+func (c *Client) websocketDial(ctx context.Context) (*websocket.Conn, error) {
+	dialer := &websocket.Dialer{
+		NetDial:           nil,
+		NetDialContext:    c.dialContextFunc(),
+		NetDialTLSContext: c.dialTLSContextFunc(),
+		Proxy:             nil,
+		TLSClientConfig: &tls.Config{
+			RootCAs: netxlite.NewDefaultCertPool(),
+		},
+		HandshakeTimeout:  10 * time.Second,
+		ReadBufferSize:    0,
+		WriteBufferSize:   0,
+		WriteBufferPool:   nil,
+		Subprotocols:      []string{},
+		EnableCompression: false,
+		Jar:               nil,
+	}
+	conn, _, err := dialer.DialContext(ctx, c.thURL, http.Header{})
+	if err != nil {
+		c.logger.Warnf("websteps: cannot websocket-dial with server: %s", err.Error())
+		return nil, err
+	}
+	const timeout = 90 * time.Second
+	deadline := time.Now().Add(timeout)
+	conn.SetWriteDeadline(deadline)
+	conn.SetReadDeadline(deadline)
+	return conn, nil
+}
+
+// dialContextFunc returns the DialContext func we should be using.
+func (c *Client) dialContextFunc() func(ctx context.Context,
+	network, address string) (net.Conn, error) {
+	if c.dialerCleartext != nil {
+		return c.dialerCleartext.DialContext
+	}
+	d := &net.Dialer{}
+	return d.DialContext
+}
+
+// dialTLSContextFunc returns the dialTLSContext func we should be using.
+func (c *Client) dialTLSContextFunc() func(ctx context.Context,
+	network, address string) (net.Conn, error) {
+	if c.dialerTLS != nil {
+		return c.dialerTLS.DialTLSContext
+	}
+	d := &tls.Dialer{}
+	return d.DialContext
+}
+
+// websocketSend sends the request to the server.
+func (c *Client) websocketSend(conn *websocket.Conn, thReq *THRequest) error {
+	// The following call to json.Marshal cannot actually fail
+	data, err := json.Marshal(thReq)
+	runtimex.PanicOnError(err, "json.Marshal failed")
+	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+		c.logger.Warnf("websteps: cannot write using websocket: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
+// websocketRecvAsync receives the response from the server asynchronously
+// from a background goroutine created by the caller.
+func (c *Client) websocketRecvAsync(conn *websocket.Conn, out chan<- *THResponseOrError) {
+	for {
+		mtype, reader, err := conn.NextReader()
+		if err != nil {
+			c.logger.Warnf("websteps: cannot read from server: %s", err.Error())
+			out <- &THResponseOrError{Err: err}
+			return
+		}
+		if mtype != websocket.TextMessage {
+			c.logger.Warnf("websteps: unexpected message type: %d", mtype)
+			out <- &THResponseOrError{Err: err}
+			return
+		}
+		reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
+		data, err := netxlite.ReadAllContext(context.Background(), reader)
+		if err != nil {
+			c.logger.Warnf("websteps: cannot read from server: %s", err.Error())
+			out <- &THResponseOrError{Err: err}
+			return
+		}
+		var thResp THResponse
+		if err := json.Unmarshal(data, &thResp); err != nil {
+			c.logger.Warnf("websteps: cannot unmarshal from server: %s", err.Error())
+			out <- &THResponseOrError{Err: err}
+			return
+		}
+		if thResp.StillRunning {
+			continue // message sent to keep the connection alive
+		}
+		out <- &THResponseOrError{
+			Err:  nil,
+			Resp: &thResp,
+		}
+	}
 }
 
 // THHandlerOptions contains options for the THHandler.
@@ -143,38 +249,142 @@ type THHandler struct {
 	IDGenerator *measurex.IDGenerator
 }
 
-// THHMaxAcceptableRequestBodySize is the maximum body size accepted by THHandler.
-const THHMaxAcceptableRequestBodySize = 1 << 20
+// THHMaxAcceptableWebSocketMessage is the maximum websocket message size.
+const THHMaxAcceptableWebSocketMessage = 1 << 20
+
+// logger returns a suitable logger.
+func (thh *THHandler) logger() model.Logger {
+	if thh.Options != nil && thh.Options.Logger != nil {
+		return thh.Options.Logger
+	}
+	return model.DiscardLogger
+}
 
 // ServeHTTP implements http.Handler.ServeHTTP.
 func (thh *THHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		w.WriteHeader(400)
-		return
-	}
-	reader := io.LimitReader(req.Body, THHMaxAcceptableRequestBodySize)
-	data, err := netxlite.ReadAllContext(req.Context(), reader)
+	conn, err := thh.upgrade(w, req)
 	if err != nil {
-		w.WriteHeader(400)
-		return
+		return // error already logged
+	}
+	defer conn.Close()
+	thReq, err := thh.readMsg(conn)
+	if err != nil {
+		return // error already logged
+	}
+	go thh.discardIncomingMessages(conn)
+	out := thh.waitForCompletion(conn, thh.stepAsync(thReq))
+	if out.Err != nil {
+		return // error already printed
+	}
+	_ = thh.writeToClient(conn, out.Resp)
+}
+
+// upgrade will upgrade to WebSocket or fail. The returned connection has
+// a strict maximum deadline that guarantees liveness.
+func (thh *THHandler) upgrade(w http.ResponseWriter, req *http.Request) (*websocket.Conn, error) {
+	upgrader := &websocket.Upgrader{
+		HandshakeTimeout: 10 * time.Second,
+		ReadBufferSize:   0,
+		WriteBufferSize:  0,
+		WriteBufferPool:  nil,
+		Subprotocols:     []string{},
+		Error:            nil,
+		CheckOrigin: func(r *http.Request) bool {
+			return true // Allow cross origin resource sharing
+		},
+		EnableCompression: false,
+	}
+	conn, err := upgrader.Upgrade(w, req, http.Header{})
+	if err != nil {
+		thh.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
+		return nil, err
+	}
+	const timeout = 90 * time.Second
+	deadline := time.Now().Add(timeout)
+	conn.SetWriteDeadline(deadline)
+	conn.SetReadDeadline(deadline)
+	return conn, nil
+}
+
+// readMsg will read the client request or fail.
+func (thh *THHandler) readMsg(conn *websocket.Conn) (*THRequest, error) {
+	mtype, reader, err := conn.NextReader()
+	if err != nil {
+		thh.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
+		return nil, err
+	}
+	if mtype != websocket.TextMessage {
+		thh.logger().Warn("received non-text message")
+		return nil, err
+	}
+	reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
+	data, err := netxlite.ReadAllContext(context.Background(), reader)
+	if err != nil {
+		thh.logger().Warnf("cannot read websocket message: %s", err.Error())
+		return nil, err
 	}
 	var thReq THRequest
 	if err := json.Unmarshal(data, &thReq); err != nil {
-		w.WriteHeader(400)
-		return
+		thh.logger().Warnf("cannot unmarshal websocket message: %s", err.Error())
+		return nil, err
 	}
-	thr := thh.newTHRequestHandler()
-	thResp, err := thr.step(req.Context(), &thReq)
-	if err != nil {
-		w.WriteHeader(400)
-		return
+	return &thReq, nil
+}
+
+// stepAsync performs a websteps step asynchronously.
+func (thh *THHandler) stepAsync(thReq *THRequest) <-chan *THResponseOrError {
+	outch := make(chan *THResponseOrError)
+	go func() {
+		thr := thh.newTHRequestHandler()
+		r := &THResponseOrError{}
+		r.Resp, r.Err = thr.step(context.Background(), thReq)
+		outch <- r
+	}()
+	return outch
+}
+
+// discardIncomingMessages just discards incoming messages. We need to
+// be reading because of how gorilla/websocket works.
+func (thh *THHandler) discardIncomingMessages(conn *websocket.Conn) {
+	for {
+		if _, _, err := conn.NextReader(); err != nil {
+			return
+		}
 	}
+}
+
+// waitForCompletion waits for the async step to complete and, while there,
+// periodically sends status updates.
+func (thh *THHandler) waitForCompletion(conn *websocket.Conn,
+	outch <-chan *THResponseOrError) *THResponseOrError {
+	const interval = 500 * time.Millisecond
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case out := <-outch:
+			return out
+		case <-ticker.C:
+			thResp := &THResponse{
+				StillRunning: true,
+				DNS:          []*measurex.DNSLookupMeasurement{},
+				Endpoint:     []*measurex.EndpointMeasurement{},
+			}
+			if err := thh.writeToClient(conn, thResp); err != nil {
+				thh.logger().Warnf("cannot write interim message to client: %s", err.Error())
+				return &THResponseOrError{Err: err}
+			}
+		}
+	}
+}
+
+// writeToClient writes a message to the client.
+func (thh *THHandler) writeToClient(conn *websocket.Conn, thResp *THResponse) error {
 	// We assume that the following call cannot fail because it's a
 	// clearly serializable data structure.
-	data, err = json.Marshal(thResp)
+	data, err := json.Marshal(thResp)
 	runtimex.PanicOnError(err, "json.Marshal failed")
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(data)
+	return conn.WriteMessage(websocket.TextMessage, data)
 }
 
 // THRequestHandler handles a single request from a client.

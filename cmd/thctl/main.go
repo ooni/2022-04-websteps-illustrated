@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/apex/log"
@@ -23,7 +22,7 @@ type CLI struct {
 	QUICEndpoint []string `doc:"ask the test helper to test this QUIC endpoint"`
 	TCPEndpoint  []string `doc:"ask the test helper to test this TCP endpoint"`
 	Verbose      bool     `doc:"enable verbose mode" short:"v"`
-	URL          string   `doc:"test helper server URL (default: \"http://127.0.0.1:9876\")" short:"U"`
+	URL          string   `doc:"test helper server URL (default: \"ws://127.0.0.1:9876\")" short:"U"`
 }
 
 func main() {
@@ -34,7 +33,7 @@ func main() {
 		QUICEndpoint: []string{},
 		TCPEndpoint:  []string{},
 		Verbose:      false,
-		URL:          "http://127.0.0.1:9876",
+		URL:          "ws://127.0.0.1:9876",
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -68,7 +67,7 @@ func main() {
 			Cookies: []string{},
 		})
 	}
-	clnt := websteps.NewTHClient(log.Log, http.DefaultClient, opts.URL, "")
+	clnt := websteps.NewTHClient(log.Log, nil, nil, opts.URL)
 	out := make(chan *websteps.THResponseOrError)
 	dump(request)
 	go clnt.THRequestAsync(context.Background(), request, out)

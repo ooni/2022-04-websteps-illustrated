@@ -61,8 +61,11 @@ type Client struct {
 	// Output is the channel for emitting measurements.
 	Output chan *TestKeysOrError
 
-	// httpClient is the HTTPClient to use.
-	httpClient model.HTTPClient
+	// dialerCleartext is the cleartext dialer to use.
+	dialerCleartext model.Dialer
+
+	// dialerTLS is the TLS dialer to use.
+	dialerTLS model.TLSDialer
 
 	// logger is the MANDATORY logger to use.
 	logger model.Logger
@@ -72,9 +75,6 @@ type Client struct {
 
 	// thURL is the base URL of the test helper.
 	thURL string
-
-	// userAgent is the User-Agent to use with the TH.
-	userAgent string
 }
 
 // THClient is a client for communicating with the test helper.
@@ -85,29 +85,30 @@ type THClient interface {
 
 // NewTHClient creates a new client that does not perform measurements
 // and is only suitable for speaking with the TH.
-func NewTHClient(logger model.Logger,
-	httpClient model.HTTPClient, thURL, userAgent string) THClient {
-	return newClient(context.Background(), logger, httpClient, thURL, userAgent, false)
+func NewTHClient(logger model.Logger, dialer model.Dialer,
+	tlsDialer model.TLSDialer, thURL string) THClient {
+	return newClient(
+		context.Background(), logger, dialer, tlsDialer, thURL, false)
 }
 
 // StartClient starts a new websteps client instance in a background goroutine
 // and returns the client instance to submit and collect measurements.
-func StartClient(ctx context.Context, logger model.Logger,
-	httpClient model.HTTPClient, thURL, userAgent string) *Client {
-	return newClient(ctx, logger, httpClient, thURL, userAgent, true)
+func StartClient(ctx context.Context, logger model.Logger, dialer model.Dialer,
+	tlsDialer model.TLSDialer, thURL string) *Client {
+	return newClient(ctx, logger, dialer, tlsDialer, thURL, true)
 }
 
 // newClient implements NewTHClient and StartClient.
-func newClient(ctx context.Context, logger model.Logger, httpClient model.HTTPClient,
-	thURL, userAgent string, startBackgroundWorker bool) *Client {
+func newClient(ctx context.Context, logger model.Logger, dialer model.Dialer,
+	tlsDialer model.TLSDialer, thURL string, startBackgroundWorker bool) *Client {
 	clnt := &Client{
-		Input:      make(chan string),
-		Output:     make(chan *TestKeysOrError),
-		httpClient: httpClient,
-		logger:     logger,
-		resolvers:  defaultResolvers(),
-		thURL:      thURL,
-		userAgent:  userAgent,
+		Input:           make(chan string),
+		Output:          make(chan *TestKeysOrError),
+		dialerCleartext: dialer,
+		dialerTLS:       tlsDialer,
+		logger:          logger,
+		resolvers:       defaultResolvers(),
+		thURL:           thURL,
 	}
 	if startBackgroundWorker {
 		go clnt.loop(ctx)
