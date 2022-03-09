@@ -273,9 +273,10 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	if pq.Failure() != "" && thq.Failure() != "" {
 		if pq.Failure() == thq.Failure() {
 			// If both the probe and the TH failed with the same failure
-			// we can say that this result is expected. We do not need to
-			// set an specific bit in this case. Though, let us go a bit
-			// further and score some common cases.
+			// we can say that this result is expected. Because we have
+			// set the DNS failure flag before, here we need to take
+			// it back otherwise this result will be seen as an anomaly.
+			score.Flags &= ^AnalysisFlagFailureDNS
 			switch pq.Failure() {
 			case netxlite.FailureDNSNXDOMAINError:
 				score.Flags |= AnalysisFlagDNSNXDOMAIN
