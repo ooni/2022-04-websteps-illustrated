@@ -228,6 +228,8 @@ func (c *Client) websocketRecvAsync(conn *websocket.Conn, out chan<- *THResponse
 			Err:  nil,
 			Resp: &thResp,
 		}
+		// Because we've received our response, stop reading
+		return
 	}
 }
 
@@ -276,7 +278,18 @@ func (thh *THHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if out.Err != nil {
 		return // error already printed
 	}
-	_ = thh.writeToClient(conn, out.Resp)
+	if err := thh.writeToClient(conn, out.Resp); err != nil {
+		return // error already printed
+	}
+	_ = thh.gracefulClose(conn)
+}
+
+// gracefulClose closes the websocket connection gracefully.
+func (thh *THHandler) gracefulClose(conn *websocket.Conn) error {
+	const closeTimeout = time.Second
+	deadline := time.Now().Add(closeTimeout)
+	msg := websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")
+	return conn.WriteControl(websocket.CloseMessage, msg, deadline)
 }
 
 // upgrade will upgrade to WebSocket or fail. The returned connection has
@@ -371,8 +384,7 @@ func (thh *THHandler) waitForCompletion(conn *websocket.Conn,
 				Endpoint:     []*measurex.EndpointMeasurement{},
 			}
 			if err := thh.writeToClient(conn, thResp); err != nil {
-				thh.logger().Warnf("cannot write interim message to client: %s", err.Error())
-				return &THResponseOrError{Err: err}
+				return &THResponseOrError{Err: err} // error already printed
 			}
 		}
 	}
@@ -384,7 +396,11 @@ func (thh *THHandler) writeToClient(conn *websocket.Conn, thResp *THResponse) er
 	// clearly serializable data structure.
 	data, err := json.Marshal(thResp)
 	runtimex.PanicOnError(err, "json.Marshal failed")
-	return conn.WriteMessage(websocket.TextMessage, data)
+	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+		thh.logger().Warnf("cannot write messsge to client: %s", err.Error())
+		return err
+	}
+	return nil
 }
 
 // THRequestHandler handles a single request from a client.
