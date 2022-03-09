@@ -1,13 +1,52 @@
 #!/usr/bin/env python3
 
-"""Imports websteps measurements in a DB-like fashion."""
+"""Imports websteps measurements in a DB-like fashion and allows you
+to interactively query them to figure out what is happening."""
 
 import argparse
 import json
 import shlex
-import textwrap
 import tabulate
-from typing import Any, List, Dict, Optional, Tuple
+from typing import Any, List, Dict, Optional
+
+
+class Flag:
+    """An analysis flag."""
+
+    def __init__(self, flag, tag):
+        self.flag = flag
+        self.tag = tag
+
+
+FLAGS: List[Flag] = [
+    Flag(1 << 0, "#gave_up"),
+    Flag(1 << 1, "#unexpected"),
+    Flag(1 << 2, "#inconclusive"),
+    Flag(1 << 3, "#dns_failure"),
+    Flag(1 << 4, "#tcp_failure"),
+    Flag(1 << 5, "#tls_failure"),
+    Flag(1 << 6, "#quic_failure"),
+    Flag(1 << 7, "#http_failure"),
+    Flag(1 << 8, "#http_diff"),
+    Flag(1 << 9, "#dns_diff"),
+    Flag(1 << 10, "#accessible"),
+    Flag(1 << 11, "#probe_bug"),
+    Flag(1 << 24, "#dns_bogon"),
+    Flag(1 << 25, "#dns_valid_https"),
+    Flag(1 << 26, "#dns_nxdomain"),
+    Flag(1 << 27, "#dns_no_answer"),
+    Flag(1 << 28, "#dns_refused"),
+    Flag(1 << 29, "#timeout"),
+    Flag(1 << 30, "#unknown_failure"),
+    Flag(1 << 31, "#epnt_valid_https"),
+    Flag(1 << 32, "#epnt_via_th"),
+    Flag(1 << 33, "#connreset"),
+    Flag(1 << 34, "#http_body_diff"),
+    Flag(1 << 35, "#http_status_diff"),
+    Flag(1 << 36, "#http_header_diff"),
+    Flag(1 << 37, "#http_title_diff"),
+    Flag(1 << 38, "#ipv6_false_positive"),
+]
 
 
 def jsonl_reader(filepath: str):
@@ -67,10 +106,16 @@ class AnalysisResult:
         self.kind: str = kind
         self.id: int = json.get("id", 0)
         self.url_measurement_id: int = json.get("url_measurement_id", 0)
-        refs: List[int] = json.get("refs", [])
-        self.probe_id = refs[0] if len(refs) > 0 else None
-        self.th_id = refs[1] if len(refs) > 1 else None
-        self.flags: int = json.get("flags", 0)
+        self.refs = json.get("refs", [])
+        self.flags: List[str] = self._map_flags(json.get("flags", 0))
+
+    def _map_flags(self, flags: int) -> List[str]:
+        """Maps flags to their names."""
+        out = []
+        for flag in FLAGS:
+            if (flags & flag.flag) != 0:
+                out.append(flag.tag)
+        return out
 
 
 class Database:
@@ -189,6 +234,10 @@ class Database:
                     if not ar.id:
                         continue
                     self._analysis[ar.id] = ar
+        if "url" in analysis:
+            ar = AnalysisResult("url", analysis["url"])
+            if ar.id:
+                self._analysis[ar.id] = ar
 
     def find_analysis(self, id: int) -> Optional[AnalysisResult]:
         """Returns the analysis with the given ID."""
@@ -233,72 +282,24 @@ class Database:
         return self._listall(self._url_measurements)
 
 
-class Flag:
-    """An analysis flag."""
-
-    def __init__(self, flag, description):
-        self.flag = flag
-        self.description = description
-
-
-FLAGS: List[Flag] = [
-    Flag(1 << 0, "gave up with analysis"),
-    Flag(1 << 1, "unexpected"),
-    Flag(1 << 2, "inconclusive"),
-    Flag(1 << 3, "DNS lookup failure"),
-    Flag(1 << 4, "TCP connect failure"),
-    Flag(1 << 5, "TLS handshake failure"),
-    Flag(1 << 6, "QUIC handshake failure"),
-    Flag(1 << 7, "HTTP round trip failure"),
-    Flag(1 << 8, "HTTP diff"),
-    Flag(1 << 9, "DNS diff"),
-    Flag(1 << 10, "accessible"),
-    Flag(1 << 11, "probe bug"),
-    Flag(1 << 24, "DNS bogon"),
-    Flag(1 << 25, "DNS validated via HTTPS"),
-    Flag(1 << 26, "DNS NXDOMAIN"),
-    Flag(1 << 27, "DNS no answer"),
-    Flag(1 << 28, "DNS refused"),
-    Flag(1 << 29, "timeout"),
-    Flag(1 << 30, "we've not mapped this error"),
-    Flag(1 << 31, "HTTPS endpoint seems valid"),
-    Flag(1 << 32, "additional endpoint found using TH"),
-    Flag(1 << 33, "connection reset"),
-    Flag(1 << 34, "body length difference"),
-    Flag(1 << 35, "status code difference"),
-    Flag(1 << 36, "uncommon headers difference"),
-    Flag(1 << 37, "title difference"),
-    Flag(1 << 38, "IPv6 is not working"),
-]
-
-
-def command_explain(db: Database, id: int):
-    """Explains the results with the given ID."""
-    analysis = db.find_analysis(id)
-    if analysis is None:
-        return
-    command_show(db, id)
-    if analysis.probe_id:
-        command_show(db, analysis.probe_id)
-    if analysis.th_id:
-        command_show(db, analysis.th_id)
-    for flag in FLAGS:
-        if (analysis.flags & flag.flag) == 0:
-            continue
-        print("{0:040b}\t{1:s}".format(flag.flag, flag.description))
-    print("---")
-    print("{0:040b}\t= {0}".format(analysis.flags))
-
-
 def command_help():
     """The help command."""
     print("")
     print("Available commmands:")
     print("")
-    print("explain <id>")
-    print("  explains the analysis with the given ID")
+    print("la")
+    print("  shortcut for 'list analysis'")
     print("")
-    print("list analysis|dns|endpoint|url_measurement")
+    print("ld")
+    print("  shortcut for 'list dns'")
+    print("")
+    print("le")
+    print("  shortcut for 'list endpoint'")
+    print("")
+    print("lu")
+    print("  shortcut for 'list url'")
+    print("")
+    print("list analysis|dns|endpoint|url")
     print("  lists the content of the related table")
     print("")
     print("quit")
@@ -354,6 +355,34 @@ def interactive(db: Database):
 
         command, args = v[0], v[1:]
 
+        if command == "la":
+            if len(args) != 0:
+                print("expected zero arguments, got", args)
+                continue
+            command_list(db, "analysis")
+            continue
+
+        if command == "ld":
+            if len(args) != 0:
+                print("expected zero arguments, got", args)
+                continue
+            command_list(db, "dns")
+            continue
+
+        if command == "le":
+            if len(args) != 0:
+                print("expected zero arguments, got", args)
+                continue
+            command_list(db, "endpoint")
+            continue
+
+        if command == "lu":
+            if len(args) != 0:
+                print("expected zero arguments, got", args)
+                continue
+            command_list(db, "url")
+            continue
+
         if command == "list":
             if len(args) != 1:
                 print("expected a single argument, got", args)
@@ -373,19 +402,6 @@ def interactive(db: Database):
                 continue
             else:
                 command_show(db, id)
-            continue
-
-        if command == "explain":
-            if len(args) != 1:
-                print("expected a single argument, got", args)
-                continue
-            try:
-                id = int(args[0])
-            except ValueError:
-                print("not a number")
-                continue
-            else:
-                command_explain(db, id)
             continue
 
         print("unknown command", command)
