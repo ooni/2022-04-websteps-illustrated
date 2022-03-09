@@ -25,40 +25,49 @@ import (
 //     |   HTTP (16 bit) | reserved (16 bit) |
 //     +-----------------+-------------------+
 //
-// Data consumers SHOULD NOT rely on the reserved bits.
+// Data consumers SHOULD ignore the reserved bits.
 const (
-	AnalysisDNSNXDOMAIN        = 1 << 0
-	AnalysisDNSTimeout         = 1 << 1
-	AnalysisDNSBogon           = 1 << 2
-	AnalysisDNSNoAnswer        = 1 << 3
-	AnalysisDNSRefused         = 1 << 4
-	AnalysisDNSUnassigned5     = 1 << 5
-	AnalysisDNSDiff            = 1 << 6
-	AnalysisDNSUnassigned7     = 1 << 7
-	AnalysisDNSUnassigned8     = 1 << 8
-	AnalysisDNSUnassigned9     = 1 << 9
-	AnalysisDNSUnassigned10    = 1 << 10
-	AnalysisDNSUnassigned11    = 1 << 11
-	AnalysisDNSUnassigned12    = 1 << 12
-	AnalysisDNSUnassigned13    = 1 << 13
-	AnalysisDNSUnassigned14    = 1 << 14
-	AnalysisDNSOther           = 1 << 15
-	AnalysisEpntTCPTimeout     = 1 << 16
-	AnalysisEpntTCPRefused     = 1 << 17
-	AnalysisEpntQUICTimeout    = 1 << 18
-	AnalysisEpntTLSTimeout     = 1 << 19
-	AnalysisEpntTLSEOF         = 1 << 20
-	AnalysisEpntTLSReset       = 1 << 21
-	AnalysisEpntCertificate    = 1 << 22
-	AnalysisEpntUnassigned23   = 1 << 23
-	AnalysisEpntUnassigned24   = 1 << 24
-	AnalysisEpntUnassigned25   = 1 << 25
-	AnalysisEpntUnassigned26   = 1 << 26
-	AnalysisEpntUnassigned27   = 1 << 27
-	AnalysisEpntUnassigned28   = 1 << 28
-	AnalysisEpntUnassigned29   = 1 << 29
-	AnalysisEpntUnassigned30   = 1 << 30
-	AnalysisEpntOther          = 1 << 31
+	//
+	// Group: DNS
+	//
+	AnalysisNXDOMAIN     = 1 << 0
+	AnalysisDNSTimeout   = 1 << 1
+	AnalysisBogon        = 1 << 2
+	AnalysisDNSNoAnswer  = 1 << 3
+	AnalysisDNSRefused   = 1 << 4
+	AnalysisDNSNotLying  = 1 << 5
+	AnalysisDNSDiff      = 1 << 6
+	AnalysisUnassigned7  = 1 << 7
+	AnalysisUnassigned8  = 1 << 8
+	AnalysisUnassigned9  = 1 << 9
+	AnalysisUnassigned10 = 1 << 10
+	AnalysisUnassigned11 = 1 << 11
+	AnalysisUnassigned12 = 1 << 12
+	AnalysisUnassigned13 = 1 << 13
+	AnalysisUnassigned14 = 1 << 14
+	AnalysisDNSOther     = 1 << 15
+	//
+	// Group: endpoint
+	//
+	AnalysisTCPTimeout    = 1 << 16
+	AnalysisTCPRefused    = 1 << 17
+	AnalysisQUICTimeout   = 1 << 18
+	AnalysisTLSTimeout    = 1 << 19
+	AnalysisTLSEOF        = 1 << 20
+	AnalysisTLSReset      = 1 << 21
+	AnalysisCertificate   = 1 << 22
+	AnalysisUnassigned23  = 1 << 23
+	AnalysisUnassigned24  = 1 << 24
+	AnalysisUnassigned25  = 1 << 25
+	AnalysisUnassigned26  = 1 << 26
+	AnalysisUnassigned27  = 1 << 27
+	AnalysisUnassigned28  = 1 << 28
+	AnalysisUnassigned29  = 1 << 29
+	AnalysisUnassigned30  = 1 << 30
+	AnalysisEndpointOther = 1 << 31
+	//
+	// Group: HTTP
+	//
 	AnalysisHTTPUnassigned32   = 1 << 32
 	AnalysisHTTPTimeout        = 1 << 33
 	AnalysisHTTPReset          = 1 << 34
@@ -67,23 +76,33 @@ const (
 	AnalysisHTTPDiffHeaders    = 1 << 37
 	AnalysisHTTPDiffTitle      = 1 << 38
 	AnalysisHTTPDiffBodyLength = 1 << 39
-	AnalysisHTTPUnassigned40   = 1 << 40
-	AnalysisHTTPUnassigned41   = 1 << 41
-	AnalysisHTTPUnassigned42   = 1 << 42
-	AnalysisHTTPUnassigned43   = 1 << 43
-	AnalysisHTTPUnassigned44   = 1 << 44
-	AnalysisHTTPUnassigned45   = 1 << 45
-	AnalysisHTTPUnassigned46   = 1 << 46
+	AnalysisUnassigned40       = 1 << 40
+	AnalysisUnassigned41       = 1 << 41
+	AnalysisUnassigned42       = 1 << 42
+	AnalysisUnassigned43       = 1 << 43
+	AnalysisUnassigned44       = 1 << 44
+	AnalysisUnassigned45       = 1 << 45
+	AnalysisUnassigned46       = 1 << 46
 	AnalysisHTTPOther          = 1 << 47
-	AnalysisGiveUp             = 1 << 48
-	AnalysisAdditionalEpnt     = 1 << 49
-	AnalysisBrokenIPv6         = 1 << 50
-	AnalysisProbeBug           = 1 << 51
-	AnalysisAccessible         = 1 << 52
-	AnalysisInconsistent       = 1 << 53
-	AnalysisConsistent         = 1 << 54
-	AnalysisDNSNotLying        = 1 << 55
-	AnalysisHTTPSecure         = 1 << 56
+	//
+	// Group: private
+	//
+	AnalysisGiveUp       = 1 << 48
+	AnalysisUnused49     = 1 << 49
+	AnalysisBrokenIPv6   = 1 << 50
+	AnalysisProbeBug     = 1 << 51
+	AnalysisUnused52     = 1 << 52
+	AnalysisInconsistent = 1 << 53
+	AnalysisConsistent   = 1 << 54
+	AnalysisUnused55     = 1 << 55
+	AnalysisUnused56     = 1 << 56
+	AnalysisUnused57     = 1 << 57
+	AnalysisUnused58     = 1 << 58
+	AnalysisUnused59     = 1 << 59
+	AnalysisUnused60     = 1 << 60
+	AnalysisUnused61     = 1 << 61
+	AnalysisUnused62     = 1 << 62
+	AnalysisUnused63     = 1 << 63
 )
 
 //
@@ -187,7 +206,6 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	// IP address, which happens with, e.g., https://1.1.1.1/,
 	// then the case is immediately closed.
 	if net.ParseIP(pq.Domain()) != nil {
-		score.Flags |= AnalysisAccessible
 		return score
 	}
 
@@ -197,7 +215,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	if pq.Failure() == "" {
 		// Countries like Iran censor returning bogon addresses.
 		if ssm.dnsBogonsCheck(pq) {
-			score.Flags |= AnalysisDNSBogon
+			score.Flags |= AnalysisBogon
 			return score
 		}
 		// If we could use any of the IP addresses returned by this query
@@ -252,7 +270,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		// A probe failure without a TH failure is unexpected.
 		switch failure {
 		case netxlite.FailureDNSNXDOMAINError:
-			score.Flags |= AnalysisDNSNXDOMAIN
+			score.Flags |= AnalysisNXDOMAIN
 		case netxlite.FailureDNSRefusedError:
 			score.Flags |= AnalysisDNSRefused
 		case netxlite.FailureGenericTimeoutError:
@@ -362,14 +380,13 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(
 	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisEndpoint) {
 	if ssm.ProbeInitial != nil {
 		for _, pe := range ssm.ProbeInitial.Endpoint {
-			score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe, 0)
+			score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
 			ExplainFlagsWithLogging(logger, pe, score.Flags)
 			out = append(out, score)
 		}
 	}
 	for _, pe := range ssm.ProbeAdditional {
-		score := ssm.endpointSingleMeasurementAnalysis(
-			mx, logger, pe, AnalysisAdditionalEpnt)
+		score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
 		ExplainFlagsWithLogging(logger, pe, score.Flags)
 		out = append(out, score)
 	}
@@ -378,16 +395,13 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(
 
 // endpointSingleMeasurementAnalysis analyzes a single DNS lookup.
 func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
-	logger model.Logger, pe *measurex.EndpointMeasurement, flags int64) *AnalysisEndpoint {
+	logger model.Logger, pe *measurex.EndpointMeasurement) *AnalysisEndpoint {
 	score := &AnalysisEndpoint{
 		ID:               mx.NextID(),
 		URLMeasurementID: pe.URLMeasurementID,
 		Refs:             []int64{pe.ID},
 		Flags:            0,
 	}
-
-	// Honour flags passed by the caller.
-	score.Flags |= flags
 
 	// Corner case: when you don't have IPv6 support, you fail with
 	// "host unreachable" (sometimes "net unreachable") and generally
@@ -404,13 +418,8 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 
 	// If we find a bogon address, flag this but continue processing
 	if addr, err := pe.IPAddress(); err == nil && netxlite.IsBogon(addr) {
-		score.Flags |= AnalysisDNSBogon
+		score.Flags |= AnalysisBogon
 		// fallthrough
-	}
-
-	// Take note of whether we're using HTTP or HTTPS here.
-	if pe.Scheme() == "https" {
-		score.Flags |= AnalysisHTTPSecure
 	}
 
 	// Let's now see to compare with what the TH did.
@@ -462,35 +471,35 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		case netxlite.ConnectOperation:
 			switch pe.Failure {
 			case netxlite.FailureGenericTimeoutError:
-				score.Flags |= AnalysisEpntTCPTimeout
+				score.Flags |= AnalysisTCPTimeout
 			case netxlite.FailureConnectionRefused:
-				score.Flags |= AnalysisEpntTCPRefused
+				score.Flags |= AnalysisTCPRefused
 			default:
-				score.Flags |= AnalysisEpntOther
+				score.Flags |= AnalysisEndpointOther
 			}
 		case netxlite.TLSHandshakeOperation:
 			switch pe.Failure {
 			case netxlite.FailureGenericTimeoutError:
-				score.Flags |= AnalysisEpntTLSTimeout
+				score.Flags |= AnalysisTLSTimeout
 			case netxlite.FailureConnectionReset:
-				score.Flags |= AnalysisEpntTLSReset
+				score.Flags |= AnalysisTLSReset
 			case netxlite.FailureSSLInvalidCertificate,
 				netxlite.FailureSSLInvalidHostname,
 				netxlite.FailureSSLUnknownAuthority:
-				score.Flags |= AnalysisEpntCertificate
+				score.Flags |= AnalysisCertificate
 			default:
-				score.Flags |= AnalysisEpntOther
+				score.Flags |= AnalysisEndpointOther
 			}
 		case netxlite.QUICHandshakeOperation:
 			switch pe.Failure {
 			case netxlite.FailureGenericTimeoutError:
-				score.Flags |= AnalysisEpntQUICTimeout
+				score.Flags |= AnalysisQUICTimeout
 			case netxlite.FailureSSLInvalidCertificate,
 				netxlite.FailureSSLInvalidHostname,
 				netxlite.FailureSSLUnknownAuthority:
-				score.Flags |= AnalysisEpntCertificate
+				score.Flags |= AnalysisCertificate
 			default:
-				score.Flags |= AnalysisEpntOther
+				score.Flags |= AnalysisEndpointOther
 			}
 		case netxlite.HTTPRoundTripOperation:
 			switch pe.Failure {
@@ -519,7 +528,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	// possible blockpage for HTTP and perhaps sanctions for HTTPS and HTTP3.
 	//
 	// This set of conditions is adapted from MK v0.10.11.
-	flags = ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
+	flags := ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
 	score.Flags |= flags
 	if flags == 0 {
 		flags = ssm.endpointWebConnectivityBodyLengthChecks(pe, the)

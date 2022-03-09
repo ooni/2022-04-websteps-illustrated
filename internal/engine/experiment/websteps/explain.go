@@ -37,7 +37,7 @@ const (
 
 // analysisDescriptions contains all the analysis flags descriptions.
 var analysisDescriptions = []*AnalysisDescription{{
-	Flag:     AnalysisDNSNXDOMAIN,
+	Flag:     AnalysisNXDOMAIN,
 	Hashtag:  "#nxdomain",
 	Severity: AnalysisSeverityConfirmed,
 }, {
@@ -45,7 +45,7 @@ var analysisDescriptions = []*AnalysisDescription{{
 	Hashtag:  "#dnsTimeout",
 	Severity: AnalysisSeverityUnexpected,
 }, {
-	Flag:     AnalysisDNSBogon,
+	Flag:     AnalysisBogon,
 	Hashtag:  "#bogon",
 	Severity: AnalysisSeverityConfirmed,
 }, {
@@ -53,31 +53,31 @@ var analysisDescriptions = []*AnalysisDescription{{
 	Hashtag:  "#dnsDiff",
 	Severity: AnalysisSeverityUnexpected,
 }, {
-	Flag:     AnalysisEpntTCPTimeout,
+	Flag:     AnalysisTCPTimeout,
 	Hashtag:  "#tcpTimeout",
 	Severity: AnalysisSeverityUnexpected,
 }, {
-	Flag:     AnalysisEpntTCPRefused,
+	Flag:     AnalysisTCPRefused,
 	Hashtag:  "#tcpRefused",
 	Severity: AnalysisSeverityConfirmed,
 }, {
-	Flag:     AnalysisEpntQUICTimeout,
+	Flag:     AnalysisQUICTimeout,
 	Hashtag:  "#quicTimeout",
 	Severity: AnalysisSeverityUnexpected,
 }, {
-	Flag:     AnalysisEpntTLSTimeout,
+	Flag:     AnalysisTLSTimeout,
 	Hashtag:  "#tlsTimeout",
 	Severity: AnalysisSeverityUnexpected,
 }, {
-	Flag:     AnalysisEpntTLSEOF,
+	Flag:     AnalysisTLSEOF,
 	Hashtag:  "#tlsEOF",
 	Severity: AnalysisSeverityUnexpected,
 }, {
-	Flag:     AnalysisEpntTLSReset,
+	Flag:     AnalysisTLSReset,
 	Hashtag:  "#tlsReset",
 	Severity: AnalysisSeverityConfirmed,
 }, {
-	Flag:     AnalysisEpntCertificate,
+	Flag:     AnalysisCertificate,
 	Hashtag:  "#certificate",
 	Severity: AnalysisSeverityConfirmed,
 }, {
