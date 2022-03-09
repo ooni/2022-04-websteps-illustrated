@@ -488,6 +488,13 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		score.Flags |= AnalysisFlagAccessible
 	}
 
+	// If we find a bogon address, we can stop immediately.
+	if addr, err := pe.IPAddress(); err == nil && netxlite.IsBogon(addr) {
+		score.Flags &= ^AnalysisFlagInconclusive // a bogon is very conclusive
+		score.Flags |= AnalysisFlagDNSBogon | AnalysisFlagUnexpected
+		return score
+	}
+
 	// Let's now see to compare with what the TH did.
 	the, found := ssm.endpointFindMatchingMeasurement(pe)
 	if !found {
@@ -497,16 +504,6 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		// sanctions (e.g., 403 Forbidden to Iranian users).
 		if pe.Failure == "" && pe.Scheme() == "https" {
 			score.Flags |= AnalysisFlagEndpointHTTPS | AnalysisFlagInconclusive
-			return score
-		}
-		// Special case: the TH will not follow bogon addresses, so
-		// when following a bogon we'll only have probe data.
-		//
-		// TODO(bassosimone): as discussed with @hellais, we should
-		// consider whether moving this check earlier.
-		if addr, err := pe.IPAddress(); err == nil && netxlite.IsBogon(addr) {
-			score.Flags &= ^AnalysisFlagInconclusive // a bogon is very conclusive
-			score.Flags |= AnalysisFlagDNSBogon | AnalysisFlagUnexpected
 			return score
 		}
 		// Without having additional data we cannot really
