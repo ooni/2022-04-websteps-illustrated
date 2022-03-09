@@ -110,6 +110,8 @@ func (c *Client) newTHRequestEndpointPlan(
 // THRequestAsync performs an async TH request posting the result on the out channel.
 func (c *Client) THRequestAsync(
 	ctx context.Context, thReq *THRequest, out chan<- *THResponseOrError) {
+	// TODO(bassosimone): research keeping a persistent conn with
+	// the server to improve the TH performance.
 	conn, err := c.websocketDial(ctx)
 	if err != nil {
 		out <- &THResponseOrError{Err: err}
