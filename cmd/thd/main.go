@@ -31,7 +31,10 @@ func main() {
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-	thh := websteps.NewTHHandler(log.Log)
+	thh := websteps.NewTHHandler(&websteps.THHandlerOptions{
+		Logger:    log.Log,
+		Resolvers: nil, // use the default
+	})
 	http.Handle("/", thh)
 	log.Infof("Listening at: \"%s\"", opts.Address)
 	http.ListenAndServe(opts.Address, nil)

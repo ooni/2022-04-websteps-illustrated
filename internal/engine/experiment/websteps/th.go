@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -124,13 +125,22 @@ func (c *Client) THRequestAsync(
 	out <- &THResponseOrError{Resp: &thResp}
 }
 
-// THHandler handles TH requests.
-type THHandler struct {
+// THHandlerOptions contains options for the THHandler.
+type THHandlerOptions struct {
 	// Logger is the logger to use.
 	Logger model.Logger
 
 	// Resolvers contains the resolvers to use.
 	Resolvers []*measurex.DNSResolverInfo
+}
+
+// THHandler handles TH requests.
+type THHandler struct {
+	// Options contains the TH handler options.
+	Options *THHandlerOptions
+
+	// IDGenerator generates the next ID.
+	IDGenerator *measurex.IDGenerator
 }
 
 // THHMaxAcceptableRequestBodySize is the maximum body size accepted by THHandler.
@@ -153,7 +163,8 @@ func (thh *THHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(400)
 		return
 	}
-	thResp, err := thh.step(req.Context(), &thReq)
+	thr := thh.newTHRequestHandler()
+	thResp, err := thr.step(req.Context(), &thReq)
 	if err != nil {
 		w.WriteHeader(400)
 		return
@@ -166,13 +177,76 @@ func (thh *THHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w.Write(data)
 }
 
+// THRequestHandler handles a single request from a client.
+type THRequestHandler struct {
+	// Options contains the options.
+	Options *THHandlerOptions
+
+	// ID is the unique ID of this request.
+	ID int64
+}
+
+// thRequestLogger is the logger for a given request.
+type thRequestLogger struct {
+	Logger model.Logger
+	ID     int64
+}
+
+var _ model.Logger = &thRequestLogger{}
+
+func (thrl *thRequestLogger) Debug(message string) {
+	message = fmt.Sprintf("<%d> %s", thrl.ID, message)
+	thrl.Logger.Debug(message)
+}
+
+func (thrl *thRequestLogger) Debugf(format string, v ...interface{}) {
+	thrl.Debug(fmt.Sprintf(format, v...))
+}
+
+func (thrl *thRequestLogger) Info(message string) {
+	message = fmt.Sprintf("<%d> %s", thrl.ID, message)
+	thrl.Logger.Info(message)
+}
+
+func (thrl *thRequestLogger) Infof(format string, v ...interface{}) {
+	thrl.Info(fmt.Sprintf(format, v...))
+}
+
+func (thrl *thRequestLogger) Warn(message string) {
+	message = fmt.Sprintf("<%d> %s", thrl.ID, message)
+	thrl.Logger.Warn(message)
+}
+
+func (thrl *thRequestLogger) Warnf(format string, v ...interface{}) {
+	thrl.Warn(fmt.Sprintf(format, v...))
+}
+
+// logger returns the model.Logger to use.
+func (thr *THRequestHandler) logger() model.Logger {
+	if thr.Options != nil && thr.Options.Logger != nil {
+		return &thRequestLogger{
+			Logger: thr.Options.Logger,
+			ID:     thr.ID,
+		}
+	}
+	return model.DiscardLogger
+}
+
+// resolvers returns the resolvers to use.
+func (thr *THRequestHandler) resolvers() []*measurex.DNSResolverInfo {
+	if thr.Options != nil && thr.Options.Resolvers != nil {
+		return thr.Options.Resolvers
+	}
+	return thhResolvers
+}
+
 // step executes the TH step.
-func (thh *THHandler) step(
+func (thr *THRequestHandler) step(
 	ctx context.Context, req *THRequest) (*THResponse, error) {
 	var err error
-	library := measurex.NewDefaultLibrary(thh.Logger)
-	mx := measurex.NewMeasurer(thh.Logger, library)
-	mx.Options, err = thh.fillOrRejectOptions(req.Options)
+	library := measurex.NewDefaultLibrary(thr.logger())
+	mx := measurex.NewMeasurer(thr.logger(), library)
+	mx.Options, err = thr.fillOrRejectOptions(req.Options)
 	if err != nil {
 		return nil, err
 	}
@@ -180,30 +254,30 @@ func (thh *THHandler) step(
 	if err != nil {
 		return nil, err
 	}
-	dnsplan := um.NewDNSLookupPlan(thh.Resolvers)
+	dnsplan := um.NewDNSLookupPlan(thr.resolvers())
 	for m := range mx.DNSLookups(ctx, dnsplan) {
 		um.DNS = append(um.DNS, m)
 	}
-	thh.addProbeDNS(mx, um, req.Plan)
+	thr.addProbeDNS(mx, um, req.Plan)
 	// Implementation note: of course it doesn't make sense here for the
 	// test helper to follow bogons discovered by the client :^)
-	epplan, _ := um.NewEndpointPlan(thh.Logger, measurex.EndpointPlanningExcludeBogons)
+	epplan, _ := um.NewEndpointPlan(thr.logger(), measurex.EndpointPlanningExcludeBogons)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
 	// second round where we follow Alt-Svc leads
-	epplan, _ = um.NewEndpointPlan(thh.Logger,
+	epplan, _ = um.NewEndpointPlan(thr.logger(),
 		measurex.EndpointPlanningExcludeBogons|measurex.EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
-	return thh.serialize(um), nil
+	return thr.serialize(um), nil
 }
 
-func (thh *THHandler) serialize(in *measurex.URLMeasurement) *THResponse {
+func (thr *THRequestHandler) serialize(in *measurex.URLMeasurement) *THResponse {
 	out := &THResponse{
-		DNS:      thh.simplifyDNS(in.DNS),
-		Endpoint: thh.simplifyEndpoints(in.Endpoint),
+		DNS:      thr.simplifyDNS(in.DNS),
+		Endpoint: thr.simplifyEndpoints(in.Endpoint),
 	}
 	return out
 }
@@ -214,7 +288,7 @@ func (thh *THHandler) serialize(in *measurex.URLMeasurement) *THResponse {
 var thhResponseTime = time.Date(2022, time.March, 05, 22, 44, 00, 0, time.UTC)
 
 // simplifyDNS only keeps the fields that we want to send to clients.
-func (thh *THHandler) simplifyDNS(
+func (thr *THRequestHandler) simplifyDNS(
 	in []*measurex.DNSLookupMeasurement) (out []*measurex.DNSLookupMeasurement) {
 	for _, entry := range in {
 		out = append(out, &measurex.DNSLookupMeasurement{
@@ -238,7 +312,7 @@ func (thh *THHandler) simplifyDNS(
 }
 
 // simplifyEndpoints only keeps the fields that we want to send to clients.
-func (thh *THHandler) simplifyEndpoints(
+func (thr *THRequestHandler) simplifyEndpoints(
 	in []*measurex.EndpointMeasurement) (out []*measurex.EndpointMeasurement) {
 	for _, entry := range in {
 		out = append(out, &measurex.EndpointMeasurement{
@@ -255,14 +329,14 @@ func (thh *THHandler) simplifyEndpoints(
 			NetworkEvent:     []*archival.FlatNetworkEvent{},
 			TCPConnect:       nil,
 			QUICTLSHandshake: nil,
-			HTTPRoundTrip:    thh.simplifyHTTPRoundTrip(entry.HTTPRoundTrip),
+			HTTPRoundTrip:    thr.simplifyHTTPRoundTrip(entry.HTTPRoundTrip),
 		})
 	}
 	return
 }
 
 // simplifyHTTPRoundTrip only keeps the fields that we want to send to clients.
-func (thh *THHandler) simplifyHTTPRoundTrip(
+func (thr *THRequestHandler) simplifyHTTPRoundTrip(
 	in *archival.FlatHTTPRoundTripEvent) (out *archival.FlatHTTPRoundTripEvent) {
 	if in != nil {
 		out = &archival.FlatHTTPRoundTripEvent{
@@ -293,7 +367,8 @@ var ErrInvalidTHHOptions = errors.New("THHandle: invalid measurex.Options")
 // fillOrRejectOptions fills options for the THHandler. This function just
 // honours a bunch of options and otherwise forces defaults. If some values
 // are incompatible with our policy, we return an error.
-func (thh *THHandler) fillOrRejectOptions(clnto *measurex.Options) (*measurex.Options, error) {
+func (thr *THRequestHandler) fillOrRejectOptions(
+	clnto *measurex.Options) (*measurex.Options, error) {
 	clnto = clnto.Flatten() // works even if cur is nil
 	tho := &measurex.Options{
 		// options for which we ignore client settings and use defaults
@@ -355,13 +430,13 @@ func (thh *THHandler) fillOrRejectOptions(clnto *measurex.Options) (*measurex.Op
 
 // addProbeDNS extends a DNS measurement with fake measurements
 // generated from the client-supplied endpoints plan.
-func (thh *THHandler) addProbeDNS(mx *measurex.Measurer,
+func (thr *THRequestHandler) addProbeDNS(mx *measurex.Measurer,
 	um *measurex.URLMeasurement, plan []THRequestEndpointPlan) {
 	var addrs []string
 	for _, e := range plan {
 		addr, _, err := net.SplitHostPort(e.Address)
 		if err != nil {
-			thh.Logger.Warnf("addProbeDNS: cannot split host and port: %s", err.Error())
+			thr.logger().Warnf("addProbeDNS: cannot split host and port: %s", err.Error())
 			continue
 		}
 		addrs = append(addrs, addr)
@@ -370,10 +445,18 @@ func (thh *THHandler) addProbeDNS(mx *measurex.Measurer,
 }
 
 // NewTHHandler creates a new TH handler with default settings.
-func NewTHHandler(logger model.Logger) *THHandler {
+func NewTHHandler(options *THHandlerOptions) *THHandler {
 	return &THHandler{
-		Logger:    logger,
-		Resolvers: thhResolvers,
+		Options:     options,
+		IDGenerator: measurex.NewIDGenerator(),
+	}
+}
+
+// newTHRequestHandler handles a single request.
+func (thh *THHandler) newTHRequestHandler() *THRequestHandler {
+	return &THRequestHandler{
+		Options: thh.Options,
+		ID:      thh.IDGenerator.Next(),
 	}
 }
 
