@@ -210,7 +210,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		// If we could use any of the IP addresses returned by this query
 		// for establishing TLS connections, we're ~confident that we've
 		// been given legitimate IP addresses by the resolver.
-		if ssm.dnsAnyIPAddrsWorkWithHTTPS(pq) {
+		if ssm.dnsAnyIPAddrWorksWithHTTPS(pq) {
 			score.Flags |= AnalysisFlagAccessible | AnalysisFlagDNSValidViaHTTPS
 			return score
 		}
@@ -312,23 +312,23 @@ func (ssm *SingleStepMeasurement) dnsBogonsCheck(pq *measurex.DNSLookupMeasureme
 	return false
 }
 
-// dnsAnyIPAddrsWorkWithHTTPS checks whether the TH could use the IP addrs
-// returned by the probe to perform any HTTPS measurement.
-func (ssm *SingleStepMeasurement) dnsAnyIPAddrsWorkWithHTTPS(
+// dnsAnyIPAddrWorksWithHTTPS checks whether the TH could use one of the
+// IP addrs returned by the probe to perform any HTTPS measurement.
+func (ssm *SingleStepMeasurement) dnsAnyIPAddrWorksWithHTTPS(
 	pq *measurex.DNSLookupMeasurement) bool {
 	if ssm.TH == nil || pq.Failure() != "" {
 		// Just in case there's some bug
 		return false
 	}
 	var count int64
-	for _, probeAddr := range pq.Addresses() {
+	for _, prAddr := range pq.Addresses() {
 		for _, epnt := range ssm.TH.Endpoint {
 			thAddr, err := epnt.IPAddress()
 			if err != nil {
 				// This also seems a bug or an edge case
 				continue
 			}
-			if probeAddr != thAddr || epnt.Scheme() != "https" {
+			if prAddr != thAddr || epnt.Scheme() != "https" {
 				// Not the droids we were looking for
 				continue
 			}
