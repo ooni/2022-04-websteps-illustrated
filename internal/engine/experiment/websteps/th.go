@@ -192,7 +192,8 @@ func (thh *THHandler) step(
 		um.Endpoint = append(um.Endpoint, m)
 	}
 	// second round where we follow Alt-Svc leads
-	epplan, _ = um.NewEndpointPlan(thh.Logger, measurex.EndpointPlanningExcludeBogons)
+	epplan, _ = um.NewEndpointPlan(thh.Logger,
+		measurex.EndpointPlanningExcludeBogons|measurex.EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}

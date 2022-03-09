@@ -253,7 +253,7 @@ func (c *Client) measureDiscoveredEndpoints(
 func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
 	c.logger.Info("📡 [initial] measuring extra endpoints discovered using Alt-Svc (if any)")
-	epntPlan, _ := cur.NewEndpointPlan(c.logger, 0)
+	epntPlan, _ := cur.NewEndpointPlan(c.logger, measurex.EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}

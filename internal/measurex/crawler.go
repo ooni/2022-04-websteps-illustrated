@@ -87,7 +87,7 @@ func (c *Crawler) do(ctx context.Context, mx *Measurer, um *URLMeasurement) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
 	c.Logger.Info("📡 visiting extra endpoints deriving from Alt-Svc (if any)")
-	epntPlan, _ = um.NewEndpointPlan(c.Logger, 0)
+	epntPlan, _ = um.NewEndpointPlan(c.Logger, EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}

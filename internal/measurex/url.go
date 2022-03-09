@@ -259,6 +259,9 @@ func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
 const (
 	// EndpointPlanningExcludeBogons excludes bogons from NewEndpointPlan's planning.
 	EndpointPlanningExcludeBogons = 1 << iota
+
+	// EndpointPlanningOnlyHTTP3 ensures we only test HTTP3.
+	EndpointPlanningOnlyHTTP3
 )
 
 // NewEndpointPlan is a convenience function that calls um.URLAddressList and passes the
@@ -297,24 +300,26 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 		}
 		added := false
 
-		if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
-			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
-			if err != nil {
-				log.Printf("cannot make plan: %s", err.Error())
-				continue
+		if (flags & EndpointPlanningOnlyHTTP3) == 0 {
+			if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
+				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
+				if err != nil {
+					log.Printf("cannot make plan: %s", err.Error())
+					continue
+				}
+				out = append(out, plan)
+				added = true
 			}
-			out = append(out, plan)
-			added = true
-		}
 
-		if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
-			plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
-			if err != nil {
-				log.Printf("cannot make plan: %s", err.Error())
-				continue
+			if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
+				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
+				if err != nil {
+					log.Printf("cannot make plan: %s", err.Error())
+					continue
+				}
+				out = append(out, plan)
+				added = true
 			}
-			out = append(out, plan)
-			added = true
 		}
 
 		if um.IsHTTPS() && addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
