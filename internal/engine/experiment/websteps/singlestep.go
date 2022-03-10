@@ -26,27 +26,9 @@ type SingleStepMeasurement struct {
 
 	// Analysis contains the results analysis.
 	Analysis *Analysis
-}
 
-// AggregateFlags aggregates the flags of each individual analysis.
-func (ssm *SingleStepMeasurement) AggregateFlags() (out int64) {
-	if ssm.Analysis != nil {
-		for _, dns := range ssm.Analysis.DNS {
-			out |= dns.Flags
-		}
-		for _, epnt := range ssm.Analysis.Endpoint {
-			out |= epnt.Flags
-		}
-	}
-	return
-}
-
-// ProbeInitialID returns the ID of the ssm.ProbeInitial field.
-func (ssm *SingleStepMeasurement) ProbeInitialID() (out int64) {
-	if ssm.ProbeInitial != nil {
-		out = ssm.ProbeInitial.ID
-	}
-	return
+	// Flags contains aggregate flags for this single step.
+	Flags int64
 }
 
 // Analysis contains the results of the analysis.
@@ -56,9 +38,6 @@ type Analysis struct {
 
 	// Endpoint contains the endpoint results analysis.
 	Endpoint []*AnalysisEndpoint `json:"endpoint"`
-
-	// URL contains the whole URL analysis.
-	URL *AnalysisURL `json:"url"`
 }
 
 // THResponseWithID is a TH response with a ID assigned by the probe.
@@ -80,6 +59,7 @@ type ArchivalSingleStepMeasurement struct {
 	TH              *ArchivalTHResponseWithID              `json:"th"`
 	ProbeAdditional []measurex.ArchivalEndpointMeasurement `json:"probe_additional"`
 	Analysis        *Analysis                              `json:"analysis"`
+	Flags           int64                                  `json:"flags"`
 }
 
 // ArchivalTHResponseWithID is the archival format of a TH response.
