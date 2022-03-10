@@ -56,21 +56,21 @@ type THResponseWithID struct {
 // for SingleStepMeasurement.
 type ArchivalSingleStepMeasurement struct {
 	ProbeInitial    *measurex.ArchivalURLMeasurement       `json:"probe_initial"`
-	TH              *ArchivalTHResponseWithID              `json:"th"`
+	TH              *ArchivalTHResponse                    `json:"th"`
 	ProbeAdditional []measurex.ArchivalEndpointMeasurement `json:"probe_additional"`
 	Analysis        *Analysis                              `json:"analysis"`
 	Flags           int64                                  `json:"flags"`
 }
 
-// ArchivalTHResponseWithID is the archival format of a TH response.
-type ArchivalTHResponseWithID struct {
+// ArchivalTHResponse is the archival format of a TH response.
+type ArchivalTHResponse struct {
 	DNS      []measurex.ArchivalDNSLookupMeasurement `json:"dns"`
 	Endpoint []measurex.ArchivalEndpointMeasurement  `json:"endpoint"`
 }
 
 // ToArchival converts a THResponse to its archival format.
-func (r *THResponseWithID) ToArchival(begin time.Time) ArchivalTHResponseWithID {
-	return ArchivalTHResponseWithID{
+func (r *THResponseWithID) ToArchival(begin time.Time) ArchivalTHResponse {
+	return ArchivalTHResponse{
 		DNS:      measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
 		Endpoint: measurex.NewArchivalEndpointMeasurementList(begin, r.Endpoint),
 	}
