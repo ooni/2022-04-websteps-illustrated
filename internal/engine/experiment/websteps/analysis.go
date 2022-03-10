@@ -144,7 +144,7 @@ func (ssm *SingleStepMeasurement) urlAnalysis(
 	mx *measurex.Measurer, logger model.Logger) (out *AnalysisURL) {
 	out = &AnalysisURL{
 		ID:               mx.NextID(),
-		URLMeasurementID: ssm.ID(),
+		URLMeasurementID: ssm.ProbeInitialID(),
 		Refs:             []int64{},
 		Flags:            0,
 	}

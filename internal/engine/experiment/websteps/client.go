@@ -24,19 +24,30 @@ type TestKeys struct {
 
 	// Steps contains all the steps.
 	Steps []*SingleStepMeasurement
+
+	// Flags contains the analysis flags.
+	Flags int64
+
+	// RootID is the ID of the first probe-initial
+	// measurement we performed.
+	RootID int64
 }
 
 // ArchivalTestKeys contains the archival test keys.
 type ArchivalTestKeys struct {
-	URL   string                           `json:"url"`
-	Steps []*ArchivalSingleStepMeasurement `json:"steps"`
+	URL    string                           `json:"url"`
+	Steps  []*ArchivalSingleStepMeasurement `json:"steps"`
+	Flags  int64                            `json:"flags"`
+	RootID int64                            `json:"root_id"`
 }
 
 // ToArchival converts TestKeys to the archival data format.
 func (tk *TestKeys) ToArchival(begin time.Time) (out *ArchivalTestKeys) {
 	out = &ArchivalTestKeys{
-		URL:   tk.URL,
-		Steps: []*ArchivalSingleStepMeasurement{},
+		URL:    tk.URL,
+		Steps:  []*ArchivalSingleStepMeasurement{},
+		Flags:  tk.Flags,
+		RootID: tk.RootID,
 	}
 	for _, entry := range tk.Steps {
 		out.Steps = append(out.Steps, entry.ToArchival(begin))
@@ -164,6 +175,10 @@ func (c *Client) steps(ctx context.Context, input string) {
 		ssm.rememberVisitedURLs(q)
 		redirects, _ := ssm.redirects(mx)
 		tkoe.TestKeys.Steps = append(tkoe.TestKeys.Steps, ssm)
+		tkoe.TestKeys.Flags |= ssm.AggregateFlags()
+		if tkoe.TestKeys.RootID == 0 {
+			tkoe.TestKeys.RootID = ssm.ProbeInitialID()
+		}
 		q.Append(redirects...)
 		c.logger.Infof("🪀 work queue: %s", q.String())
 	}

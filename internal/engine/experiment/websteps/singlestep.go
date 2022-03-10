@@ -28,7 +28,21 @@ type SingleStepMeasurement struct {
 	Analysis *Analysis
 }
 
-func (ssm *SingleStepMeasurement) ID() (out int64) {
+// AggregateFlags aggregates the flags of each individual analysis.
+func (ssm *SingleStepMeasurement) AggregateFlags() (out int64) {
+	if ssm.Analysis != nil {
+		for _, dns := range ssm.Analysis.DNS {
+			out |= dns.Flags
+		}
+		for _, epnt := range ssm.Analysis.Endpoint {
+			out |= epnt.Flags
+		}
+	}
+	return
+}
+
+// ProbeInitialID returns the ID of the ssm.ProbeInitial field.
+func (ssm *SingleStepMeasurement) ProbeInitialID() (out int64) {
 	if ssm.ProbeInitial != nil {
 		out = ssm.ProbeInitial.ID
 	}
