@@ -95,10 +95,10 @@ const (
 	//
 	// Group: Misc
 	//
-	AnalysisUnused48 = 1 << 48
-	AnalysisUnused49 = 1 << 49
-	AnalysisUnused50 = 1 << 50
-	AnalysisUnused51 = 1 << 51
+	AnalysisTHFailure = 1 << 48 // the TH failed
+	AnalysisUnused49  = 1 << 49
+	AnalysisUnused50  = 1 << 50
+	AnalysisUnused51  = 1 << 51
 	//
 	// Group: Reserv
 	//
@@ -182,8 +182,13 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(
 		// should not happen in practice, just a safety net.
 		return nil
 	}
+	var flags int64
+	if ssm.TH == nil {
+		flags |= AnalysisTHFailure
+	}
 	for _, pq := range ssm.ProbeInitial.DNS {
 		score := ssm.dnsSingleLookupAnalysis(mx, logger, pq)
+		score.Flags |= flags
 		ExplainFlagsWithLogging(logger, pq, score.Flags)
 		out = append(out, score)
 	}
@@ -389,15 +394,21 @@ type AnalysisEndpoint struct {
 // returns nil when there's no endpoint data to analyze.
 func (ssm *SingleStepMeasurement) endpointAnalysis(
 	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisEndpoint) {
+	var flags int64
+	if ssm.TH == nil {
+		flags |= AnalysisTHFailure
+	}
 	if ssm.ProbeInitial != nil {
 		for _, pe := range ssm.ProbeInitial.Endpoint {
 			score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
+			score.Flags |= flags
 			ExplainFlagsWithLogging(logger, pe, score.Flags)
 			out = append(out, score)
 		}
 	}
 	for _, pe := range ssm.ProbeAdditional {
 		score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
+		score.Flags |= flags
 		ExplainFlagsWithLogging(logger, pe, score.Flags)
 		out = append(out, score)
 	}
