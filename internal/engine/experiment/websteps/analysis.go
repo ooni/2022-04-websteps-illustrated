@@ -19,14 +19,23 @@ import (
 // We represent analysis results using an int64 bitmask. We define
 // the following groups of bits within the bitmask:
 //
-//     0                16                   32
-//     +-----------------+-------------------+
-//     |    DNS (16 bit) | endpoint (16 bit) |
-//     +-----------------+-------------------+
-//     |   HTTP (16 bit) | reserved (16 bit) |
-//     +-----------------+-------------------+
+//     0    4    8   12   16   20   24   28   32
+//     +----+----+----+----+----+----+----+----+
+//     |       DNS         |   TCP, TLS, QUIC  |
+//     +----+----+----+----+----+----+----+----+
+//     |       HTTP        | TH | GL | Reserv  |
+//     +----+----+----+----+----+----+----+----+
 //
-// Data consumers SHOULD ignore the reserved bits.
+// The DNS group is DNS related. The TCP, TLS, QUIC group is related
+// to TCP, TLS, or QUIC. The HTTP group is related to HTTP.
+//
+// The TH group is related to the test helper.
+//
+// The GL group contains global flags. These flag only make sense when
+// applied to a measurement containing several steps.
+//
+// The Reserv group contains implementation-reserved flags. A data
+// consumer MUST ignore the reserved bits.
 const (
 	//
 	// Group: DNS
@@ -48,7 +57,7 @@ const (
 	AnalysisUnassigned14 = 1 << 14
 	AnalysisDNSOther     = 1 << 15
 	//
-	// Group: endpoint
+	// Group: TCP, TLS, QUIC
 	//
 	AnalysisTCPTimeout    = 1 << 16
 	AnalysisTCPRefused    = 1 << 17
@@ -86,21 +95,27 @@ const (
 	AnalysisUnassigned46       = 1 << 46
 	AnalysisHTTPOther          = 1 << 47
 	//
-	// Group: private
+	// Group: TH
 	//
-	AnalysisGiveUp       = 1 << 48
-	AnalysisUnused49     = 1 << 49
-	AnalysisBrokenIPv6   = 1 << 50
-	AnalysisProbeBug     = 1 << 51
-	AnalysisUnused52     = 1 << 52
-	AnalysisInconsistent = 1 << 53
-	AnalysisConsistent   = 1 << 54
-	AnalysisUnused55     = 1 << 55
-	AnalysisUnused56     = 1 << 56
-	AnalysisUnused57     = 1 << 57
-	AnalysisUnused58     = 1 << 58
-	AnalysisUnused59     = 1 << 59
-	AnalysisUnused60     = 1 << 60
+	AnalysisUnused48 = 1 << 48
+	AnalysisUnused49 = 1 << 49
+	AnalysisUnused50 = 1 << 50
+	AnalysisUnused51 = 1 << 51
+	//
+	// Group: GL
+	//
+	AnalysisUnused52 = 1 << 52
+	AnalysisUnused53 = 1 << 53
+	AnalysisUnused54 = 1 << 54
+	AnalysisUnused55 = 1 << 55
+	//
+	// Group: Reserv
+	//
+	AnalysisGiveUp       = 1 << 56
+	AnalysisBrokenIPv6   = 1 << 57
+	AnalysisProbeBug     = 1 << 58
+	AnalysisInconsistent = 1 << 59
+	AnalysisConsistent   = 1 << 60
 	AnalysisUnused61     = 1 << 61
 	AnalysisUnused62     = 1 << 62
 	AnalysisUnused63     = 1 << 63
