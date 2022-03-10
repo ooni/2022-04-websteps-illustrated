@@ -43,7 +43,7 @@ const (
 	AnalysisBogon        = 1 << 2
 	AnalysisDNSNoAnswer  = 1 << 3
 	AnalysisDNSRefused   = 1 << 4
-	AnalysisDNSNotLying  = 1 << 5 // No lies if we can do TLS
+	AnalysisDNSNotLying  = 1 << 5 // whether we can use IPs for TLS
 	AnalysisDNSDiff      = 1 << 6
 	AnalysisUnassigned7  = 1 << 7
 	AnalysisUnassigned8  = 1 << 8
@@ -63,7 +63,7 @@ const (
 	AnalysisTLSTimeout    = 1 << 19
 	AnalysisTLSEOF        = 1 << 20
 	AnalysisTLSReset      = 1 << 21
-	AnalysisCertificate   = 1 << 22
+	AnalysisCertificate   = 1 << 22 // most likely MITM
 	AnalysisUnassigned23  = 1 << 23
 	AnalysisUnassigned24  = 1 << 24
 	AnalysisUnassigned25  = 1 << 25
@@ -76,7 +76,7 @@ const (
 	//
 	// Group: HTTP
 	//
-	AnalysisHTTPAccessible     = 1 << 32 // Same as Web Connectivity
+	AnalysisHTTPAccessible     = 1 << 32 // no blocking and page makes sense
 	AnalysisHTTPTimeout        = 1 << 33
 	AnalysisHTTPReset          = 1 << 34
 	AnalysisHTTPEOF            = 1 << 35
