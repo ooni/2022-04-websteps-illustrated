@@ -23,19 +23,17 @@ import (
 //     +----+----+----+----+----+----+----+----+
 //     |       DNS         |   TCP, TLS, QUIC  |
 //     +----+----+----+----+----+----+----+----+
-//     |       HTTP        | TH | GL | Reserv  |
+//     |       HTTP        |Misc|     Priv     |
 //     +----+----+----+----+----+----+----+----+
 //
 // The DNS group is DNS related. The TCP, TLS, QUIC group is related
 // to TCP, TLS, or QUIC. The HTTP group is related to HTTP.
 //
-// The TH group is related to the test helper.
+// The Misc group contains miscellaneous flags.
 //
-// The GL group contains global flags. These flag only make sense when
-// applied to a measurement containing several steps.
-//
-// The Reserv group contains implementation-reserved flags. A data
-// consumer MUST ignore the reserved bits.
+// The Priv group contains implementation-reserved flags. A data
+// consumer MUST ignore the reserved bits. An implementation SHOULD
+// NOT clear Priv flags, which may be useful when debugging.
 const (
 	//
 	// Group: DNS
@@ -95,22 +93,19 @@ const (
 	AnalysisUnassigned46       = 1 << 46
 	AnalysisHTTPOther          = 1 << 47
 	//
-	// Group: TH
+	// Group: Misc
 	//
 	AnalysisUnused48 = 1 << 48
 	AnalysisUnused49 = 1 << 49
 	AnalysisUnused50 = 1 << 50
 	AnalysisUnused51 = 1 << 51
 	//
-	// Group: GL
-	//
-	AnalysisUnused52 = 1 << 52
-	AnalysisUnused53 = 1 << 53
-	AnalysisUnused54 = 1 << 54
-	AnalysisUnused55 = 1 << 55
-	//
 	// Group: Reserv
 	//
+	AnalysisUnused52     = 1 << 52
+	AnalysisUnused53     = 1 << 53
+	AnalysisUnused54     = 1 << 54
+	AnalysisUnused55     = 1 << 55
 	AnalysisGiveUp       = 1 << 56
 	AnalysisBrokenIPv6   = 1 << 57
 	AnalysisProbeBug     = 1 << 58
