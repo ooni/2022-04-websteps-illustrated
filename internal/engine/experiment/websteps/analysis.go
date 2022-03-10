@@ -36,7 +36,7 @@ const (
 	AnalysisBogon        = 1 << 2
 	AnalysisDNSNoAnswer  = 1 << 3
 	AnalysisDNSRefused   = 1 << 4
-	AnalysisDNSNotLying  = 1 << 5
+	AnalysisDNSNotLying  = 1 << 5 // No lies if we can do TLS
 	AnalysisDNSDiff      = 1 << 6
 	AnalysisUnassigned7  = 1 << 7
 	AnalysisUnassigned8  = 1 << 8
@@ -69,7 +69,7 @@ const (
 	//
 	// Group: HTTP
 	//
-	AnalysisHTTPUnassigned32   = 1 << 32
+	AnalysisHTTPAccessible     = 1 << 32 // Same as Web Connectivity
 	AnalysisHTTPTimeout        = 1 << 33
 	AnalysisHTTPReset          = 1 << 34
 	AnalysisHTTPEOF            = 1 << 35
@@ -429,6 +429,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		// Special case: if we are using HTTPS (or HTTP3) and we
 		// succeded, then we're most likely okay, modulo sanctions.
 		if pe.Failure == "" && pe.Scheme() == "https" {
+			score.Flags |= AnalysisHTTPAccessible
 			return score
 		}
 		// Without having additional data we cannot really
@@ -563,6 +564,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	// We're not prepared yet to fully handle server-side blocking in
 	// the probe, so stop here in case of HTTPS.
 	if pe.Scheme() == "https" {
+		score.Flags |= AnalysisHTTPAccessible
 		return score
 	}
 
@@ -575,16 +577,19 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	if flags == 0 {
 		flags = ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
 		if flags == 0 {
+			score.Flags |= AnalysisHTTPAccessible
 			return score
 		}
 		score.Flags |= flags
 		flags = ssm.endpointWebConnectivityHeadersMatch(pe, the)
 		if flags == 0 {
+			score.Flags |= AnalysisHTTPAccessible
 			return score
 		}
 		score.Flags |= flags
 		flags := ssm.endpointWebConnectivityTitleMatch(pe, the)
 		if flags == 0 {
+			score.Flags |= AnalysisHTTPAccessible
 			return score
 		}
 		score.Flags |= flags
