@@ -141,7 +141,7 @@ type ArchivalURLMeasurement struct {
 	URL string `json:"url"`
 
 	// Cookies contains the cookies.
-	Cookies []string `json:"cookies,omitempty"`
+	Cookies []string `json:"cookies"`
 
 	// DNS contains a list of DNS measurements.
 	DNS []ArchivalDNSLookupMeasurement `json:"dns"`
