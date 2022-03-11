@@ -1,17 +1,17 @@
 package websteps
 
+//
+// SingleStepMeasurement
+//
+// Definition of the SingleStepMeasurement struct.
+//
+
 import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 )
-
-//
-// SingleStepMeasurement
-//
-// Definition of the SingleStepMeasurement struct.
-//
 
 // SingleStepMeasurement contains a a single-step measurement.
 type SingleStepMeasurement struct {
@@ -34,6 +34,22 @@ type SingleStepMeasurement struct {
 
 	// Flags contains aggregate flags for this single step.
 	Flags int64
+}
+
+// ProbeInitialURLMeasurementID returns the ProbeInitial.ID value or zero.
+func (ssm *SingleStepMeasurement) ProbeInitialURLMeasurementID() int64 {
+	if ssm.ProbeInitial != nil {
+		return ssm.ProbeInitial.ID
+	}
+	return 0
+}
+
+// ProbeInitialDomain returns the domain of ProbeInitial.Domain() or zero.
+func (ssm *SingleStepMeasurement) ProbeInitialDomain() string {
+	if ssm.ProbeInitial != nil {
+		return ssm.ProbeInitial.Domain()
+	}
+	return ""
 }
 
 // Analysis contains the results of the analysis.

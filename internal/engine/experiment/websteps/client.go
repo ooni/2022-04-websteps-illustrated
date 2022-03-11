@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
@@ -283,14 +284,14 @@ func (c *Client) step(ctx context.Context,
 	thc := c.th(ctx, cur)
 	c.measureDiscoveredEndpoints(ctx, mx, cur)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
-	maybeTH := <-thc // wait for test helper to terminate
+	maybeTH := c.waitForTHC(thc)
 	if maybeTH.Err == nil {
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
-		c.logger.Info("🚧️ [th] importing the TH measurements")
+		c.logger.Info("🚧️ [th] importing TH measurements")
 		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
 	}
-	ssm.DNSPing = <-dc // wait for dnsping to terminate
+	ssm.DNSPing = c.waitForDNSPing(dc)
 	c.measureAdditionalEndpoints(ctx, mx, ssm)
 	c.logger.Infof("🔬 analyzing the collected results")
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx, c.logger)
@@ -298,6 +299,20 @@ func (c *Client) step(ctx context.Context,
 	ssm.Flags = ssm.aggregateFlags(mx, c.logger)
 	// TODO(bassosimone): run follow-up experiments
 	return ssm
+}
+
+func (c *Client) waitForTHC(thc <-chan *THResponseOrError) *THResponseOrError {
+	ol := measurex.NewOperationLogger(c.logger, "waiting for TH to complete")
+	out := <-thc
+	ol.Stop(out.Err)
+	return out
+}
+
+func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result) *dnsping.Result {
+	ol := measurex.NewOperationLogger(c.logger, "waiting for dnsping to complete")
+	out := <-dc
+	ol.Stop(nil)
+	return out
 }
 
 func (c *Client) dnsLookup(ctx context.Context,
@@ -409,47 +424,53 @@ func (thm *THResponseWithID) URLAddressList() (o []*measurex.URLAddress, v bool)
 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 	mx *measurex.Measurer, ssm *SingleStepMeasurement) {
-	c.logger.Info("📡 [additional] measuring extra endpoints discovered by the TH (if any)")
-	addrslist, _ := c.expandProbeKnowledgeWithTHData(mx, ssm.ProbeInitial, ssm.TH)
+	c.logger.Info("📡 [additional] looking for new endpoints in TH/dnsping results")
+	addrslist, _ := c.expandProbeKnowledge(mx, ssm)
 	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(c.logger, addrslist, 0)
+	if len(plan) > 0 {
+		c.logger.Info("📡 [additional] measuring newly discovered endpoints")
+	}
 	for m := range mx.MeasureEndpoints(ctx, plan...) {
 		ssm.ProbeAdditional = append(ssm.ProbeAdditional, m)
 	}
 }
 
-// expandProbeKnowledgeWithTHData returns a list of URL addresses that extends
+// expandProbeKnowledge returns a list of URL addresses that extends
 // the original set of facts known by the probe by adding:
 //
 // 1. information about HTTP3 support for hosts;
 //
-// 2. new IP addresses previously unknown to the probe.
+// 2. new IP addresses previously unknown to the probe that were
+// discovered by the test helper;
+//
+// 3. addresses discovered using dnsping.
 //
 // If the return value is (nil, false), it means we could not discover any
 // new information. Otherwise, we return a valid list and true.
-func (c *Client) expandProbeKnowledgeWithTHData(mx *measurex.Measurer,
-	probem *measurex.URLMeasurement, thm *THResponseWithID) ([]*measurex.URLAddress, bool) {
+func (c *Client) expandProbeKnowledge(
+	mx *measurex.Measurer, ssm *SingleStepMeasurement) ([]*measurex.URLAddress, bool) {
 	// 1. gather the lists for the probe and the th
-	pal, _ := probem.URLAddressList()
-	thal, _ := thm.URLAddressList()
+	pal, _ := ssm.probeInitialURLAddressList()
+	thal, _ := ssm.testHelperOrDNSPingURLAddressList()
 	// 2. build a map of the addresses known by the probe.
 	pam := make(map[string]*measurex.URLAddress)
 	for _, e := range pal {
 		pam[e.Address] = e
 	}
-	// 3. expand probe's knowledge using the TH list.
+	// 3. expand probe's knowledge using the TH+dnsping list.
 	var (
 		o    []*measurex.URLAddress
 		uniq = make(map[string]bool)
 	)
 	for _, the := range thal {
 		if p, found := pam[the.Address]; found {
-			// 3.1. if the test helper knows that a given IP address also known by
+			// 3.1. if the TH+dnsping knows that a given IP address also known by
 			// the probe supports HTTP3 and the probe does not, we add such an address.
 			if (p.Flags & measurex.URLAddressAlreadyTestedHTTP3) != 0 {
 				continue
 			}
 			if (the.Flags & measurex.URLAddressAlreadyTestedHTTP3) != 0 {
-				mx.Logger.Infof("🙌 the TH told us that %s supports HTTP3", the.Address)
+				mx.Logger.Infof("🙌 discovered that %s supports HTTP3", the.Address)
 				p.Flags |= measurex.URLAddressSupportsHTTP3
 				o = append(o, p)
 			}
@@ -465,8 +486,33 @@ func (c *Client) expandProbeKnowledgeWithTHData(mx *measurex.Measurer,
 			Address:          the.Address,
 			Flags:            (the.Flags & measurex.URLAddressSupportsHTTP3),
 		})
-		mx.Logger.Infof("🙌 the TH told us about new %s address for domain", the.Address)
+		mx.Logger.Infof("🙌 discovered new %s address for domain", the.Address)
 		uniq[the.Address] = true
 	}
 	return o, len(o) > 0
+}
+
+func (ssm *SingleStepMeasurement) probeInitialURLAddressList() (
+	out []*measurex.URLAddress, good bool) {
+	if ssm.ProbeInitial != nil {
+		return ssm.ProbeInitial.URLAddressList()
+	}
+	return nil, false
+}
+
+func (ssm *SingleStepMeasurement) testHelperOrDNSPingURLAddressList() (
+	out []*measurex.URLAddress, good bool) {
+	if ssm.TH != nil {
+		data, _ := ssm.TH.URLAddressList()
+		out = append(out, data...)
+	}
+	if ssm.DNSPing != nil {
+		id := ssm.ProbeInitialURLMeasurementID()
+		// Note: we're filtering by domain here because potentially the
+		// dnsping could test multiple domains together, so we need to be
+		// sure that we only include the domain we're retesting
+		data, _ := ssm.DNSPing.URLAddressList(id, ssm.ProbeInitialDomain())
+		out = append(out, data...)
+	}
+	return out, len(out) > 0
 }
