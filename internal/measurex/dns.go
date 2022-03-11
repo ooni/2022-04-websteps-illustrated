@@ -76,6 +76,23 @@ type DNSLookupMeasurement struct {
 	RoundTrip []*archival.FlatDNSRoundTripEvent
 }
 
+// UsingResolverIPv6 returns true whether this specific DNS lookup
+// has used an IPv6 resolver, false otherwise.
+func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
+	if dlm.Lookup != nil {
+		switch dlm.Lookup.ResolverNetwork {
+		case "tcp", "udp", "dot":
+			usingIPv6 = isEndpointIPv6(dlm.ResolverAddress())
+		case "doh":
+			// TODO(bassosimone): implement this case
+			log.Printf("UsingResolverIPv6: doh case is not implemented")
+		default:
+			// nothing
+		}
+	}
+	return
+}
+
 // Runtime is the runtime of this query.
 func (dlm *DNSLookupMeasurement) Runtime() (out time.Duration) {
 	if dlm.Lookup != nil {

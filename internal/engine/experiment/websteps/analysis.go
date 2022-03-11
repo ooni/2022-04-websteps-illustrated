@@ -8,7 +8,6 @@ package websteps
 
 import (
 	"net"
-	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
@@ -185,13 +184,13 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	}
 
 	// Corner case: when you don't have IPv6 support, you fail with
-	// "host unreachable" (sometimes "net unreachable") and generally
-	// the failure is super quick (sub-millisecond). We need to
-	// intercept this corner case and just ignore this query.
+	// "host unreachable" or "net unreachable". Because these kind of
+	// errors are not _widely_ used for censorship, our heuristic
+	// is that we consider these cases as IPv6 availability failures.
 	switch pq.Failure() {
 	case netxlite.FailureHostUnreachable,
 		netxlite.FailureNetworkUnreachable:
-		if delta := pq.Runtime(); delta > 0 && delta < 3*time.Millisecond {
+		if pq.UsingResolverIPv6() {
 			score.Flags |= AnalysisBrokenIPv6
 			return score
 		}
@@ -405,13 +404,13 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	}
 
 	// Corner case: when you don't have IPv6 support, you fail with
-	// "host unreachable" (sometimes "net unreachable") and generally
-	// the failure is super quick (sub-millisecond). We need to
-	// intercept this corner case and just ignore this measurement.
+	// "host unreachable" or "net unreachable". Because these kind of
+	// errors are not _widely_ used for censorship, our heuristic
+	// is that we consider these cases as IPv6 availability failures.
 	switch pe.Failure {
 	case netxlite.FailureHostUnreachable,
 		netxlite.FailureNetworkUnreachable:
-		if delta := pe.TCPQUICConnectRuntime(); delta > 0 && delta < 3*time.Millisecond {
+		if pe.UsingAddressIPv6() {
 			score.Flags |= AnalysisBrokenIPv6
 			return score
 		}

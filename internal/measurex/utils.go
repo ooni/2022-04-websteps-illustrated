@@ -8,10 +8,12 @@ package measurex
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"net/url"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 )
@@ -107,4 +109,13 @@ func GetWebPageTitle(webpage []byte) string {
 		return ""
 	}
 	return string(v[1])
+}
+
+// isEndpointIPv6 returns true if this endpoint uses IPv6, false otherwise.
+func isEndpointIPv6(epnt string) bool {
+	addr, _, err := net.SplitHostPort(epnt)
+	if err == nil && net.ParseIP(addr) != nil && strings.Contains(addr, ":") {
+		return true
+	}
+	return false
 }

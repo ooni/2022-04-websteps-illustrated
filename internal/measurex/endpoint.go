@@ -143,6 +143,19 @@ func (em *EndpointMeasurement) TCPQUICConnectRuntime() (out time.Duration) {
 	return
 }
 
+// UsingAddressIPv6 returns true whether this specific endpoint has
+// used an IPv6 destination address, false otherwise.
+func (em *EndpointMeasurement) UsingAddressIPv6() (usingIPv6 bool) {
+	switch em.Network {
+	case archival.NetworkTypeQUIC,
+		archival.NetworkTypeTCP:
+		usingIPv6 = isEndpointIPv6(em.Address)
+	default:
+		// nothing
+	}
+	return
+}
+
 // Describe describes this measurement.
 func (em *EndpointMeasurement) Describe() string {
 	return fmt.Sprintf("[#%d] endpoint measurement #%d for %s using %s",
