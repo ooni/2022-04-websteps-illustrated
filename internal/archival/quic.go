@@ -15,11 +15,11 @@ import (
 	"github.com/lucas-clemente/quic-go"
 )
 
-// WrapQUICListener wraps a QUICListener to use the saver.
-func (s *Saver) WrapQUICListener(ql model.QUICListener) model.QUICListener {
+// WrapUDPListener wraps a UDPListener to use the saver.
+func (s *Saver) WrapUDPListener(ql model.UDPListener) model.UDPListener {
 	return &quicListenerSaver{
-		QUICListener: ql,
-		s:            s,
+		UDPListener: ql,
+		s:           s,
 	}
 }
 
@@ -32,12 +32,12 @@ func (s *Saver) WrapQUICDialer(qd model.QUICDialer) model.QUICDialer {
 }
 
 type quicListenerSaver struct {
-	model.QUICListener
+	model.UDPListener
 	s *Saver
 }
 
 func (ql *quicListenerSaver) Listen(addr *net.UDPAddr) (model.UDPLikeConn, error) {
-	pconn, err := ql.QUICListener.Listen(addr)
+	pconn, err := ql.UDPListener.Listen(addr)
 	if err != nil {
 		return nil, err
 	}

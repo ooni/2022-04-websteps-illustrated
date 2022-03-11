@@ -12,24 +12,24 @@ import (
 	"github.com/lucas-clemente/quic-go"
 )
 
-// NewQUICListener creates a new QUICListener using the standard
+// NewUDPListener creates a new UDPListener using the standard
 // library to create listening UDP sockets.
-func NewQUICListener() model.QUICListener {
+func NewUDPListener() model.UDPListener {
 	return &quicListenerErrWrapper{&quicListenerStdlib{}}
 }
 
-// quicListenerStdlib is a QUICListener using the standard library.
+// quicListenerStdlib is a UDPListener using the standard library.
 type quicListenerStdlib struct{}
 
-var _ model.QUICListener = &quicListenerStdlib{}
+var _ model.UDPListener = &quicListenerStdlib{}
 
-// Listen implements QUICListener.Listen.
+// Listen implements UDPListener.Listen.
 func (qls *quicListenerStdlib) Listen(addr *net.UDPAddr) (model.UDPLikeConn, error) {
 	return TProxy.ListenUDP("udp", addr)
 }
 
 // NewQUICDialerWithResolver returns a QUICDialer using the given
-// QUICListener to create listening connections and the given Resolver
+// UDPListener to create listening connections and the given Resolver
 // to resolve domain names (if needed).
 //
 // Properties of the dialer:
@@ -49,14 +49,14 @@ func (qls *quicListenerStdlib) Listen(addr *net.UDPAddr) (model.UDPLikeConn, err
 // 6. if a dialer wraps a resolver, the dialer will forward
 // the CloseIdleConnection call to its resolver (which is
 // instrumental to manage a DoH resolver connections properly).
-func NewQUICDialerWithResolver(listener model.QUICListener,
+func NewQUICDialerWithResolver(listener model.UDPListener,
 	logger model.DebugLogger, resolver model.Resolver) model.QUICDialer {
 	return &quicDialerLogger{
 		Dialer: &quicDialerResolver{
 			Dialer: &quicDialerLogger{
 				Dialer: &quicDialerErrWrapper{
 					QUICDialer: &quicDialerQUICGo{
-						QUICListener: listener,
+						UDPListener: listener,
 					}},
 				Logger:          logger,
 				operationSuffix: "_address",
@@ -71,14 +71,14 @@ func NewQUICDialerWithResolver(listener model.QUICListener,
 // except that there is no configured resolver. So, if you pass in
 // an address containing a domain name, the dial will fail with
 // the ErrNoResolver failure.
-func NewQUICDialerWithoutResolver(listener model.QUICListener, logger model.DebugLogger) model.QUICDialer {
+func NewQUICDialerWithoutResolver(listener model.UDPListener, logger model.DebugLogger) model.QUICDialer {
 	return NewQUICDialerWithResolver(listener, logger, &nullResolver{})
 }
 
 // quicDialerQUICGo dials using the lucas-clemente/quic-go library.
 type quicDialerQUICGo struct {
-	// QUICListener is the underlying QUICListener to use.
-	QUICListener model.QUICListener
+	// UDPListener is the underlying UDPListener to use.
+	UDPListener model.UDPListener
 
 	// mockDialEarlyContext allows to mock quic.DialEarlyContext.
 	mockDialEarlyContext func(ctx context.Context, pconn net.PacketConn,
@@ -114,7 +114,7 @@ func (d *quicDialerQUICGo) DialContext(ctx context.Context, network string,
 	if ip == nil {
 		return nil, errInvalidIP
 	}
-	pconn, err := d.QUICListener.Listen(&net.UDPAddr{IP: net.IPv4zero, Port: 0})
+	pconn, err := d.UDPListener.Listen(&net.UDPAddr{IP: net.IPv4zero, Port: 0})
 	if err != nil {
 		return nil, err
 	}
@@ -321,17 +321,17 @@ func (s *quicDialerSingleUse) CloseIdleConnections() {
 	// nothing to do
 }
 
-// quicListenerErrWrapper is a QUICListener that wraps errors.
+// quicListenerErrWrapper is a UDPListener that wraps errors.
 type quicListenerErrWrapper struct {
-	// QUICListener is the underlying listener.
-	model.QUICListener
+	// UDPListener is the underlying listener.
+	model.UDPListener
 }
 
-var _ model.QUICListener = &quicListenerErrWrapper{}
+var _ model.UDPListener = &quicListenerErrWrapper{}
 
-// Listen implements QUICListener.Listen.
+// Listen implements UDPListener.Listen.
 func (qls *quicListenerErrWrapper) Listen(addr *net.UDPAddr) (model.UDPLikeConn, error) {
-	pconn, err := qls.QUICListener.Listen(addr)
+	pconn, err := qls.UDPListener.Listen(addr)
 	if err != nil {
 		return nil, NewErrWrapper(classifyGenericError, QUICListenOperation, err)
 	}

@@ -2,6 +2,8 @@
 /crawler
 /crawler.exe
 /crawler.jsonl
+/dnsping
+/dnsping.exe
 /report.jsonl
 /thctl
 /thctl.exe

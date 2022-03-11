@@ -65,6 +65,17 @@ type ArchivalBinaryData struct {
 	Data   []byte `json:"data"`
 }
 
+// NewArchivalBinaryData converts []byte to ArchivalBinaryData.
+func NewArchivalBinaryData(data []byte) (out *ArchivalBinaryData) {
+	if len(data) > 0 {
+		out = &ArchivalBinaryData{
+			Format: "base64",
+			Data:   data,
+		}
+	}
+	return
+}
+
 // ArchivalMaybeBinaryData is a possibly binary string. We use this helper class
 // to define a custom JSON encoder that allows us to choose the proper
 // representation depending on whether the Value field is valid UTF-8 or not.

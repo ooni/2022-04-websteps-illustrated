@@ -47,10 +47,10 @@ type NetxliteLibrary interface {
 	// NewQUICDialerWithoutResolver creates a new QUIC dialer
 	// that is not attached to any resolver.
 	NewQUICDialerWithoutResolver(
-		ql model.QUICListener, logger model.Logger) model.QUICDialer
+		ql model.UDPListener, logger model.Logger) model.QUICDialer
 
-	// NewQUICListener creates a new QUIC listener.
-	NewQUICListener() model.QUICListener
+	// NewUDPListener creates a new UDP listener.
+	NewUDPListener() model.UDPListener
 
 	// NewResolverSystem creates a new "system" resolver.
 	NewResolverSystem(logger model.Logger) model.Resolver
@@ -161,7 +161,7 @@ func (lib *Library) NewHTTPTransportWithQUICSess(saver *archival.Saver,
 // save any event into the Saver. Any QUICConn created by it will
 // likewise save any event into the Saver.
 func (lib *Library) NewQUICDialerWithoutResolver(saver *archival.Saver) model.QUICDialer {
-	ql := saver.WrapQUICListener(lib.netxlite.NewQUICListener())
+	ql := saver.WrapUDPListener(lib.netxlite.NewUDPListener())
 	return saver.WrapQUICDialer(lib.netxlite.NewQUICDialerWithoutResolver(
 		ql, lib.logger,
 	))
@@ -267,12 +267,12 @@ func (nl *netxliteLibrary) NewNullTLSDialer() model.TLSDialer {
 }
 
 func (nl *netxliteLibrary) NewQUICDialerWithoutResolver(
-	ql model.QUICListener, logger model.Logger) model.QUICDialer {
+	ql model.UDPListener, logger model.Logger) model.QUICDialer {
 	return netxlite.NewQUICDialerWithoutResolver(ql, logger)
 }
 
-func (nl *netxliteLibrary) NewQUICListener() model.QUICListener {
-	return netxlite.NewQUICListener()
+func (nl *netxliteLibrary) NewUDPListener() model.UDPListener {
+	return netxlite.NewUDPListener()
 }
 
 func (nl *netxliteLibrary) NewResolverSystem(logger model.Logger) model.Resolver {

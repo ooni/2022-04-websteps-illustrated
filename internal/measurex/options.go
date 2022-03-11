@@ -105,7 +105,7 @@ func (parent *Options) Chain(child *Options) *Options {
 
 const (
 	// DefaultDNSLookupTimeout is the default Options.DNSLookupTimeout value.
-	DefaultDNSLookupTimeout = 10 * time.Second
+	DefaultDNSLookupTimeout = 4 * time.Second
 
 	// DefaultDNSParallelism is the default Options.DNSParallelism value.
 	DefaultDNSParallelism = 4

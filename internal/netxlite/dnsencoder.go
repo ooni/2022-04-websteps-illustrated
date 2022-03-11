@@ -19,7 +19,8 @@ const (
 	dnsDNSSECEnabled = true
 )
 
-func (e *DNSEncoderMiekg) Encode(domain string, qtype uint16, padding bool) ([]byte, error) {
+func (e *DNSEncoderMiekg) Encode(
+	domain string, qtype uint16, padding bool) ([]byte, uint16, error) {
 	question := dns.Question{
 		Name:   dns.Fqdn(domain),
 		Qtype:  qtype,
@@ -43,7 +44,11 @@ func (e *DNSEncoderMiekg) Encode(domain string, qtype uint16, padding bool) ([]b
 		opt.Padding = make([]byte, remainder)
 		query.IsEdns0().Option = append(query.IsEdns0().Option, opt)
 	}
-	return query.Pack()
+	data, err := query.Pack()
+	if err != nil {
+		return nil, 0, err
+	}
+	return data, query.Id, nil
 }
 
 var _ model.DNSEncoder = &DNSEncoderMiekg{}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/lucas-clemente/quic-go"
+	"github.com/miekg/dns"
 	oohttp "github.com/ooni/oohttp"
 )
 
@@ -34,6 +35,9 @@ type DNSDecoder interface {
 	//
 	// Note that this function will return an error if there is no
 	// IP address inside of the reply.
+	//
+	// Note that the error returned by this function is not wrapped and
+	// it is your responsiblity to wrap it if needed.
 	DecodeLookupHost(qtype uint16, data []byte) ([]string, error)
 
 	// DecodeHTTPS decodes an HTTPS reply.
@@ -47,7 +51,35 @@ type DNSDecoder interface {
 	// This function will return an error if the HTTPS reply does not
 	// contain at least a valid ALPN entry. It will not return
 	// an error, though, when there are no IPv4/IPv6 hints in the reply.
+	//
+	// Note that the error returned by this function is not wrapped and
+	// it is your responsiblity to wrap it if needed.
 	DecodeHTTPS(data []byte) (*HTTPSSvc, error)
+
+	// ParseReply parses a reply without decoding it. This function
+	// will ONLY return error if data is not a valid DNS message. In
+	// particular, it WILL NOT return any error that depends on the
+	// Rcode. That is, if the Rcode is NXDOMAIN, this function
+	// will still return success anyway. To map NXDOMAIN and other
+	// errors, you need to use DecodeReplyLookup{Host,HTTPS}.
+	//
+	// Note that the error returned by this function is not wrapped and
+	// it is your responsiblity to wrap it if needed.
+	ParseReply(data []byte) (*dns.Msg, error)
+
+	// DecodeReplyLookupHost is like DecodeLookupHost but acts
+	// on an already parsed reply rather than on data.
+	//
+	// Note that the error returned by this function is not wrapped and
+	// it is your responsiblity to wrap it if needed.
+	DecodeReplyLookupHost(qtype uint16, reply *dns.Msg) ([]string, error)
+
+	// DecodeReplyLookupHTTPS is like DecodeLookupHTTPS but acts
+	// on an already parsed reply rather than on data.
+	//
+	// Note that the error returned by this function is not wrapped and
+	// it is your responsiblity to wrap it if needed.
+	DecodeReplyLookupHTTPS(reply *dns.Msg) (*HTTPSSvc, error)
 }
 
 // The DNSEncoder encodes DNS queries to bytes
@@ -62,9 +94,9 @@ type DNSEncoder interface {
 	//
 	// - padding is whether to add padding to the query.
 	//
-	// On success, this function returns a valid byte array and
-	// a nil error. On failure, we have an error and the byte array is nil.
-	Encode(domain string, qtype uint16, padding bool) ([]byte, error)
+	// On success, this function returns a valid byte array, the query ID
+	// and a nil error. On failure, only the error matters.
+	Encode(domain string, qtype uint16, padding bool) ([]byte, uint16, error)
 }
 
 // DNSTransport represents an abstract DNS transport.
@@ -131,8 +163,8 @@ type HTTPSSvc struct {
 	IPv6 []string
 }
 
-// QUICListener listens for QUIC connections.
-type QUICListener interface {
+// UDPListener creates a bound UDP socket.
+type UDPListener interface {
 	// Listen creates a new listening UDPLikeConn.
 	Listen(addr *net.UDPAddr) (UDPLikeConn, error)
 }

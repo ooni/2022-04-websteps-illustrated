@@ -8,28 +8,39 @@ import (
 // DNSDecoderMiekg uses github.com/miekg/dns to implement the Decoder.
 type DNSDecoderMiekg struct{}
 
-func (d *DNSDecoderMiekg) parseReply(data []byte) (*dns.Msg, error) {
-	reply := new(dns.Msg)
+func (d *DNSDecoderMiekg) ParseReply(data []byte) (*dns.Msg, error) {
+	reply := &dns.Msg{}
 	if err := reply.Unpack(data); err != nil {
 		return nil, err
 	}
+	return reply, nil
+}
+
+func (d *DNSDecoderMiekg) rcodeToError(reply *dns.Msg) error {
 	// TODO(bassosimone): map more errors to net.DNSError names
 	// TODO(bassosimone): add support for lame referral.
 	switch reply.Rcode {
 	case dns.RcodeSuccess:
-		return reply, nil
+		return nil
 	case dns.RcodeNameError:
-		return nil, ErrOODNSNoSuchHost
+		return ErrOODNSNoSuchHost
 	case dns.RcodeRefused:
-		return nil, ErrOODNSRefused
+		return ErrOODNSRefused
 	default:
-		return nil, ErrOODNSMisbehaving
+		return ErrOODNSMisbehaving
 	}
 }
 
 func (d *DNSDecoderMiekg) DecodeHTTPS(data []byte) (*model.HTTPSSvc, error) {
-	reply, err := d.parseReply(data)
+	reply, err := d.ParseReply(data)
 	if err != nil {
+		return nil, err
+	}
+	return d.DecodeReplyLookupHTTPS(reply)
+}
+
+func (d *DNSDecoderMiekg) DecodeReplyLookupHTTPS(reply *dns.Msg) (*model.HTTPSSvc, error) {
+	if err := d.rcodeToError(reply); err != nil {
 		return nil, err
 	}
 	out := &model.HTTPSSvc{}
@@ -59,8 +70,15 @@ func (d *DNSDecoderMiekg) DecodeHTTPS(data []byte) (*model.HTTPSSvc, error) {
 }
 
 func (d *DNSDecoderMiekg) DecodeLookupHost(qtype uint16, data []byte) ([]string, error) {
-	reply, err := d.parseReply(data)
+	reply, err := d.ParseReply(data)
 	if err != nil {
+		return nil, err
+	}
+	return d.DecodeReplyLookupHost(qtype, reply)
+}
+
+func (d *DNSDecoderMiekg) DecodeReplyLookupHost(qtype uint16, reply *dns.Msg) ([]string, error) {
+	if err := d.rcodeToError(reply); err != nil {
 		return nil, err
 	}
 	var addrs []string

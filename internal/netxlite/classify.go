@@ -253,7 +253,7 @@ var (
 	ErrOODNSNoAnswer    = fmt.Errorf("ooniresolver: %s", DNSNoAnswerSuffix)
 )
 
-// classifyResolverError maps DNS resolution errors to
+// ClassifyResolverError maps DNS resolution errors to
 // OONI failure strings.
 //
 // If the input error is an *ErrWrapper we don't perform
@@ -261,7 +261,7 @@ var (
 //
 // If this classifier fails, it calls ClassifyGenericError and
 // returns to the caller its return value.
-func classifyResolverError(err error) string {
+func ClassifyResolverError(err error) string {
 
 	// QUIRK: we cannot remove this check as long as this function
 	// is exported and used independently from NewErrWrapper.

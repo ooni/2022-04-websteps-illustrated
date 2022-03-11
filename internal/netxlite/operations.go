@@ -16,6 +16,9 @@ const (
 	QUICHandshakeOperation = "quic_handshake"
 
 	// QUICListenOperation is when we open a listening UDP conn for QUIC.
+	//
+	// Note: this name is already widely used so we should probably not change
+	// it, but a more correct name for this event would be "udp_listen".
 	QUICListenOperation = "quic_listen"
 
 	// HTTPRoundTripOperation is the HTTP round trip.
