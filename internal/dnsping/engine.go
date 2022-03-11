@@ -125,6 +125,11 @@ type SinglePingResult struct {
 	Replies []*SinglePingReply
 }
 
+// QueryTypeAsString returns the QueryType as string.
+func (spr *SinglePingResult) QueryTypeAsString() string {
+	return dns.TypeToString[spr.QueryType]
+}
+
 // Result is the result of a DNS ping session.
 type Result struct {
 	// Pings contains a list of ping results. If this list is empty,
@@ -407,7 +412,7 @@ func (b *dnsPingBoard) received(now time.Time, data []byte, srcAddr net.Addr) {
 	}
 	b.logger.Infof("🔔 [dnsping] %s for %s/%s from %s in %s",
 		dns.RcodeToString[reply.Rcode], result.Domain,
-		dns.TypeToString[result.QueryType], srcAddr.String(),
+		result.QueryTypeAsString(), srcAddr.String(),
 		now.Sub(result.Started))
 	addrs, alpns, err := b.finishParsingLocked(result.QueryType, reply)
 	result.Replies = append(result.Replies, &SinglePingReply{

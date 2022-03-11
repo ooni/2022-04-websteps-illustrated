@@ -102,7 +102,7 @@ const (
 	// Group: Reserv
 	//
 	AnalysisHTTPLegitimateRedir = 1 << 52
-	AnalysisUnused53            = 1 << 53
+	AnalysisDNSCanceledTimeout  = 1 << 53
 	AnalysisUnused54            = 1 << 54
 	AnalysisUnused55            = 1 << 55
 	AnalysisGiveUp              = 1 << 56
@@ -210,6 +210,8 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		// Countries like Iran censor returning bogon addresses.
 		if ssm.dnsBogonsCheck(pq) {
 			score.Flags |= AnalysisBogon
+			// TODO(bassosimone): here we can double down on the bogon
+			// analysis by checking for injection in dnsping.
 			return score
 		}
 		// If we could use any of the IP addresses returned by this query
@@ -265,10 +267,20 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		switch failure {
 		case netxlite.FailureDNSNXDOMAINError:
 			score.Flags |= AnalysisNXDOMAIN
+			// TODO(bassosimone): here we can double down on the NXDOMAIN
+			// analysis by checking for injection in dnsping.
 		case netxlite.FailureDNSRefusedError:
 			score.Flags |= AnalysisDNSRefused
 		case netxlite.FailureGenericTimeoutError:
 			score.Flags |= AnalysisDNSTimeout
+			dnspingID, found := ssm.dnsCanCancelTimeoutFlag(pq)
+			if found {
+				logger.Infof("🙌 timeout in #%d for %s using %s was transient (see #%d)",
+					pq.ID, pq.Domain(), pq.ResolverURL(), dnspingID)
+				score.Refs = append(score.Refs, dnspingID)
+				score.Flags &= ^AnalysisDNSTimeout
+				score.Flags |= AnalysisDNSCanceledTimeout
+			}
 		default:
 			score.Flags |= AnalysisDNSOther
 		}
@@ -283,6 +295,40 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 	}
 
 	return score
+}
+
+// dnsCanCancelTimeoutFlag returns true if dnsping succeeded at least
+// once for a query for which we faced a timeout.
+//
+// Return value:
+//
+// - ID of the dnsping measurement that allowed us to cancel the timeout;
+//
+// - whether we could cancel the timeout.
+func (ssm *SingleStepMeasurement) dnsCanCancelTimeoutFlag(
+	pq *measurex.DNSLookupMeasurement) (int64, bool) {
+	if ssm.DNSPing == nil || pq.ResolverNetwork() != archival.NetworkTypeUDP {
+		return 0, false
+	}
+	for _, ping := range ssm.DNSPing.Pings {
+		const urlMeasurementID = 0 // does not matter
+		fakeLookups := ping.DNSLookupMeasurementList(urlMeasurementID, pq.Domain())
+		for _, e := range fakeLookups {
+			if pq.Domain() != e.Domain() {
+				continue
+			}
+			if pq.LookupType() != e.LookupType() {
+				continue
+			}
+			if e.Failure() != "" {
+				continue
+			}
+			// If one of the pings for the same domain and lookup
+			// type succeeds, we conclude the timeout was transient
+			return e.ID, true
+		}
+	}
+	return 0, false
 }
 
 // dnsBogonsCheck checks whether a successful reply contains bogons.

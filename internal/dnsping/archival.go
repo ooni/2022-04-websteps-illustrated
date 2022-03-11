@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/miekg/dns"
 )
 
 // ArchivalSinglePingReply is the archival format of SinglePingReply.
@@ -55,7 +54,7 @@ func (spr *SinglePingResult) ToArchival(begin time.Time) *ArchivalSinglePingResu
 		ID:              spr.ID,
 		Query:           model.NewArchivalBinaryData(spr.Query),
 		ResolverAddress: spr.ResolverAddress,
-		QueryType:       dns.TypeToString[spr.QueryType],
+		QueryType:       spr.QueryTypeAsString(),
 		T:               spr.Started.Sub(begin).Seconds(),
 		Replies:         []*ArchivalSinglePingReply{},
 	}

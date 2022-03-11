@@ -9,6 +9,7 @@ package dnsping
 import (
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/miekg/dns"
 )
 
 // URLAddressList converts Result to []*URLAddress.
@@ -25,15 +26,15 @@ func (r *Result) URLAddressList(
 	urlMeasurementID int64, domain string) ([]*measurex.URLAddress, bool) {
 	dns := []*measurex.DNSLookupMeasurement{}
 	for _, spr := range r.Pings {
-		dns = append(dns, spr.dnsLookupMeasurementList(urlMeasurementID, domain)...)
+		dns = append(dns, spr.DNSLookupMeasurementList(urlMeasurementID, domain)...)
 	}
 	endpoint := []*measurex.EndpointMeasurement{}
 	return measurex.NewURLAddressList(urlMeasurementID, dns, endpoint)
 }
 
-// dnsLookupMeasurementList converts a SinglePingResult into a
+// DNSLookupMeasurementList converts a SinglePingResult into a
 // list containing DNSLookupMeasurement instances.
-func (spr *SinglePingResult) dnsLookupMeasurementList(
+func (spr *SinglePingResult) DNSLookupMeasurementList(
 	urlMeasurementID int64, domain string) (out []*measurex.DNSLookupMeasurement) {
 	if domain != spr.Domain {
 		// Ensure that we only include the domain we're interested into
@@ -44,14 +45,12 @@ func (spr *SinglePingResult) dnsLookupMeasurementList(
 			ID:               entry.ID,
 			URLMeasurementID: urlMeasurementID,
 			Lookup: &archival.FlatDNSLookupEvent{
-				// Because we may be including ALPNs/IPv4/IPv6 it's more
-				// proper to fake out an HTTPS lookup than A or AAAA.
 				ALPNs:           entry.ALPNs,
 				Addresses:       entry.Addresses,
 				Domain:          spr.Domain,
 				Failure:         entry.Error,
 				Finished:        entry.Finished,
-				LookupType:      archival.DNSLookupTypeHTTPS,
+				LookupType:      spr.lookupType(),
 				ResolverAddress: "dnsping",
 				ResolverNetwork: "",
 				Started:         spr.Started,
@@ -60,4 +59,15 @@ func (spr *SinglePingResult) dnsLookupMeasurementList(
 		})
 	}
 	return
+}
+
+func (spr *SinglePingResult) lookupType() archival.DNSLookupType {
+	switch spr.QueryType {
+	case dns.TypeA, dns.TypeAAAA:
+		return archival.DNSLookupTypeGetaddrinfo
+	case dns.TypeHTTPS:
+		return archival.DNSLookupTypeHTTPS
+	default:
+		return ""
+	}
 }
