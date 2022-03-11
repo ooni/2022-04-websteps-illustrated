@@ -237,14 +237,14 @@ class MeasurementDB:
         """Returns the measurement URL."""
         return self._meas.url
 
-    def list_analysis(self, url_idx: int) -> List[Entry]:
+    def list_analysis(self, url_idx: Optional[int] = None) -> List[Entry]:
         """Returns all the analysis entries."""
         out: List[Entry] = []
         for entry in self._table.values():
             if entry.kind() != Kind.ANALYSIS:
                 continue
             analysis: AnalysisDNSOrEndpoint = entry.unwrap()
-            if analysis.url_measurement_id != url_idx:
+            if url_idx is not None and analysis.url_measurement_id != url_idx:
                 continue
             out.append(entry)
         return out

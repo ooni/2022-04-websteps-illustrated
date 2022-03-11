@@ -13,6 +13,8 @@ from typing import List
 sys.path.insert(0, ".")
 
 from websteps.websteps import load as websteps_load
+from websteps.websteps import AnalysisDNSOrEndpoint
+from websteps.dblike import Entry
 from websteps.dblike import MeasurementDB
 
 
@@ -62,6 +64,9 @@ def s_command_help():
     print("")
     print("  la<id>")
     print("    lists probe's analysis for the given URL <id>")
+    print("")
+    print("  lia")
+    print('    lists "interesting" analysis')
     print("")
     print("  lm")
     print("    lists the currently-selected measurement")
@@ -127,6 +132,32 @@ def s_command_lm(idx: int, meas: MeasurementDB):
     print("")
 
 
+def s_command_lia(meas_idx: int, meas: MeasurementDB):
+    """Implements the lia command of the s environment."""
+    entries: List[Entry] = []
+    for elem in meas.list_analysis():
+        analysis: AnalysisDNSOrEndpoint = elem.unwrap()
+        if not analysis.flags.tags():
+            continue
+        entries.append(elem)
+    if len(entries) <= 0:
+        print("")
+        print('no "interesting" analysis to show')
+        print("")
+        print("hint: use `la<id>' to list all analysis for the URL with <id>")
+        print("hint: use `h' for help")
+        print("")
+        return
+    print("")
+    print(f'viewing "interesting" analysis for selected measurement {meas_idx}')
+    print("")
+    print_table([entry.dict() for entry in entries])
+    print("")
+    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
 def s_command_la(meas_idx: int, meas: MeasurementDB, command: str):
     """Implements the la command of the s environment."""
     try:
@@ -153,11 +184,20 @@ def s_command_lu(idx: int, meas: MeasurementDB):
     print("")
     print(f"viewing the URLs measured as part of selected measurement {idx}")
     print("")
-    print_table([elem.dict() for elem in meas.list_urls()])
+    entries = meas.list_urls()
+    print_table([elem.dict() for elem in entries])
     print("")
-    print("hint: use `la<id>` to list analysis for the given URL <id>")
+    print(f'hint: use `lia\' to list "interesting" analysis')
     print("hint: use `h' for help")
     print("")
+
+
+def s_truncate_url(meas: MeasurementDB):
+    """Returns meas' URL and possibly truncates it."""
+    url = meas.url()
+    if len(url) > 47:
+        url = url[:47] + " ..."
+    return url
 
 
 def s_interactive(idx: int, meas: MeasurementDB):
@@ -169,8 +209,12 @@ def s_interactive(idx: int, meas: MeasurementDB):
     print("hint: use `h' for help")
     print("")
     while True:
-        command = input(f"s:{idx}> ")
+        command = input(f"🐚🐚🐚 s:{idx} [{s_truncate_url(meas)}]> ")
         if command == "q":
+            print("")
+            print("leaving the `s' environment...")
+            print('hint: use `li\' to list "interesting" measurements')
+            print("")
             break
         if command == "h":
             s_command_help()
@@ -180,6 +224,9 @@ def s_interactive(idx: int, meas: MeasurementDB):
             continue
         if command.startswith("la"):
             s_command_la(idx, meas, command)
+            continue
+        if command == "lia":
+            s_command_lia(idx, meas)
             continue
         if command == "lm":
             s_command_lm(idx, meas)
@@ -202,6 +249,9 @@ def main_command_help():
     print("  l")
     print("    lists measurements")
     print("")
+    print("  li")
+    print("    lists interesting measurements")
+    print("")
     print("  q")
     print("    exits")
     print("")
@@ -210,11 +260,22 @@ def main_command_help():
     print("")
 
 
-def main_command_l(msmts: List[MeasurementDB]):
+def main_command_l(msmts: List[MeasurementDB], all: bool):
     """Lists all the available measurements."""
     summary: List[Dict[str, Any]] = []
     for idx, meas in enumerate(msmts):
-        summary.append({"idx": idx, "url": meas.url(), "flags": meas.tags()})
+        entry = {"idx": idx, "url": meas.url(), "flags": meas.tags()}
+        if not all and len(entry["flags"]) <= 0:
+            continue
+        summary.append(entry)
+    if len(summary) <= 0:
+        print("")
+        print('no "interesting" measurements to show')
+        print("")
+        print("hint: use `l' to list all measurements")
+        print("hint: use `h' for help")
+        print("")
+        return
     print("")
     print_table(summary)
     print("")
@@ -243,18 +304,18 @@ def main_interactive(msmts: List[MeasurementDB]):
     print("")
     print(f"loaded {len(msmts)} measurements; entering the main environment...")
     print("")
-    print("hint: use `l' to list measurements")
+    print('hint: use `li\' to list "interesting" measurements')
     print("hint: use `h' for help")
     print("")
     while True:
-        command = input("main> ")
+        command = input("🐚🐚🐚 main> ")
         if command == "q":
             break
         if command == "h":
             main_command_help()
             continue
-        if command == "l":
-            main_command_l(msmts)
+        if command == "l" or command == "li":
+            main_command_l(msmts, command != "li")
             continue
         if command.startswith("s"):
             main_command_s(msmts, command)
