@@ -278,17 +278,19 @@ func defaultResolvers() (out []*measurex.DNSResolverInfo) {
 func (c *Client) step(ctx context.Context,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) *SingleStepMeasurement {
 	c.dnsLookup(ctx, mx, cur)
+	dc := c.dnsPingFollowUp(ctx, mx, cur)
 	ssm := newSingleStepMeasurement(cur)
 	thc := c.th(ctx, cur)
 	c.measureDiscoveredEndpoints(ctx, mx, cur)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
-	maybeTH := <-thc
+	maybeTH := <-thc // wait for test helper to terminate
 	if maybeTH.Err == nil {
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
 		c.logger.Info("🚧️ [th] importing the TH measurements")
 		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
 	}
+	ssm.DNSPing = <-dc // wait for dnsping to terminate
 	c.measureAdditionalEndpoints(ctx, mx, ssm)
 	c.logger.Infof("🔬 analyzing the collected results")
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx, c.logger)

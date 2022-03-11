@@ -3,6 +3,7 @@ package websteps
 import (
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 )
 
@@ -19,6 +20,10 @@ type SingleStepMeasurement struct {
 
 	// TH contains the response from the test helper.
 	TH *THResponseWithID
+
+	// DNSPing contains the optional result of
+	// the dnsping follow-up experiment.
+	DNSPing *dnsping.Result
 
 	// ProbeAdditional contains additional measurements performed
 	// by the probe using extra info from the TH.
@@ -57,6 +62,7 @@ type THResponseWithID struct {
 type ArchivalSingleStepMeasurement struct {
 	ProbeInitial    *measurex.ArchivalURLMeasurement       `json:"probe_initial"`
 	TH              *ArchivalTHResponse                    `json:"th"`
+	DNSPing         *dnsping.ArchivalResult                `json:"dnsping"`
 	ProbeAdditional []measurex.ArchivalEndpointMeasurement `json:"probe_additional"`
 	Analysis        *Analysis                              `json:"analysis"`
 	Flags           int64                                  `json:"flags"`
@@ -90,6 +96,9 @@ func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleSte
 	if ssm.TH != nil {
 		v := ssm.TH.ToArchival(begin)
 		out.TH = &v
+	}
+	if ssm.DNSPing != nil {
+		out.DNSPing = ssm.DNSPing.ToArchival(begin)
 	}
 	if len(ssm.ProbeAdditional) > 0 {
 		out.ProbeAdditional = measurex.NewArchivalEndpointMeasurementList(
