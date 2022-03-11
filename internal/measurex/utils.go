@@ -119,3 +119,13 @@ func isEndpointIPv6(epnt string) bool {
 	}
 	return false
 }
+
+// isHTTPRedirect returns true if the status code implies redirect.
+func isHTTPRedirect(statusCode int64) bool {
+	switch statusCode {
+	case 301, 302, 303, 307, 308:
+		return true
+	default:
+		return false
+	}
+}

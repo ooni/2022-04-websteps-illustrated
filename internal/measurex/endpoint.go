@@ -143,6 +143,52 @@ func (em *EndpointMeasurement) TCPQUICConnectRuntime() (out time.Duration) {
 	return
 }
 
+// IsHTTPRedirect returns whether this endpoint contains an HTTP redirect.
+func (em *EndpointMeasurement) IsHTTPRedirect() bool {
+	return isHTTPRedirect(em.StatusCode())
+}
+
+// RedirectLocationDomain returns the domain of the redirect location.
+func (em *EndpointMeasurement) RedirectLocationDomain() string {
+	if em.Location != nil {
+		return em.Location.Hostname()
+	}
+	return ""
+}
+
+// URLDomain returns the domain used by the URL.
+func (em *EndpointMeasurement) URLDomain() string {
+	if em.URL != nil {
+		return em.URL.Hostname()
+	}
+	return ""
+}
+
+// SeemsLegitimateRedirect works as follows:
+//
+// 1. if this endpoint does not contain a redirect, return false;
+//
+// 2. if this endpoint's location is nil, return false;
+//
+// 3. otherwise returns whether the redirect domain is either equal
+// to the original domain or seems a valid sub or super domain.
+func (em *EndpointMeasurement) SeemsLegitimateRedirect() bool {
+	if !em.IsHTTPRedirect() {
+		return false
+	}
+	if em.Location == nil {
+		return false
+	}
+	orig, location := em.URLDomain(), em.RedirectLocationDomain()
+	if orig == location {
+		return true // this is a legitimate redirect
+	}
+	if "www."+orig == location {
+		return true // this is also a legitimate redirect
+	}
+	return orig == "www."+location
+}
+
 // UsingAddressIPv6 returns true whether this specific endpoint has
 // used an IPv6 destination address, false otherwise.
 func (em *EndpointMeasurement) UsingAddressIPv6() (usingIPv6 bool) {
@@ -207,9 +253,7 @@ func (em *EndpointMeasurement) Summary() (string, bool) {
 //
 // - new cookies (sorted)
 func (em *EndpointMeasurement) RedirectSummary() (string, bool) {
-	switch em.StatusCode() {
-	case 301, 302, 303, 307, 308:
-	default:
+	if !isHTTPRedirect(em.StatusCode()) {
 		return "", false // skip this entry if it's not a redirect
 	}
 	if em.Location == nil {

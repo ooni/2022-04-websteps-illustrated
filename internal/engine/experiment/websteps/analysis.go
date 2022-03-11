@@ -101,18 +101,18 @@ const (
 	//
 	// Group: Reserv
 	//
-	AnalysisUnused52     = 1 << 52
-	AnalysisUnused53     = 1 << 53
-	AnalysisUnused54     = 1 << 54
-	AnalysisUnused55     = 1 << 55
-	AnalysisGiveUp       = 1 << 56
-	AnalysisBrokenIPv6   = 1 << 57
-	AnalysisProbeBug     = 1 << 58
-	AnalysisInconsistent = 1 << 59
-	AnalysisConsistent   = 1 << 60
-	AnalysisUnused61     = 1 << 61
-	AnalysisUnused62     = 1 << 62
-	AnalysisUnused63     = 1 << 63
+	AnalysisHTTPLegitimateRedir = 1 << 52
+	AnalysisUnused53            = 1 << 53
+	AnalysisUnused54            = 1 << 54
+	AnalysisUnused55            = 1 << 55
+	AnalysisGiveUp              = 1 << 56
+	AnalysisBrokenIPv6          = 1 << 57
+	AnalysisProbeBug            = 1 << 58
+	AnalysisInconsistent        = 1 << 59
+	AnalysisConsistent          = 1 << 60
+	AnalysisUnused61            = 1 << 61
+	AnalysisUnused62            = 1 << 62
+	AnalysisUnused63            = 1 << 63
 )
 
 //
@@ -564,6 +564,23 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	// the probe, so stop here in case of HTTPS.
 	if pe.Scheme() == "https" {
 		score.Flags |= AnalysisHTTPAccessible
+		return score
+	}
+
+	// Before going down the DiffHTTP rabbit hole, let's check whether this
+	// request contains a legitimate redirect. We say that a redirect is
+	// legitimate when it's for the same domain or for reasonable variations
+	// of the original domain. While this won't cover all false positives,
+	// there are plently of cases where this heuristic works.
+	//
+	// Why this heuristic? Mainly because the probe and the TH may see
+	// differences in their redirect when using HTTP. For example, it may
+	// happen that a given endpoint returns 200 for the probe and 301 or
+	// 302 for the test helper. The heuristics below will flag this as
+	// a DiffHTTP but actually it is not _as long as_ the 302's location
+	// looks legitimate for the domain of the request URL.
+	if pe.SeemsLegitimateRedirect() {
+		score.Flags |= AnalysisHTTPLegitimateRedir
 		return score
 	}
 
