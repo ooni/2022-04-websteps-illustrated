@@ -66,6 +66,9 @@ def s_command_help():
     print("  h")
     print("    prints this help screen")
     print("")
+    print("  j")
+    print("    views the whole measurement JSON")
+    print("")
     print("  j<id>")
     print("    views the JSON of the observation or analysis with the given <id>")
     print("")
@@ -114,6 +117,10 @@ def s_command_d(meas: MeasurementDB, command: str):
 
 def s_command_j(meas: MeasurementDB, command: str):
     """Implements the j command of the s environment."""
+    if len(command[1:]) <= 0:
+        json.dump(meas.raw(), sys.stdout, indent=4)
+        sys.stdout.write("\n")
+        return
     try:
         idx = int(command[1:])
     except ValueError:
@@ -155,7 +162,7 @@ def s_command_lm(idx: int, meas: MeasurementDB):
     print("")
     print(f"viewing selected measurement {idx}")
     print("")
-    print_table([{"idx": idx, "url": meas.url(), "flags": meas.tags()}])
+    print_table([{"url": meas.url(), "flags": meas.tags()}])
     print("")
     print("hint: use `lu` to list the URLs measured within this measurement")
     print("hint: use `h' for help")
@@ -279,6 +286,9 @@ def main_command_help():
     print("  h")
     print("    prints this help screen")
     print("")
+    print("  j<id>")
+    print("    prints the JSON of the measurement with <id>")
+    print("")
     print("  l")
     print("    lists measurements")
     print("")
@@ -291,6 +301,22 @@ def main_command_help():
     print("  s<id>")
     print("    selects the measurement with the given ID")
     print("")
+
+
+def main_command_j(meas: List[MeasurementDB], command: str):
+    """Implements the j command of the s environment."""
+    try:
+        idx = int(command[1:])
+    except ValueError:
+        print("main: argument for `j` must be a number")
+        return
+    try:
+        entry = meas[idx]
+    except IndexError:
+        print(f"s: entry {idx} not found")
+        return
+    json.dump(entry.raw(), sys.stdout, indent=4)
+    sys.stdout.write("\n")
 
 
 def main_command_l(msmts: List[MeasurementDB], all: bool):
@@ -344,6 +370,9 @@ def main_interactive(msmts: List[MeasurementDB]):
         command = input("🐚🐚🐚 main> ")
         if command == "q":
             break
+        if command.startswith("j"):
+            main_command_j(msmts, command)
+            continue
         if command == "h":
             main_command_help()
             continue

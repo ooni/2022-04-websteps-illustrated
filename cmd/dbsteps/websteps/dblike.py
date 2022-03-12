@@ -310,6 +310,10 @@ class MeasurementDB:
         self._table: Dict[int, Entry] = {}
         self._load(meas)
 
+    def raw(self) -> Dict[str, Any]:
+        """Returns the raw data that generated this database."""
+        return self._meas.raw
+
     def tags(self) -> List[str]:
         """Returns the measurement tags."""
         return self._meas.flags.tags()
