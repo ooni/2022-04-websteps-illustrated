@@ -101,7 +101,7 @@ def s_command_d(meas: MeasurementDB, command: str):
         return
     try:
         entry = meas.find_entry(idx)
-    except IndexError:
+    except KeyError:
         print(f"s: entry {idx} not found")
         return
     if entry.kind() == Kind.DNS_SINGLE_PING_RESULT:
@@ -128,7 +128,7 @@ def s_command_j(meas: MeasurementDB, command: str):
         return
     try:
         entry = meas.find_entry(idx)
-    except IndexError:
+    except KeyError:
         print(f"s: entry {idx} not found")
         return
     json.dump(entry.raw(), sys.stdout, indent=4)
