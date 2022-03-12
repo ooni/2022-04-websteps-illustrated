@@ -75,6 +75,7 @@ type FlatHTTPRoundTripEvent struct {
 	ResponseBody            []byte
 	ResponseBodyIsTruncated bool
 	ResponseBodyLength      int64
+	ResponseBodyTLSH        string
 	ResponseHeaders         http.Header
 	Started                 time.Time
 	StatusCode              int64

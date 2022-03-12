@@ -113,6 +113,7 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTP
 			},
 			BodyLength:      ev.ResponseBodyLength,
 			BodyIsTruncated: ev.ResponseBodyIsTruncated,
+			BodyTLSH:        ev.ResponseBodyTLSH,
 			Code:            ev.StatusCode,
 			HeadersList:     NewHTTPHeadersList(ev.ResponseHeaders),
 			Headers:         ev.newHTTPHeadersMap(ev.ResponseHeaders),

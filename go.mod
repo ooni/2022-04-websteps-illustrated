@@ -3,6 +3,7 @@ module github.com/bassosimone/websteps-illustrated
 go 1.17
 
 require (
+	github.com/glaslos/tlsh v0.2.1-0.20190803090415-ef1954596284
 	github.com/gorilla/websocket v1.5.0
 	github.com/lucas-clemente/quic-go v0.25.0
 	github.com/miekg/dns v1.1.46

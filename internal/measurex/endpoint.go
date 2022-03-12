@@ -148,6 +148,14 @@ func (em *EndpointMeasurement) IsHTTPRedirect() bool {
 	return isHTTPRedirect(em.StatusCode())
 }
 
+// ResponseBodyTLSH returns the TLSH of the response body or empty string.
+func (em *EndpointMeasurement) ResponseBodyTLSH() string {
+	if em.HTTPRoundTrip != nil {
+		return em.HTTPRoundTrip.ResponseBodyTLSH
+	}
+	return ""
+}
+
 // RedirectLocationDomain returns the domain of the redirect location.
 func (em *EndpointMeasurement) RedirectLocationDomain() string {
 	if em.Location != nil {

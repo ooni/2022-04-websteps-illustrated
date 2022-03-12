@@ -235,6 +235,7 @@ type ArchivalHTTPResponse struct {
 	Body            ArchivalHTTPBody                   `json:"body"`
 	BodyLength      int64                              `json:"body_length"`
 	BodyIsTruncated bool                               `json:"body_is_truncated"`
+	BodyTLSH        string                             `json:"body_tlsh"`
 	Code            int64                              `json:"code"`
 	HeadersList     []ArchivalHTTPHeader               `json:"headers_list"`
 	Headers         map[string]ArchivalMaybeBinaryData `json:"headers"`

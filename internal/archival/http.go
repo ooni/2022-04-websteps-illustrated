@@ -12,6 +12,7 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
+	"github.com/glaslos/tlsh"
 )
 
 // WrapHTTPTransport wraps an HTTP transport to use this saver. The
@@ -79,6 +80,10 @@ func (s *Saver) httpRoundTrip(
 	rt.ResponseBody = body
 	rt.ResponseBodyLength = int64(len(body))
 	rt.ResponseBodyIsTruncated = int64(len(body)) >= maxBodySnapshotSize
+	tlsh, err := tlsh.HashBytes(body)
+	if err == nil {
+		rt.ResponseBodyTLSH = tlsh.String()
+	}
 	rt.Finished = time.Now()
 	s.appendHTTPRoundTripEvent(rt)
 	return resp, nil

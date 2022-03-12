@@ -572,6 +572,7 @@ func (thr *THRequestHandler) simplifyHTTPRoundTrip(
 			ResponseBody:            nil,
 			ResponseBodyIsTruncated: in.ResponseBodyIsTruncated,
 			ResponseBodyLength:      in.ResponseBodyLength,
+			ResponseBodyTLSH:        in.ResponseBodyTLSH,
 			ResponseHeaders:         in.ResponseHeaders,
 			Started:                 thhResponseTime,
 			StatusCode:              in.StatusCode,

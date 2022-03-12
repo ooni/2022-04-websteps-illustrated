@@ -83,7 +83,7 @@ const (
 	AnalysisHTTPDiffHeaders    = 1 << 37
 	AnalysisHTTPDiffTitle      = 1 << 38
 	AnalysisHTTPDiffBodyLength = 1 << 39
-	AnalysisUnassigned40       = 1 << 40
+	AnalysisHTTPDiffBodyHash   = 1 << 40
 	AnalysisUnassigned41       = 1 << 41
 	AnalysisUnassigned42       = 1 << 42
 	AnalysisUnassigned43       = 1 << 43
@@ -637,6 +637,23 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	flags := ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
 	score.Flags |= flags
 	if flags == 0 {
+		tlshDiff, good := ssm.endpointHashingTLSHCompareBodies(pe, the)
+		if good {
+			// According to the TLSH paper, a diff score less than 60
+			// has false positives rate of 1% and detect rate 76%.
+			//
+			// We should invest more time on thinking whether to use
+			// a different threshold here. For now this will do.
+			//
+			// See https://github.com/trendmicro/tlsh/blob/master/TLSH_CTC_final.pdf
+			const tlshThreshold = 60
+			if tlshDiff < tlshThreshold {
+				score.Flags |= AnalysisHTTPAccessible
+				return score
+			}
+			score.Flags |= AnalysisHTTPDiffBodyHash
+			// Fallback to the original Web Connectivity length checking algo.
+		}
 		flags = ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
 		if flags == 0 {
 			score.Flags |= AnalysisHTTPAccessible

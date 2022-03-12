@@ -76,9 +76,6 @@ func (ssm *SingleStepMeasurement) dnsMapAddrToASN(addr string) uint {
 
 // endpointWebConnectivityBodyLengthChecks is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
-//
-// Remark: this function DOES NOT set DiffHTTP or Unexpected because
-// the heuristics is more complex. The caller MUST set these flags.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	// We expect truncated bodies to have the same size because we are
