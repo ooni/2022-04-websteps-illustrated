@@ -625,9 +625,9 @@ func (thr *THRequestHandler) fillOrRejectOptions(
 	// 1. HTTPRequestHeaders
 	copiedHeaders := []string{
 		"Accept",
-		"Accept-Encoding",
 		"Accept-Language",
 		"Referer",
+		"User-Agent",
 	}
 	for _, key := range copiedHeaders {
 		if value := clnto.HTTPRequestHeaders.Get(key); value != "" {
