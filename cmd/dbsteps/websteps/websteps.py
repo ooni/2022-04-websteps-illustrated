@@ -217,6 +217,84 @@ class THResponse:
         self.raw = entry
 
 
+class DNSSinglePingReply:
+    """DNSSinglePingReply contains a single reply to a DNSPing."""
+
+    def __init__(self, entry: Dict[str, Any], query_id: int):
+        """Initializes a DNSSinglePingReply from a dictionary. This function
+        may throw exceptions if the test keys are not valid."""
+        self.addresses = self._load_addresses(entry)
+        self.alpns = self._load_alpns(entry)
+        self.failure: Optional[str] = entry["failure"]
+        self.id: int = entry["id"]
+        self.query_id: int = query_id
+        self.reply: str = entry["reply"]
+        self.source_address: str = entry["source_address"]
+        self.t: int = entry["t"]
+        self.raw = entry
+
+    def entry_id(self) -> int:
+        """Returns the ID of this entry."""
+        return self.id
+
+    def _load_addresses(self, entry: Dict[str, Any]) -> List[str]:
+        addresses = entry["addresses"]
+        if addresses is None:
+            return []
+        return addresses
+
+    def _load_alpns(self, entry: Dict[str, Any]) -> List[str]:
+        alpns = entry["alpns"]
+        if alpns is None:
+            return []
+        return alpns
+
+
+class DNSSinglePingResult:
+    """DNSSinglePingResult contains a single entry of DNSPing."""
+
+    def __init__(self, entry: Dict[str, Any]):
+        """Initializes a DNSSinglePing from a dictionary. This function
+        may throw exceptions if the test keys are not valid."""
+        self.hostname: str = entry["hostname"]
+        self.id: int = entry["id"]
+        self.query: str = entry["query"]
+        self.resolver_address: str = entry["resolver_address"]
+        self.t: float = entry["t"]
+        self.replies = self._load_replies(entry, self.id)
+        self.raw = entry
+
+    @staticmethod
+    def _load_replies(entry: Dict[str, Any], id: int) -> List[DNSSinglePingReply]:
+        replies: Optional[List[Dict[str, Any]]] = entry["replies"]
+        if replies is None:
+            return []
+        out: List[DNSSinglePingReply] = []
+        for reply in replies:
+            out.append(DNSSinglePingReply(reply, id))
+        return out
+
+
+class DNSPing:
+    """DNSPing contains a dnsping measurement."""
+
+    def __init__(self, entry: Dict[str, Any]):
+        """Initializes a DNSPing from a dictionary. This function
+        may throw exceptions if the test keys are not valid."""
+        self.pings = self._load_single_ping(entry)
+        self.raw = entry
+
+    @staticmethod
+    def _load_single_ping(entry: Dict[str, Any]) -> List[DNSSinglePingResult]:
+        pings: Optional[List[Dict[str, Any]]] = entry["pings"]
+        if pings is None:
+            return []
+        out: List[DNSSinglePingResult] = []
+        for ping in pings:
+            out.append(DNSSinglePingResult(ping))
+        return out
+
+
 class SingleStep:
     """A single step performed by websteps."""
 
@@ -225,6 +303,7 @@ class SingleStep:
         may throw exceptions if the test keys are not valid."""
         self.probe_initial = self._load_probe_initial(entry)
         self.th = self._load_th(entry)
+        self.dnsping = self._load_dnsping(entry)
         self.probe_additional = self._load_probe_additional(entry)
         self.analysis = self._load_analysis(entry)
         self.flags: AnalysisFlags = AnalysisFlags(entry["flags"])
@@ -242,6 +321,13 @@ class SingleStep:
         if th is None:
             return None
         return THResponse(th)
+
+    @staticmethod
+    def _load_dnsping(entry: Dict[str, Any]) -> Optional[DNSPing]:
+        dnsping: Optional[Dict[str, Any]] = entry["dnsping"]
+        if dnsping is None:
+            return None
+        return DNSPing(dnsping)
 
     @staticmethod
     def _load_probe_additional(entry: Dict[str, Any]) -> List[EndpointMeasurement]:

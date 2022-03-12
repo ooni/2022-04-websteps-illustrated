@@ -10,6 +10,9 @@ from typing import Protocol
 from .websteps import Analysis
 from .websteps import AnalysisDNSOrEndpoint
 from .websteps import DNSLookupMeasurement
+from .websteps import DNSPing
+from .websteps import DNSSinglePingReply
+from .websteps import DNSSinglePingResult
 from .websteps import EndpointMeasurement
 from .websteps import Measurement
 from .websteps import THResponse
@@ -21,6 +24,8 @@ class Kind(Enum):
 
     ANALYSIS = "analysis"
     DNS = "dns"
+    DNS_SINGLE_PING_RESULT = "dns_single_ping_result"
+    DNS_SINGLE_PING_REPLY = "dns_single_ping_reply"
     ENDPOINT = "endpoint"
     NONE = ""
     URL = "url"
@@ -221,6 +226,82 @@ class AnalysisDNSOrEndpointWrapper:
         return self._analysis
 
 
+class DNSSinglePingReplyWrapper:
+    """Wrapper for DNSSinglePingResult."""
+
+    def __init__(self, reply: DNSSinglePingReply):
+        self._reply = reply
+
+    def dict(self) -> Dict[str, Any]:
+        """Converts this entry to a flat dictionary."""
+        return {
+            "addresses": self._reply.addresses,
+            "alpns": self._reply.alpns,
+            "failure": self._reply.failure,
+            "id": self._reply.id,
+            "query_id": self._reply.query_id,
+            "reply": self._reply.reply,
+            "source_address": self._reply.source_address,
+            "t": self._reply.t,
+        }
+
+    def id(self) -> int:
+        """Returns the unique ID of this entry."""
+        return self._reply.id
+
+    def kind(self) -> Kind:
+        """Returns the kind of this entry."""
+        return Kind.DNS_SINGLE_PING_REPLY
+
+    def origin(self) -> Origin:
+        """Returns the origin of this entry."""
+        return Origin.PROBE
+
+    def raw(self) -> Dict[str, Any]:
+        """Returns the raw data that generated this entry."""
+        return self._reply.raw
+
+    def unwrap(self) -> Any:
+        return self._reply
+
+
+class DNSSinglePingResultWrapper:
+    """Wrapper for DNSSinglePingResult."""
+
+    def __init__(self, ping: DNSSinglePingResult):
+        self._ping = ping
+
+    def dict(self) -> Dict[str, Any]:
+        """Converts this entry to a flat dictionary."""
+        return {
+            "hostname": self._ping.hostname,
+            "id": self._ping.id,
+            "query": self._ping.query,
+            "replies": _reduce_to_ids(self._ping.replies),
+            "resolver_address": self._ping.resolver_address,
+            "t": self._ping.t,
+        }
+
+    def id(self) -> int:
+        """Returns the unique ID of this entry."""
+        return self._ping.id
+
+    def kind(self) -> Kind:
+        """Returns the kind of this entry."""
+        return Kind.DNS_SINGLE_PING_RESULT
+
+    def origin(self) -> Origin:
+        """Returns the origin of this entry."""
+        return Origin.PROBE
+
+    def raw(self) -> Dict[str, Any]:
+        """Returns the raw data that generated this entry."""
+        return self._ping.raw
+
+    def unwrap(self) -> Any:
+        return self._ping
+
+
 class MeasurementDB:
     """Wraps a measurement providing DB-like access."""
 
@@ -281,6 +362,7 @@ class MeasurementDB:
         for step in meas.steps:
             self._load_probe_initial(step.probe_initial)
             self._load_th(step.th)
+            self._load_dnsping(step.dnsping)
             self._load_probe_additional(step.probe_additional)
             self._load_analysis(step.analysis)
 
@@ -297,6 +379,13 @@ class MeasurementDB:
                 self._load_dns(Origin.TH, dns)
             for epnt in th.endpoint:
                 self._load_endpoint(Origin.TH, epnt)
+
+    def _load_dnsping(self, dnsping: Optional[DNSPing]):
+        if dnsping is not None:
+            for ping in dnsping.pings:
+                self._table[ping.id] = DNSSinglePingResultWrapper(ping)
+                for reply in ping.replies:
+                    self._table[reply.id] = DNSSinglePingReplyWrapper(reply)
 
     def _load_probe_additional(self, epnts: List[EndpointMeasurement]):
         for epnt in epnts:
