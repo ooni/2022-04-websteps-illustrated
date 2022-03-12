@@ -82,19 +82,19 @@ func NewArchivalBinaryData(data []byte) (out *ArchivalBinaryData) {
 //
 // See https://github.com/ooni/spec/blob/master/data-formats/df-001-httpt.md#maybebinarydata
 type ArchivalMaybeBinaryData struct {
-	Value string
+	Value []byte
 }
 
 // MarshalJSON marshals a string-like to JSON following the OONI spec that
 // says that UTF-8 content is represented as string and non-UTF-8 content is
 // instead represented using `{"format":"base64","data":"..."}`.
 func (hb ArchivalMaybeBinaryData) MarshalJSON() ([]byte, error) {
-	if utf8.ValidString(hb.Value) {
-		return json.Marshal(hb.Value)
+	if utf8.Valid(hb.Value) {
+		return json.Marshal(string(hb.Value))
 	}
 	er := make(map[string]string)
 	er["format"] = "base64"
-	er["data"] = base64.StdEncoding.EncodeToString([]byte(hb.Value))
+	er["data"] = base64.StdEncoding.EncodeToString(hb.Value)
 	return json.Marshal(er)
 }
 
@@ -117,7 +117,7 @@ func (hb *ArchivalMaybeBinaryData) UnmarshalJSON(d []byte) error {
 	if err != nil {
 		return err
 	}
-	hb.Value = string(b64)
+	hb.Value = b64
 	return nil
 }
 
@@ -296,12 +296,12 @@ type ArchivalHTTPHeader struct {
 // MarshalJSON marshals a single HTTP header to a tuple where the first
 // element is a string and the second element is maybe-binary data.
 func (hh ArchivalHTTPHeader) MarshalJSON() ([]byte, error) {
-	if utf8.ValidString(hh.Value.Value) {
-		return json.Marshal([]string{hh.Key, hh.Value.Value})
+	if utf8.Valid(hh.Value.Value) {
+		return json.Marshal([]string{hh.Key, string(hh.Value.Value)})
 	}
 	value := make(map[string]string)
 	value["format"] = "base64"
-	value["data"] = base64.StdEncoding.EncodeToString([]byte(hh.Value.Value))
+	value["data"] = base64.StdEncoding.EncodeToString(hh.Value.Value)
 	return json.Marshal([]interface{}{hh.Key, value})
 }
 
@@ -319,31 +319,32 @@ func (hh *ArchivalHTTPHeader) UnmarshalJSON(d []byte) error {
 		return errors.New("the key is not a string")
 	}
 	value, ok := pair[1].(string)
-	if !ok {
-		mapvalue, ok := pair[1].(map[string]interface{})
-		if !ok {
-			return errors.New("the value is neither a string nor a map[string]interface{}")
-		}
-		if _, ok := mapvalue["format"]; !ok {
-			return errors.New("missing format")
-		}
-		if v, ok := mapvalue["format"].(string); !ok || v != "base64" {
-			return errors.New("invalid format")
-		}
-		if _, ok := mapvalue["data"]; !ok {
-			return errors.New("missing data field")
-		}
-		v, ok := mapvalue["data"].(string)
-		if !ok {
-			return errors.New("the data field is not a string")
-		}
-		b64, err := base64.StdEncoding.DecodeString(v)
-		if err != nil {
-			return err
-		}
-		value = string(b64)
+	if ok {
+		hh.Key, hh.Value = key, ArchivalMaybeBinaryData{Value: []byte(value)}
+		return nil
 	}
-	hh.Key, hh.Value = key, ArchivalMaybeBinaryData{Value: value}
+	mapvalue, ok := pair[1].(map[string]interface{})
+	if !ok {
+		return errors.New("the value is neither a string nor a map[string]interface{}")
+	}
+	if _, ok := mapvalue["format"]; !ok {
+		return errors.New("missing format")
+	}
+	if v, ok := mapvalue["format"].(string); !ok || v != "base64" {
+		return errors.New("invalid format")
+	}
+	if _, ok := mapvalue["data"]; !ok {
+		return errors.New("missing data field")
+	}
+	v, ok := mapvalue["data"].(string)
+	if !ok {
+		return errors.New("the data field is not a string")
+	}
+	b64, err := base64.StdEncoding.DecodeString(v)
+	if err != nil {
+		return err
+	}
+	hh.Key, hh.Value = key, ArchivalMaybeBinaryData{Value: b64}
 	return nil
 }
 

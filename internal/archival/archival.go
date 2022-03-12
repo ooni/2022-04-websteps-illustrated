@@ -113,7 +113,7 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time,
 		Response: model.ArchivalHTTPResponse{
 			Body: model.ArchivalHTTPBodyOrTLSH{
 				Body: model.ArchivalMaybeBinaryData{
-					Value: string(ev.ResponseBody),
+					Value: ev.ResponseBody,
 				},
 				Flags: bodyFlags,
 				TLSH:  ev.ResponseBodyTLSH,
@@ -138,7 +138,7 @@ func NewHTTPHeadersList(source http.Header) (out []model.ArchivalHTTPHeader) {
 			out = append(out, model.ArchivalHTTPHeader{
 				Key: key,
 				Value: model.ArchivalMaybeBinaryData{
-					Value: value,
+					Value: []byte(value),
 				},
 			})
 		}
@@ -160,7 +160,7 @@ func (ev *FlatHTTPRoundTripEvent) newHTTPHeadersMap(source http.Header) (out map
 			if out == nil {
 				out = make(map[string]model.ArchivalMaybeBinaryData)
 			}
-			out[key] = model.ArchivalMaybeBinaryData{Value: value}
+			out[key] = model.ArchivalMaybeBinaryData{Value: []byte(value)}
 		}
 	}
 	return
@@ -374,7 +374,7 @@ func (ev *FlatQUICTLSHandshakeEvent) ToArchival(begin time.Time) model.ArchivalT
 
 func (ev *FlatQUICTLSHandshakeEvent) makePeerCerts(in [][]byte) (out []model.ArchivalMaybeBinaryData) {
 	for _, v := range in {
-		out = append(out, model.ArchivalMaybeBinaryData{Value: string(v)})
+		out = append(out, model.ArchivalMaybeBinaryData{Value: v})
 	}
 	return
 }
