@@ -31,6 +31,8 @@ _FLAGS: List[Tuple[int, str]] = [
     (1 << 37, "#httpDiffHeaders"),
     (1 << 38, "#httpDiffTitle"),
     (1 << 39, "#httpDiffBodyLength"),
+    (1 << 47, "#httpOther"),
+    (1 << 48, "#thFailure"),
 ]
 
 

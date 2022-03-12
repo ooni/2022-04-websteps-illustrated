@@ -42,7 +42,7 @@ const (
 	AnalysisBogon        = 1 << 2
 	AnalysisDNSNoAnswer  = 1 << 3
 	AnalysisDNSRefused   = 1 << 4
-	AnalysisDNSNotLying  = 1 << 5 // whether we can use IPs for TLS
+	AnalysisUnassigned5  = 1 << 5
 	AnalysisDNSDiff      = 1 << 6
 	AnalysisUnassigned7  = 1 << 7
 	AnalysisUnassigned8  = 1 << 8
@@ -75,7 +75,7 @@ const (
 	//
 	// Group: HTTP
 	//
-	AnalysisHTTPAccessible     = 1 << 32 // no blocking and page makes sense
+	AnalysisUnused32           = 1 << 32
 	AnalysisHTTPTimeout        = 1 << 33
 	AnalysisHTTPReset          = 1 << 34
 	AnalysisHTTPEOF            = 1 << 35
@@ -103,8 +103,8 @@ const (
 	//
 	AnalysisHTTPLegitimateRedir = 1 << 52
 	AnalysisDNSCanceledTimeout  = 1 << 53
-	AnalysisUnused54            = 1 << 54
-	AnalysisUnused55            = 1 << 55
+	AnalysisDNSNotLying         = 1 << 54 // whether we can use IPs for TLS
+	AnalysisHTTPAccessible      = 1 << 55 // no blocking and page makes sense
 	AnalysisGiveUp              = 1 << 56
 	AnalysisBrokenIPv6          = 1 << 57
 	AnalysisProbeBug            = 1 << 58
