@@ -156,6 +156,14 @@ func (em *EndpointMeasurement) ResponseBodyTLSH() string {
 	return ""
 }
 
+// ResponseBody returns the response body or empty byte array.
+func (em *EndpointMeasurement) ResponseBody() []byte {
+	if em.HTTPRoundTrip != nil {
+		return em.HTTPRoundTrip.ResponseBody
+	}
+	return []byte{}
+}
+
 // RedirectLocationDomain returns the domain of the redirect location.
 func (em *EndpointMeasurement) RedirectLocationDomain() string {
 	if em.Location != nil {

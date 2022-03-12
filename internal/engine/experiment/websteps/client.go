@@ -26,23 +26,28 @@ type TestKeys struct {
 	// Steps contains all the steps.
 	Steps []*SingleStepMeasurement
 
+	// Bodies contains information about the bodies.
+	Bodies *HashingBodies
+
 	// Flags contains the analysis flags.
 	Flags int64
 }
 
 // ArchivalTestKeys contains the archival test keys.
 type ArchivalTestKeys struct {
-	URL   string                           `json:"url"`
-	Steps []*ArchivalSingleStepMeasurement `json:"steps"`
-	Flags int64                            `json:"flags"`
+	URL    string                           `json:"url"`
+	Steps  []*ArchivalSingleStepMeasurement `json:"steps"`
+	Bodies *HashingBodies                   `json:"bodies"`
+	Flags  int64                            `json:"flags"`
 }
 
 // ToArchival converts TestKeys to the archival data format.
 func (tk *TestKeys) ToArchival(begin time.Time) (out *ArchivalTestKeys) {
 	out = &ArchivalTestKeys{
-		URL:   tk.URL,
-		Steps: []*ArchivalSingleStepMeasurement{},
-		Flags: tk.Flags,
+		URL:    tk.URL,
+		Steps:  []*ArchivalSingleStepMeasurement{}, // later
+		Bodies: tk.Bodies,
+		Flags:  tk.Flags,
 	}
 	for _, entry := range tk.Steps {
 		out.Steps = append(out.Steps, entry.ToArchival(begin))
@@ -160,7 +165,10 @@ func (c *Client) steps(ctx context.Context, input string) {
 	for ctx.Err() == nil { // know that a user has requested to stop
 		cur, found := q.PopLeft()
 		if !found {
-			break // we've emptied the queue
+			// TODO(bassosimone): here we should record whether
+			// we are leaving with an empty queue or not. We may
+			// also leave when we reach the max crawler depth.
+			break
 		}
 		c.logger.Infof("📌 depth=%d; crawling %s", q.Depth(), cur.URL.String())
 		// Implementation note: here we use a background context for the
@@ -174,6 +182,9 @@ func (c *Client) steps(ctx context.Context, input string) {
 		q.Append(redirects...)
 		c.logger.Infof("🪀 work queue: %s", q.String())
 	}
+	// As a final step, build a database of all the bodies in this
+	// measurement, which allows us to cross analyze them
+	tkoe.TestKeys.Bodies = tkoe.TestKeys.buildHashingBodies(mx)
 	c.Output <- tkoe
 }
 
