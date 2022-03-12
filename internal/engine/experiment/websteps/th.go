@@ -235,6 +235,12 @@ func (c *Client) websocketRecvAsync(conn *websocket.Conn, out chan<- *THResponse
 	}
 }
 
+// THHandlerSaver allows to save THHandler results.
+type THHandlerSaver interface {
+	// Save saves this measurement somewhere.
+	Save(um *measurex.URLMeasurement)
+}
+
 // THHandlerOptions contains options for the THHandler.
 type THHandlerOptions struct {
 	// Logger is the logger to use.
@@ -242,6 +248,9 @@ type THHandlerOptions struct {
 
 	// Resolvers contains the resolvers to use.
 	Resolvers []*measurex.DNSResolverInfo
+
+	// Saver saves measurements.
+	Saver THHandlerSaver
 }
 
 // THHandler handles TH requests.
@@ -496,7 +505,23 @@ func (thr *THRequestHandler) step(
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
+	thr.saver().Save(um) // allows saving the measurement for analysis
 	return thr.serialize(um), nil
+}
+
+// saver returns the saver or the default.
+func (thr *THRequestHandler) saver() THHandlerSaver {
+	if thr.Options != nil && thr.Options.Saver != nil {
+		return thr.Options.Saver
+	}
+	return &thHandlerSaverNull{}
+}
+
+// thHandlerSaverNull is the default THHandlerSaver.
+type thHandlerSaverNull struct{}
+
+func (*thHandlerSaverNull) Save(um *measurex.URLMeasurement) {
+	// nothing
 }
 
 func (thr *THRequestHandler) serialize(in *measurex.URLMeasurement) *THResponse {
