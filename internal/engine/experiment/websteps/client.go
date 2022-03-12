@@ -185,6 +185,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 	// As a final step, build a database of all the bodies in this
 	// measurement, which allows us to cross analyze them
 	tkoe.TestKeys.Bodies = tkoe.TestKeys.buildHashingBodies(mx)
+	tkoe.TestKeys.finalReprocessingAndLogging(c.logger)
 	c.Output <- tkoe
 }
 

@@ -7,7 +7,9 @@ package websteps
 //
 
 import (
+	"fmt"
 	"net"
+	"strings"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
@@ -110,7 +112,7 @@ const (
 	AnalysisProbeBug            = 1 << 58
 	AnalysisInconsistent        = 1 << 59
 	AnalysisConsistent          = 1 << 60
-	AnalysisUnused61            = 1 << 61
+	AnalysisHTTPMaybeProxy      = 1 << 61
 	AnalysisUnused62            = 1 << 62
 	AnalysisUnused63            = 1 << 63
 )
@@ -152,6 +154,20 @@ type AnalysisDNS struct {
 	Flags int64 `json:"flags"`
 }
 
+func analysisPrettyRefs(refs []int64) string {
+	var out []string
+	for _, e := range refs {
+		out = append(out, fmt.Sprintf("#%d", e))
+	}
+	return strings.Join(out, ", ")
+}
+
+// Describes this analysis.
+func (ad *AnalysisDNS) Describe() string {
+	return fmt.Sprintf("dns analysis in #%d comparing %s",
+		ad.URLMeasurementID, analysisPrettyRefs(ad.Refs))
+}
+
 // dnsAnalysis analyzes the probe's DNS lookups. This function returns
 // nil when there's no DNS lookup data to analyze.
 func (ssm *SingleStepMeasurement) dnsAnalysis(
@@ -167,7 +183,6 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(
 	for _, pq := range ssm.ProbeInitial.DNS {
 		score := ssm.dnsSingleLookupAnalysis(mx, logger, pq)
 		score.Flags |= flags
-		ExplainFlagsWithLogging(logger, pq, score.Flags)
 		out = append(out, score)
 	}
 	return out
@@ -412,6 +427,19 @@ type AnalysisEndpoint struct {
 
 	// Flags contains the analysis flags.
 	Flags int64 `json:"flags"`
+
+	// probe is a pointer to the probe measurement that generated
+	// this AnalysisEndpoint; set for reprocessing at the end.
+	probe *measurex.EndpointMeasurement `json:"-"`
+
+	// th is like probe but for the TH
+	th *measurex.EndpointMeasurement `json:"-"`
+}
+
+// Describes this analysis.
+func (ad *AnalysisEndpoint) Describe() string {
+	return fmt.Sprintf("endpoint analysis in #%d comparing %s",
+		ad.URLMeasurementID, analysisPrettyRefs(ad.Refs))
 }
 
 // endpointAnalysis analyzes the probe's endpoint measurements. This function
@@ -426,14 +454,12 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(
 		for _, pe := range ssm.ProbeInitial.Endpoint {
 			score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
 			score.Flags |= flags
-			ExplainFlagsWithLogging(logger, pe, score.Flags)
 			out = append(out, score)
 		}
 	}
 	for _, pe := range ssm.ProbeAdditional {
 		score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
 		score.Flags |= flags
-		ExplainFlagsWithLogging(logger, pe, score.Flags)
 		out = append(out, score)
 	}
 	return out
@@ -633,8 +659,13 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	// We're now approaching Web Connectivity territory. A DiffHTTP indicates a
 	// possible blockpage for HTTP and perhaps sanctions for HTTPS and HTTP3.
 	//
+	// Note that ALL measurements where we apply Web Connectivity algorithms are
+	// marked for reprocessing once websteps is done.
+	//
 	// This set of conditions is adapted from MK v0.10.11.
 	flags := ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
+	score.probe = pe // for reprocessing
+	score.th = the   // ditto
 	score.Flags |= flags
 	if flags == 0 {
 		tlshDiff, good := ssm.endpointHashingTLSHCompareBodies(pe, the)
