@@ -295,8 +295,9 @@ func (mx *Measurer) lookupHostSystem(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverSystem(saver)
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t)
-	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
+	id := mx.NextID()
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) lookupHostUDP(
@@ -304,8 +305,9 @@ func (mx *Measurer) lookupHostUDP(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t)
-	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
+	id := mx.NextID()
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) lookupHostDoH(
@@ -316,8 +318,9 @@ func (mx *Measurer) lookupHostDoH(
 		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
 	// Note: no close idle connections because actually we'd like to keep
 	// open connections with the server.
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t)
-	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
+	id := mx.NextID()
+	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) httpClientForDNSLookupTarget(t *dnsLookupTarget) model.HTTPClient {
@@ -334,8 +337,9 @@ func (mx *Measurer) lookupHTTPSSvcUDP(
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
-	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t)
-	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
+	id := mx.NextID()
+	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
 func (mx *Measurer) lookupHTTPSSvcDoH(
@@ -346,14 +350,15 @@ func (mx *Measurer) lookupHTTPSSvcDoH(
 		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
 	// Note: no close idle connections because actually we'd like to keep
 	// open connections with the server.
-	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t)
-	return mx.newDNSLookupMeasurement(t, saver.MoveOutTrace())
+	id := mx.NextID()
+	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
-func (mx *Measurer) doLookupHost(ctx context.Context,
-	domain string, r model.Resolver, t *dnsLookupTarget) ([]string, error) {
+func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
+	r model.Resolver, t *dnsLookupTarget, id int64) ([]string, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHost %s with %s resolver %s",
-		t.plan.URLMeasurementID, domain, r.Network(), r.Address())
+		id, domain, r.Network(), r.Address())
 	timeout := t.plan.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -362,10 +367,10 @@ func (mx *Measurer) doLookupHost(ctx context.Context,
 	return addrs, err
 }
 
-func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context,
-	domain string, r model.Resolver, t *dnsLookupTarget) (*model.HTTPSSvc, error) {
+func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
+	r model.Resolver, t *dnsLookupTarget, id int64) (*model.HTTPSSvc, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHTTPSvc %s with %s resolver %s",
-		t.plan.URLMeasurementID, domain, r.Network(), r.Address())
+		id, domain, r.Network(), r.Address())
 	timeout := t.plan.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -374,10 +379,10 @@ func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context,
 	return https, err
 }
 
-func (mx *Measurer) newDNSLookupMeasurement(
+func (mx *Measurer) newDNSLookupMeasurement(id int64,
 	t *dnsLookupTarget, trace *archival.Trace) *DNSLookupMeasurement {
 	out := &DNSLookupMeasurement{
-		ID:               mx.NextID(),
+		ID:               id,
 		URLMeasurementID: t.plan.URLMeasurementID,
 	}
 	if len(trace.DNSLookup) > 1 {

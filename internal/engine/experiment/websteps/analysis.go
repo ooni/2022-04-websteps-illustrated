@@ -245,7 +245,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logger.Warn("[dns] give up analysis because there's no matching TH query")
+		logger.Warnf("[dns] cannot find TH measurement matching #%d", pq.ID)
 		return score
 	}
 
@@ -271,7 +271,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 		// strange/unexpected. We could dig in more but, for
 		// now, let's just give up for now.
 		score.Flags |= AnalysisGiveUp
-		logger.Warn("[dns] give up analysis because just the TH failed")
+		logger.Warn("[dns] give up analysis because the TH failed")
 		return score
 	}
 
@@ -506,8 +506,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logger.Warn(
-			"[endpoint] give up analysis because we cannot find a corresponding measurement")
+		logger.Warnf("[endpoint] cannot find TH measurement #%d", pe.ID)
 		return score
 	}
 
@@ -534,7 +533,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		// the backend or some other backend-side issue, so we're
 		// just going to give up making a sense of the result.
 		score.Flags |= AnalysisGiveUp
-		logger.Warn("[endpoint] give up analysis because just the TH failed")
+		logger.Warn("[endpoint] give up analysis because the TH failed")
 		return score
 	}
 
