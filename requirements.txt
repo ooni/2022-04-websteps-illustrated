@@ -1,0 +1,2 @@
+dnslib==0.9.19
+tabulate==0.8.9

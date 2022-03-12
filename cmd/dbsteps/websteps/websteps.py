@@ -1,5 +1,6 @@
 """Python library for managing websteps measurements."""
 
+import base64
 from typing import Any
 from typing import Dict
 from typing import List
@@ -217,6 +218,13 @@ class THResponse:
         self.raw = entry
 
 
+def _extract_binary_data(entry: Dict[str, str]) -> bytes:
+    """Extractor for binary data fields."""
+    if entry["format"] != "base64":
+        raise ValueError("unknown binary data encoding")
+    return base64.b64decode(entry["data"])
+
+
 class DNSSinglePingReply:
     """DNSSinglePingReply contains a single reply to a DNSPing."""
 
@@ -228,7 +236,7 @@ class DNSSinglePingReply:
         self.failure: Optional[str] = entry["failure"]
         self.id: int = entry["id"]
         self.query_id: int = query_id
-        self.reply: str = entry["reply"]
+        self.reply = _extract_binary_data(entry["reply"])
         self.source_address: str = entry["source_address"]
         self.t: int = entry["t"]
         self.raw = entry
@@ -258,7 +266,7 @@ class DNSSinglePingResult:
         may throw exceptions if the test keys are not valid."""
         self.hostname: str = entry["hostname"]
         self.id: int = entry["id"]
-        self.query: str = entry["query"]
+        self.query = _extract_binary_data(entry["query"])
         self.resolver_address: str = entry["resolver_address"]
         self.t: float = entry["t"]
         self.replies = self._load_replies(entry, self.id)

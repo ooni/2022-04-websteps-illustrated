@@ -3,6 +3,7 @@
 """Allows to navigate measurements."""
 
 import argparse
+from dnslib import DNSRecord
 import json
 import sys
 import tabulate
@@ -14,7 +15,10 @@ sys.path.insert(0, ".")
 
 from websteps.websteps import load as websteps_load
 from websteps.websteps import AnalysisDNSOrEndpoint
+from websteps.websteps import DNSSinglePingReply
+from websteps.websteps import DNSSinglePingResult
 from websteps.dblike import Entry
+from websteps.dblike import Kind
 from websteps.dblike import MeasurementDB
 
 
@@ -56,11 +60,14 @@ def print_table(table: List[Dict[str, Any]]):
 def s_command_help():
     """Prints the help screen."""
     print("")
+    print("  d<id>")
+    print("    decodes the observation with the given <id>")
+    print("")
     print("  h")
     print("    prints this help screen")
     print("")
     print("  j<id>")
-    print("    views the JSON of the observation or analysis with the given ID")
+    print("    views the JSON of the observation or analysis with the given <id>")
     print("")
     print("  la<id>")
     print("    lists probe's analysis for the given URL <id>")
@@ -80,6 +87,29 @@ def s_command_help():
     print("  v<id>")
     print("    views the observation or analysis with the given ID")
     print("")
+
+
+def s_command_d(meas: MeasurementDB, command: str):
+    """Implements the d command of the s environment."""
+    try:
+        idx = int(command[1:])
+    except ValueError:
+        print("s: argument for `d` must be a number")
+        return
+    try:
+        entry = meas.find_entry(idx)
+    except IndexError:
+        print(f"s: entry {idx} not found")
+        return
+    if entry.kind() == Kind.DNS_SINGLE_PING_RESULT:
+        result: DNSSinglePingResult = entry.unwrap()
+        print(DNSRecord.parse(result.query))
+        return
+    if entry.kind() == Kind.DNS_SINGLE_PING_REPLY:
+        reply: DNSSinglePingReply = entry.unwrap()
+        print(DNSRecord.parse(reply.reply))
+        return
+    print(f"s: cannot decode: {entry}")
 
 
 def s_command_j(meas: MeasurementDB, command: str):
@@ -216,6 +246,9 @@ def s_interactive(idx: int, meas: MeasurementDB):
             print('hint: use `li\' to list "interesting" measurements')
             print("")
             break
+        if command.startswith("d"):
+            s_command_d(meas, command)
+            continue
         if command == "h":
             s_command_help()
             continue
