@@ -7,21 +7,36 @@ package websteps
 //
 
 import (
+	"errors"
+	"log"
+
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/glaslos/tlsh"
 )
+
+// parseStringToTlsh is a wrapper for tlsh.ParseStringToTlsh, which
+// panics if given an empty string to process.
+func parseStringToTlsh(in string) (*tlsh.Tlsh, error) {
+	if len(in) != 70 {
+		if len(in) != 0 {
+			log.Printf("TLSH: invalid string length: %d", len(in))
+		}
+		return nil, errors.New("passed an empty string hash")
+	}
+	return tlsh.ParseStringToTlsh(in)
+}
 
 // endpointHashingTLSHCompareBodies returns the score comparison of the
 // bodies using TLSH hashing. The return value is either a valid score
 // and true, on success, or zero and false, on failure.
 func (ssm *SingleStepMeasurement) endpointHashingTLSHCompareBodies(
 	pe, the *measurex.EndpointMeasurement) (int, bool) {
-	peh, err := tlsh.ParseStringToTlsh(pe.ResponseBodyTLSH())
+	peh, err := parseStringToTlsh(pe.ResponseBodyTLSH())
 	if err != nil {
 		return 0, false
 	}
-	theh, err := tlsh.ParseStringToTlsh(the.ResponseBodyTLSH())
+	theh, err := parseStringToTlsh(the.ResponseBodyTLSH())
 	if err != nil {
 		return 0, false
 	}
