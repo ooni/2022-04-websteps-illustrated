@@ -75,6 +75,12 @@ def s_command_help():
     print("  la<id>")
     print("    lists probe's analysis for the given URL <id>")
     print("")
+    print("  ld<id>")
+    print("    lists dns results for the given URL <id>")
+    print("")
+    print("  le<id>")
+    print("    lists endpoint results for the given URL <id>")
+    print("")
     print("  lia")
     print('    lists "interesting" analysis')
     print("")
@@ -195,6 +201,48 @@ def s_command_lia(meas_idx: int, meas: MeasurementDB):
     print("")
 
 
+def s_command_ld(meas_idx: int, meas: MeasurementDB, command: str):
+    """Implements the ld command of the s environment."""
+    try:
+        url_idx = int(command[2:])
+    except ValueError:
+        print("s: argument for `ld' must be a number")
+        return
+    entries = [elem.dict() for elem in meas.list_dns(url_idx)]
+    if not entries:
+        print(f"warning: cannot find dns for URL {url_idx}")
+        return
+    print("")
+    print(f"viewing dns for selected measurement {meas_idx} and URL {url_idx}")
+    print("")
+    print_table(entries)
+    print("")
+    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
+def s_command_le(meas_idx: int, meas: MeasurementDB, command: str):
+    """Implements the le command of the s environment."""
+    try:
+        url_idx = int(command[2:])
+    except ValueError:
+        print("s: argument for `le' must be a number")
+        return
+    entries = [elem.dict() for elem in meas.list_endpoint(url_idx)]
+    if not entries:
+        print(f"warning: cannot find endpoint for URL {url_idx}")
+        return
+    print("")
+    print(f"viewing endpoint for selected measurement {meas_idx} and URL {url_idx}")
+    print("")
+    print_table(entries)
+    print("")
+    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
 def s_command_la(meas_idx: int, meas: MeasurementDB, command: str):
     """Implements the la command of the s environment."""
     try:
@@ -264,6 +312,12 @@ def s_interactive(idx: int, meas: MeasurementDB):
             continue
         if command.startswith("la"):
             s_command_la(idx, meas, command)
+            continue
+        if command.startswith("ld"):
+            s_command_ld(idx, meas, command)
+            continue
+        if command.startswith("le"):
+            s_command_le(idx, meas, command)
             continue
         if command == "lia":
             s_command_lia(idx, meas)

@@ -334,20 +334,28 @@ class MeasurementDB:
             out.append(entry)
         return out
 
-    def list_dns(self) -> List[Entry]:
+    def list_dns(self, url_idx: Optional[int]) -> List[Entry]:
         """Returns all the dns entries."""
         out: List[Entry] = []
         for entry in self._table.values():
-            if entry.kind() == Kind.DNS:
-                out.append(entry)
+            if entry.kind() != Kind.DNS:
+                continue
+            dns: DNSLookupMeasurement = entry.unwrap()
+            if url_idx is not None and dns.url_measurement_id != url_idx:
+                continue
+            out.append(entry)
         return out
 
-    def list_endpoint(self) -> List[Entry]:
+    def list_endpoint(self, url_idx: Optional[int]) -> List[Entry]:
         """Returns all the endpoint entries."""
         out: List[Entry] = []
         for entry in self._table.values():
-            if entry.kind() == Kind.ENDPOINT:
-                out.append(entry)
+            if entry.kind() != Kind.ENDPOINT:
+                continue
+            epnt: EndpointMeasurement = entry.unwrap()
+            if url_idx is not None and epnt.url_measurement_id != url_idx:
+                continue
+            out.append(entry)
         return out
 
     def list_urls(self) -> List[Entry]:
