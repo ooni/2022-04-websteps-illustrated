@@ -11,6 +11,7 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
 // SingleStepMeasurement contains a a single-step measurement.
@@ -92,9 +93,13 @@ type ArchivalTHResponse struct {
 
 // ToArchival converts a THResponse to its archival format.
 func (r *THResponseWithID) ToArchival(begin time.Time) ArchivalTHResponse {
+	// Here it's fine to pass empty flags because we're serializing
+	// the TH response which does not contain the body
+	const bodyFlags = 0
 	return ArchivalTHResponse{
-		DNS:      measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
-		Endpoint: measurex.NewArchivalEndpointMeasurementList(begin, r.Endpoint),
+		DNS: measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
+		Endpoint: measurex.NewArchivalEndpointMeasurementList(
+			begin, r.Endpoint, bodyFlags),
 	}
 }
 
@@ -104,9 +109,12 @@ func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleSte
 		// just in case...
 		return nil
 	}
+	// Note: we're serializing the body choosing the option to
+	// serialize its hash rather than the body content
+	const bodyFlags = model.ArchivalHTTPBodySerializeTLSH
 	out := &ArchivalSingleStepMeasurement{}
 	if ssm.ProbeInitial != nil {
-		v := ssm.ProbeInitial.ToArchival(begin)
+		v := ssm.ProbeInitial.ToArchival(begin, bodyFlags)
 		out.ProbeInitial = &v
 	}
 	if ssm.TH != nil {
@@ -118,7 +126,7 @@ func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleSte
 	}
 	if len(ssm.ProbeAdditional) > 0 {
 		out.ProbeAdditional = measurex.NewArchivalEndpointMeasurementList(
-			begin, ssm.ProbeAdditional)
+			begin, ssm.ProbeAdditional, bodyFlags)
 	}
 	out.Analysis = ssm.Analysis
 	return out

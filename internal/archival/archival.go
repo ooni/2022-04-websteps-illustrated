@@ -66,8 +66,9 @@ func (ev *FlatNetworkEvent) ToArchivalTCPConnectResult(begin time.Time) model.Ar
 // measurement code performs related requests sequentially (which is a kinda a
 // given because you cannot follow a redirect before reading the previous request),
 // then the result is sorted how the OONI pipeline expects it to be.
-func (t *Trace) NewArchivalHTTPRequestResultList(begin time.Time) []model.ArchivalHTTPRequestResult {
-	return NewArchivalHTTPRequestResultList(begin, t.HTTPRoundTrip)
+func (t *Trace) NewArchivalHTTPRequestResultList(
+	begin time.Time, bodyFlags int64) []model.ArchivalHTTPRequestResult {
+	return NewArchivalHTTPRequestResultList(begin, t.HTTPRoundTrip, bodyFlags)
 }
 
 // NewArchivalHTTPRequestResultList builds an HTTP requests list in the OONI
@@ -78,9 +79,10 @@ func (t *Trace) NewArchivalHTTPRequestResultList(begin time.Time) []model.Archiv
 // measurement code performs related requests sequentially (which is a kinda a
 // given because you cannot follow a redirect before reading the previous request),
 // then the result is sorted how the OONI pipeline expects it to be.
-func NewArchivalHTTPRequestResultList(begin time.Time, in []*FlatHTTPRoundTripEvent) (out []model.ArchivalHTTPRequestResult) {
+func NewArchivalHTTPRequestResultList(begin time.Time,
+	in []*FlatHTTPRoundTripEvent, bodyFlags int64) (out []model.ArchivalHTTPRequestResult) {
 	for _, ev := range in {
-		out = append(out, ev.ToArchival(begin))
+		out = append(out, ev.ToArchival(begin, bodyFlags))
 	}
 	// Implementation note: historically OONI has always added
 	// the _last_ measurement in _first_ position. This has only
@@ -94,7 +96,8 @@ func NewArchivalHTTPRequestResultList(begin time.Time, in []*FlatHTTPRoundTripEv
 }
 
 // ToArchival converts a FlatHTTPRoundTripEvent to ArchivalHTTPRequestResult.
-func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTPRequestResult {
+func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time,
+	bodyFlags int64) model.ArchivalHTTPRequestResult {
 	return model.ArchivalHTTPRequestResult{
 		Failure: ev.Failure.ToArchivalFailure(),
 		Request: model.ArchivalHTTPRequest{
@@ -108,8 +111,12 @@ func (ev *FlatHTTPRoundTripEvent) ToArchival(begin time.Time) model.ArchivalHTTP
 			URL:             ev.URL,
 		},
 		Response: model.ArchivalHTTPResponse{
-			Body: model.ArchivalMaybeBinaryData{
-				Value: string(ev.ResponseBody),
+			Body: model.ArchivalHTTPBodyOrTLSH{
+				Body: model.ArchivalMaybeBinaryData{
+					Value: string(ev.ResponseBody),
+				},
+				Flags: bodyFlags,
+				TLSH:  ev.ResponseBodyTLSH,
 			},
 			BodyLength:      ev.ResponseBodyLength,
 			BodyIsTruncated: ev.ResponseBodyIsTruncated,

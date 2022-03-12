@@ -227,12 +227,49 @@ type ArchivalHTTPRequest struct {
 	URL             string                             `json:"url"`
 }
 
+const (
+	// ArchivalHTTPBodySerializeTLSH indicates that we don't want
+	// to serialize the body, rather we just want the TLSH.
+	ArchivalHTTPBodySerializeTLSH = 1 << iota
+)
+
+// ArchivalHTTPBodyOrTLSH is a type that serializes either the
+// whole body or just the body hash depending on flags.
+type ArchivalHTTPBodyOrTLSH struct {
+	// Body is the real body
+	Body ArchivalHTTPBody
+
+	// Flags contains flags controlling the serialization
+	Flags int64
+
+	// TLSH is the hash
+	TLSH string
+}
+
+// ArchivalHTTPBodyTLSH is the hash serialization.
+type ArchivalHTTPBodyTLSH struct {
+	Format string `json:"format"`
+	Data   string `json:"data"`
+}
+
+// MarshalJSON implements a custom JSON marshalling policy.
+func (b ArchivalHTTPBodyOrTLSH) MarshalJSON() ([]byte, error) {
+	if (b.Flags&ArchivalHTTPBodySerializeTLSH) != 0 && b.TLSH != "" {
+		out := &ArchivalHTTPBodyTLSH{
+			Format: "tlsh",
+			Data:   b.TLSH,
+		}
+		return json.Marshal(out)
+	}
+	return b.Body.MarshalJSON()
+}
+
 // ArchivalHTTPResponse contains an HTTP response.
 //
 // Headers are a map in Web Connectivity data format but
 // we have added support for a list since January 2020.
 type ArchivalHTTPResponse struct {
-	Body            ArchivalHTTPBody                   `json:"body"`
+	Body            ArchivalHTTPBodyOrTLSH             `json:"body"`
 	BodyLength      int64                              `json:"body_length"`
 	BodyIsTruncated bool                               `json:"body_is_truncated"`
 	BodyTLSH        string                             `json:"body_tlsh"`

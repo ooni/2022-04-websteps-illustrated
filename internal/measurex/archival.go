@@ -88,7 +88,8 @@ type ArchivalEndpointMeasurement struct {
 }
 
 // ToArchival converts a EndpointMeasurement to ArchivalEndpointMeasurement.
-func (m *EndpointMeasurement) ToArchival(begin time.Time) ArchivalEndpointMeasurement {
+func (m *EndpointMeasurement) ToArchival(
+	begin time.Time, bodyFlags int64) ArchivalEndpointMeasurement {
 	return ArchivalEndpointMeasurement{
 		ID:               m.ID,
 		URLMeasurementID: m.URLMeasurementID,
@@ -99,7 +100,7 @@ func (m *EndpointMeasurement) ToArchival(begin time.Time) ArchivalEndpointMeasur
 		NetworkEvents:    archival.NewArchivalNetworkEventList(begin, m.NetworkEvent),
 		TCPConnect:       m.toArchivalTCPConnectResult(begin),
 		QUICTLSHandshake: m.toArchivalTLSOrQUICHandshakeResult(begin),
-		HTTPRoundTrip:    m.toArchivalHTTPRequestResult(begin),
+		HTTPRoundTrip:    m.toArchivalHTTPRequestResult(begin, bodyFlags),
 	}
 }
 
@@ -120,9 +121,10 @@ func (m *EndpointMeasurement) toArchivalTLSOrQUICHandshakeResult(
 	return
 }
 
-func (m *EndpointMeasurement) toArchivalHTTPRequestResult(begin time.Time) (out *model.ArchivalHTTPRequestResult) {
+func (m *EndpointMeasurement) toArchivalHTTPRequestResult(
+	begin time.Time, flags int64) (out *model.ArchivalHTTPRequestResult) {
 	if m.HTTPRoundTrip != nil {
-		v := m.HTTPRoundTrip.ToArchival(begin)
+		v := m.HTTPRoundTrip.ToArchival(begin, flags)
 		out = &v
 	}
 	return
@@ -151,14 +153,15 @@ type ArchivalURLMeasurement struct {
 }
 
 // ToArchival converts URLMeasurement to ArchivalURLMeasurement.
-func (m *URLMeasurement) ToArchival(begin time.Time) ArchivalURLMeasurement {
+func (m *URLMeasurement) ToArchival(begin time.Time, bodyFlags int64) ArchivalURLMeasurement {
 	return ArchivalURLMeasurement{
 		ID:          m.ID,
 		EndpointIDs: m.EndpointIDs,
 		URL:         m.URL.String(),
 		Cookies:     m.toArchivalCookies(),
 		DNS:         NewArchivalDNSLookupMeasurementList(begin, m.DNS),
-		Endpoint:    NewArchivalEndpointMeasurementList(begin, m.Endpoint),
+		Endpoint: NewArchivalEndpointMeasurementList(
+			begin, m.Endpoint, bodyFlags),
 	}
 }
 
@@ -181,10 +184,10 @@ func NewArchivalDNSLookupMeasurementList(
 
 // NewArchivalEndpointMeasurementList converts a []*EndpointMeasurement into
 // a []ArchivalEndpointMeasurement.
-func NewArchivalEndpointMeasurementList(
-	begin time.Time, in []*EndpointMeasurement) (out []ArchivalEndpointMeasurement) {
+func NewArchivalEndpointMeasurementList(begin time.Time,
+	in []*EndpointMeasurement, bodyFlags int64) (out []ArchivalEndpointMeasurement) {
 	for _, entry := range in {
-		out = append(out, entry.ToArchival(begin))
+		out = append(out, entry.ToArchival(begin, bodyFlags))
 	}
 	return
 }

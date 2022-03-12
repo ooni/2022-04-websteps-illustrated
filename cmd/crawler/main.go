@@ -63,7 +63,8 @@ func main() {
 			continue
 		}
 		for m := range mchan {
-			data, err := json.Marshal(m.ToArchival(begin))
+			const bodyFlags = 0 // serialize the whole body
+			data, err := json.Marshal(m.ToArchival(begin, bodyFlags))
 			if err != nil {
 				log.Warnf("cannot serialize JSON: %s", err.Error())
 				continue
