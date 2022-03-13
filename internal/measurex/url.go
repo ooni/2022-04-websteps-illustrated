@@ -513,7 +513,7 @@ func (r *URLRedirectDeque) RememberVisitedURLs(epnts []*EndpointMeasurement) {
 func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
 	defer r.mu.Unlock()
 	r.mu.Lock()
-	if r.depth > r.options.maxCrawlerDepth() {
+	if r.depth >= r.options.maxCrawlerDepth() {
 		r.logger.Info("👋 reached maximum crawler depth")
 		return nil, false
 	}
