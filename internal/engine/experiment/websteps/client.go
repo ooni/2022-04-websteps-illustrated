@@ -184,15 +184,23 @@ func (c *Client) steps(ctx context.Context, input string) {
 		ssm.rememberVisitedURLs(q)
 		redirects, _ := ssm.redirects(mx)
 		tkoe.TestKeys.Steps = append(tkoe.TestKeys.Steps, ssm)
-		tkoe.TestKeys.Flags |= ssm.Flags
 		q.Append(redirects...)
 		c.logger.Infof("🪀 work queue: %s", q.String())
 	}
-	// As a final step, build a database of all the bodies in this
-	// measurement, which allows us to cross analyze them
 	tkoe.TestKeys.Bodies = tkoe.TestKeys.buildHashingBodies(mx)
-	tkoe.TestKeys.finalReprocessingAndLogging(c.logger)
+	tkoe.TestKeys.finalReprocessingAndLogging(c.logger)  // depends on hashes
+	tkoe.TestKeys.Flags = tkoe.TestKeys.aggregateFlags() // depends on reprocessing
 	c.Output <- tkoe
+}
+
+// aggregateFlags produces the aggregate flags for each SingleStep
+// and then aggregates each SingleStep into TestKeys flags.
+func (tk *TestKeys) aggregateFlags() (flags int64) {
+	for _, step := range tk.Steps {
+		step.Flags = step.aggregateFlags()
+		flags |= step.Flags
+	}
+	return flags
 }
 
 // rememberVisitedURLs inspects all the URLs visited by the
@@ -314,7 +322,6 @@ func (c *Client) step(ctx context.Context,
 	c.logger.Infof("🔬 analyzing the collected results")
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx, c.logger)
 	ssm.Analysis.Endpoint = ssm.endpointAnalysis(mx, c.logger)
-	ssm.Flags = ssm.aggregateFlags(mx, c.logger)
 	// TODO(bassosimone): run follow-up experiments
 	return ssm
 }

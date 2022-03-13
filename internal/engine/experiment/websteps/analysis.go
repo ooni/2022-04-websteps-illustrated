@@ -122,8 +122,7 @@ const (
 //
 
 // aggregateFlags computes overall analysis for the SingleStepMeasurement.
-func (ssm *SingleStepMeasurement) aggregateFlags(
-	mx *measurex.Measurer, logger model.Logger) (flags int64) {
+func (ssm *SingleStepMeasurement) aggregateFlags() (flags int64) {
 	if ssm.Analysis != nil {
 		for _, score := range ssm.Analysis.DNS {
 			flags |= score.Flags
