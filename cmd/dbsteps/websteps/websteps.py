@@ -378,12 +378,45 @@ class Measurement:
         return out
 
 
-def load(testkeys: Dict[str, Any]) -> Measurement:
-    """This function loads a Measurement from test keys. In case there
-    is any error, this function throws a ValueError that wraps the
-    original exception that occurred."""
+def _th_measurement_loader(measurement: Dict[str, Any]) -> Measurement:
+    """Custom loader for TH measurements. These measurements are basically
+    raw URLMeasurement instances. We need to refactor them so that the
+    Measurement loader can load them successfully."""
+    faketks: Dict[str, Any] = {
+        "flags": 0,
+        "url": "",
+        "steps": [
+            {
+                "probe_initial": measurement,
+                "th": None,
+                "dnsping": None,
+                "probe_additional": [],
+                "analysis": None,
+                "flags": 0,
+            }
+        ],
+    }
+    m = Measurement(faketks)
+    m.url = measurement.get("url", "")
+    return m
+
+
+def _probe_measurement_loader(measurement: Dict[str, Any]) -> Measurement:
+    """Custom loader for probe measurements. We just need to unwrap
+    and use the test keys of the overall measurement."""
+    return Measurement(measurement["test_keys"])
+
+
+def load(measurement: Dict[str, Any], is_th: bool) -> Measurement:
+    """This function loads a Measurement from a measurement dict parsed
+    from the JSONL file. In case there is any error, this function throws
+    a ValueError wrapping the original exception that occurred."""
+    loader: Dict[bool, Any] = {
+        True: _th_measurement_loader,
+        False: _probe_measurement_loader,
+    }
     try:
-        meas = Measurement(testkeys)
+        meas = loader[is_th](measurement)
     except Exception as exc:
         raise ValueError("cannot parse measurement") from exc
     else:

@@ -3,6 +3,7 @@
 """Allows to navigate measurements."""
 
 import argparse
+import traceback
 from dnslib import DNSRecord
 import json
 import sys
@@ -36,18 +37,14 @@ def jsonl_reader(filepath: str):
                 yield measurement
 
 
-def load(filepath) -> List[MeasurementDB]:
+def load(filepath: str, is_th: bool) -> List[MeasurementDB]:
     """Loads measurements from file."""
     out: List[MeasurementDB] = []
     for measurement in jsonl_reader(filepath):
-        tk = measurement.get("test_keys")
-        if not tk:
-            print("warning: missing test_keys")
-            continue
         try:
-            meas = websteps_load(tk)
-        except ValueError as exc:
-            print(f"warning: cannot load measurement: {exc}")
+            meas = websteps_load(measurement, is_th)
+        except ValueError:
+            traceback.print_exc()
             continue
         mdb = MeasurementDB(meas)
         out.append(mdb)
@@ -453,8 +450,15 @@ def main():
         help="specify JSONL file containing measurements",
         required=True,
     )
+    parser.add_argument(
+        "--test-helper",
+        dest="th",
+        action="store_true",
+        help="load measurements from the TH",
+        required=False
+    )
     args = parser.parse_args()
-    msmts = load(args.file)
+    msmts = load(args.file, args.th)
     try:
         main_interactive(msmts)
     except EOFError:
