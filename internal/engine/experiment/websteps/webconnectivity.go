@@ -6,6 +6,7 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
 //
@@ -104,19 +105,33 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 // endpointWebConnectivityStatusCodeMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
-	pe, the *measurex.EndpointMeasurement) (flags int64) {
+	logger model.Logger, pe, the *measurex.EndpointMeasurement) (flags int64) {
 	match := pe.StatusCode() == the.StatusCode()
 	if match {
 		// if the status codes are equal, they clearly match
 		return
 	}
-	// This fix is part of Web Connectivity in MK and in Python since
-	// basically forever; my recollection is that we want to work around
-	// cases where the test helper is failing(?!). Unlike previous
-	// implementations, this implementation avoids a false positive
-	// when both measurement and control statuses are 500.
-	if the.StatusCode()/100 == 5 {
-		flags |= AnalysisProbeBug // tell us the TH is misbehaving?!
+	// Historically, Web Connectivity in MK and Pyton filtered out
+	// 500 status codes to reduce false positives. Now, we're being
+	// even more aggressive: we expect the TH to be able to access
+	// a webpage (200 Ok) or be redirected. Any other outcome is
+	// going to be inconclusive. Here are some potential cases in
+	// which filtering more broadly could help:
+	//
+	// 1. say the server fails with 5xx (already covered in MK);
+	//
+	// 2. say the server is somehow protecting itself from scraping
+	// from outside a country or cloud, and returns 204 (I've seen
+	// 204 for http://iwannawatch.net, for example);
+	//
+	// 3. say there is an HTTP proxy in the TH environment and
+	// we don't know it and the proxy says 403 Forbidden.
+	//
+	// We're going to mark all these cases as "gave up analysis".
+	if !the.IsHTTPRedirect() && the.StatusCode() != 200 {
+		flags |= AnalysisGiveUp
+		logger.Warnf(
+			"😅 [analysis] give up b/c the TH response is neither redirect nor 200")
 		return
 	}
 	flags |= AnalysisHTTPDiffStatusCode

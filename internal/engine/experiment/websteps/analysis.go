@@ -85,7 +85,7 @@ const (
 	AnalysisHTTPDiffHeaders    = 1 << 37
 	AnalysisHTTPDiffTitle      = 1 << 38
 	AnalysisHTTPDiffBodyLength = 1 << 39
-	AnalysisHTTPDiffBodyHash   = 1 << 40
+	AnalysisUnassigned40       = 1 << 40
 	AnalysisUnassigned41       = 1 << 41
 	AnalysisUnassigned42       = 1 << 42
 	AnalysisUnassigned43       = 1 << 43
@@ -113,7 +113,7 @@ const (
 	AnalysisInconsistent        = 1 << 59
 	AnalysisConsistent          = 1 << 60
 	AnalysisHTTPMaybeProxy      = 1 << 61
-	AnalysisUnused62            = 1 << 62
+	AnalysisHTTPDiffBodyHash    = 1 << 62
 	AnalysisUnused63            = 1 << 63
 )
 
@@ -659,10 +659,16 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 	// possible blockpage for HTTP and perhaps sanctions for HTTPS and HTTP3.
 	//
 	// Note that ALL measurements where we apply Web Connectivity algorithms are
-	// marked for reprocessing once websteps is done.
+	// marked for reprocessing once websteps is done. One of the actions we'll do
+	// in reprocessing is spotting cases in which the probe received a 200 Ok
+	// while the TH was redirected to the same resource and fetched it at a later
+	// time. This condition seems like a transparent non-lying HTTP proxy.
+	//
+	// An example URL that exhibits this behavior is:
+	// http://ajax.aspnetcdn.com/ajax/4.5.2/1/MicrosoftAjax.js
 	//
 	// This set of conditions is adapted from MK v0.10.11.
-	flags := ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
+	flags := ssm.endpointWebConnectivityStatusCodeMatch(logger, pe, the)
 	score.probe = pe // for reprocessing
 	score.th = the   // ditto
 	score.Flags |= flags
@@ -670,10 +676,10 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 		tlshDiff, good := ssm.endpointHashingTLSHCompareBodies(pe, the)
 		if good {
 			// According to the TLSH paper, a diff score less than 60
-			// has false positives rate of 1% and detect rate 76%.
-			//
-			// We should invest more time on thinking whether to use
-			// a different threshold here. For now this will do.
+			// has false positives rate of 1% in detecting possibly
+			// polymorphic pieces of malware. With this score, it seems
+			// we're on a reasonable territory when it boils down to
+			// detect similar webpages w/o significant changes.
 			//
 			// See https://github.com/trendmicro/tlsh/blob/master/TLSH_CTC_final.pdf
 			const tlshThreshold = 60
@@ -681,8 +687,18 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex
 				score.Flags |= AnalysisHTTPAccessible
 				return score
 			}
-			score.Flags |= AnalysisHTTPDiffBodyHash
 			// Fallback to the original Web Connectivity length checking algo.
+			//
+			// Here's why:
+			//
+			// The body hash is good at detecting _similar_ bodies but I have seen
+			// cases (e.g., http://itafilm.tv) where the web server replies with
+			// a body only consisting of a JavaScript redirect with most of the body
+			// being occupied by a random base64 string.
+			//
+			// For this reason the DiffBodyHash flag is an internal flag and we're
+			// going to rely on the original heuristics for spotting a diff.
+			score.Flags |= AnalysisHTTPDiffBodyHash
 		}
 		flags = ssm.endpointWebConnectivityBodyLengthChecks(pe, the)
 		if flags == 0 {
