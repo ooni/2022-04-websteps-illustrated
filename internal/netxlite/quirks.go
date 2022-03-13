@@ -56,17 +56,8 @@ func quirkReduceErrors(errorslist []error) error {
 //
 // See TODO(https://github.com/ooni/probe/issues/1779).
 func quirkSortIPAddrs(addrs []string) (out []string) {
-	isIPv6 := func(x string) bool {
-		// This check for identifying IPv6 is discussed
-		// at https://stackoverflow.com/questions/22751035
-		// and seems good-enough for our purposes.
-		return strings.Contains(x, ":")
-	}
-	isIPv4 := func(x string) bool {
-		return !isIPv6(x)
-	}
 	for _, addr := range addrs {
-		if isIPv4(addr) {
+		if !isIPv6(addr) {
 			out = append(out, addr)
 		}
 	}

@@ -209,10 +209,27 @@ func (r *resolverShortCircuitIPAddr) LookupHost(ctx context.Context, hostname st
 	return r.Resolver.LookupHost(ctx, hostname)
 }
 
+// IsIPv6 returns true if the given candidate is a valid IP address
+// representation and such representation is IPv6.
+func IsIPv6(candidate string) (bool, error) {
+	if net.ParseIP(candidate) == nil {
+		return false, ErrInvalidIP
+	}
+	return isIPv6(candidate), nil
+}
+
+// isIPv6 returns true if the given IP address is IPv6.
+func isIPv6(candidate string) bool {
+	// This check for identifying IPv6 is discussed
+	// at https://stackoverflow.com/questions/22751035
+	// and seems good-enough for our purposes.
+	return strings.Contains(candidate, ":")
+}
+
 func (r *resolverShortCircuitIPAddr) LookupHTTPS(ctx context.Context, hostname string) (*model.HTTPSSvc, error) {
 	if net.ParseIP(hostname) != nil {
 		https := &model.HTTPSSvc{}
-		if strings.Contains(hostname, ":") {
+		if isIPv6(hostname) {
 			https.IPv6 = append(https.IPv6, hostname)
 		} else {
 			https.IPv4 = append(https.IPv4, hostname)

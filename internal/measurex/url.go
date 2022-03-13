@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -297,7 +296,11 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 		}
 
 		family := "A"
-		if strings.Contains(addr.Address, ":") {
+		ipv6, err := netxlite.IsIPv6(addr.Address)
+		if err != nil {
+			continue
+		}
+		if ipv6 {
 			family = "AAAA"
 		}
 		if (flags&EndpointPlanningIncludeAll) == 0 &&

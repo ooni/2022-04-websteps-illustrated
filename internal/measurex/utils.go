@@ -13,9 +13,9 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
-	"strings"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
 // ALPNForHTTPSEndpoint selects the correct ALPN for an HTTP endpoint
@@ -114,10 +114,14 @@ func GetWebPageTitle(webpage []byte) string {
 // isEndpointIPv6 returns true if this endpoint uses IPv6, false otherwise.
 func isEndpointIPv6(epnt string) bool {
 	addr, _, err := net.SplitHostPort(epnt)
-	if err == nil && net.ParseIP(addr) != nil && strings.Contains(addr, ":") {
-		return true
+	if err != nil {
+		return false
 	}
-	return false
+	ipv6, err := netxlite.IsIPv6(addr)
+	if err != nil {
+		return false
+	}
+	return ipv6
 }
 
 // isHTTPRedirect returns true if the status code implies redirect.

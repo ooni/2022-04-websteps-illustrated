@@ -57,8 +57,8 @@ func main() {
 		MaxCrawlerDepth:       measurex.DefaultMaxCrawlerDepth,
 	}
 	if opts.Deep {
-		clientOptions.MaxAddressesPerFamily = 32
-		clientOptions.MaxCrawlerDepth = 11
+		clientOptions.MaxAddressesPerFamily = 1
+		clientOptions.MaxCrawlerDepth = 1
 	}
 	clnt := websteps.StartClient(ctx, log.Log, nil, nil, opts.Backend, clientOptions)
 	wg := &sync.WaitGroup{}

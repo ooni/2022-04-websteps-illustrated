@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
 //
@@ -220,7 +220,11 @@ func (ev *FlatDNSLookupEvent) gatherHTTPS() (out []model.ArchivalDNSAnswer) {
 		asn, org, _ := geolocate.LookupASN(addr)
 		answer.ASN = int64(asn)
 		answer.ASOrgName = org
-		if strings.Contains(addr, ":") {
+		ipv6, err := netxlite.IsIPv6(addr)
+		if err != nil {
+			continue
+		}
+		if ipv6 {
 			answer.AnswerType = "AAAA"
 			answer.IPv6 = addr
 		} else {
@@ -273,7 +277,7 @@ func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []mode
 
 func (ev *FlatDNSLookupEvent) gatherA() (out []model.ArchivalDNSAnswer) {
 	for _, addr := range ev.Addresses {
-		if strings.Contains(addr, ":") {
+		if ipv6, err := netxlite.IsIPv6(addr); err != nil || ipv6 {
 			continue // it's AAAA so we need to skip it
 		}
 		answer := model.ArchivalDNSAnswer{AnswerType: "A"}
@@ -288,7 +292,7 @@ func (ev *FlatDNSLookupEvent) gatherA() (out []model.ArchivalDNSAnswer) {
 
 func (ev *FlatDNSLookupEvent) gatherAAAA() (out []model.ArchivalDNSAnswer) {
 	for _, addr := range ev.Addresses {
-		if !strings.Contains(addr, ":") {
+		if ipv6, err := netxlite.IsIPv6(addr); err != nil || !ipv6 {
 			continue // it's A so we need to skip it
 		}
 		answer := model.ArchivalDNSAnswer{AnswerType: "AAAA"}
