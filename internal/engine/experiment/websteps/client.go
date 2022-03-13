@@ -81,6 +81,9 @@ type Client struct {
 	// logger is the MANDATORY logger to use.
 	logger model.Logger
 
+	// options contains measurex options.
+	options *measurex.Options
+
 	// resolvers contains the MANDATORY resolvers to use.
 	resolvers []*measurex.DNSResolverInfo
 
@@ -98,26 +101,28 @@ type THClient interface {
 // and is only suitable for speaking with the TH.
 func NewTHClient(logger model.Logger, dialer model.Dialer,
 	tlsDialer model.TLSDialer, thURL string) THClient {
-	return newClient(
-		context.Background(), logger, dialer, tlsDialer, thURL, false)
+	return newClient(context.Background(), logger, dialer,
+		tlsDialer, thURL, false, &measurex.Options{})
 }
 
 // StartClient starts a new websteps client instance in a background goroutine
 // and returns the client instance to submit and collect measurements.
 func StartClient(ctx context.Context, logger model.Logger, dialer model.Dialer,
-	tlsDialer model.TLSDialer, thURL string) *Client {
-	return newClient(ctx, logger, dialer, tlsDialer, thURL, true)
+	tlsDialer model.TLSDialer, thURL string, clientOptions *measurex.Options) *Client {
+	return newClient(ctx, logger, dialer, tlsDialer, thURL, true, clientOptions)
 }
 
 // newClient implements NewTHClient and StartClient.
 func newClient(ctx context.Context, logger model.Logger, dialer model.Dialer,
-	tlsDialer model.TLSDialer, thURL string, startBackgroundWorker bool) *Client {
+	tlsDialer model.TLSDialer, thURL string, startBackgroundWorker bool,
+	clientOptions *measurex.Options) *Client {
 	clnt := &Client{
 		Input:           make(chan string),
 		Output:          make(chan *TestKeysOrError),
 		dialerCleartext: dialer,
 		dialerTLS:       tlsDialer,
 		logger:          logger,
+		options:         clientOptions,
 		resolvers:       defaultResolvers(),
 		thURL:           thURL,
 	}
@@ -144,6 +149,7 @@ func (c *Client) loop(ctx context.Context) {
 func (c *Client) steps(ctx context.Context, input string) {
 	library := measurex.NewDefaultLibrary(c.logger)
 	mx := measurex.NewMeasurer(c.logger, library)
+	mx.Options = c.options // ensure we use user-selected options (if any)
 	initial, err := mx.NewURLMeasurement(input)
 	if err != nil {
 		c.logger.Warnf("❌ cannot parse input as URL: %s", err.Error())

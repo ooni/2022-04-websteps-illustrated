@@ -12,11 +12,13 @@ import (
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
+	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
 type CLI struct {
 	Backend string   `doc:"backend URL (default: use OONI backend)" short:"b"`
+	Deep    bool     `doc:"causes websteps to scan more IP addresses and follow more redirects"`
 	Help    bool     `doc:"prints this help message" short:"h"`
 	Input   []string `doc:"add URL to list of URLs to crawl" short:"i"`
 	Output  string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
@@ -26,6 +28,7 @@ type CLI struct {
 func main() {
 	opts := &CLI{
 		Backend: "wss://0.th.ooni.org/websteps/v1/th",
+		Deep:    false,
 		Help:    false,
 		Input:   []string{},
 		Output:  "report.jsonl",
@@ -37,6 +40,9 @@ func main() {
 		parser.PrintUsage(os.Stdout)
 		os.Exit(0)
 	}
+	if len(opts.Input) < 1 {
+		log.Fatal("no input provided (try `./websteps --help' for more help)")
+	}
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
@@ -46,7 +52,15 @@ func main() {
 	}
 	begin := time.Now()
 	ctx := context.Background()
-	clnt := websteps.StartClient(ctx, log.Log, nil, nil, opts.Backend)
+	clientOptions := &measurex.Options{
+		MaxAddressesPerFamily: measurex.DefaultMaxAddressPerFamily,
+		MaxCrawlerDepth:       measurex.DefaultMaxCrawlerDepth,
+	}
+	if opts.Deep {
+		clientOptions.MaxAddressesPerFamily = 32
+		clientOptions.MaxCrawlerDepth = 11
+	}
+	clnt := websteps.StartClient(ctx, log.Log, nil, nil, opts.Backend, clientOptions)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go submitInput(ctx, wg, clnt, opts)
