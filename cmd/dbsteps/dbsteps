@@ -394,6 +394,8 @@ def main_command_l(msmts: List[MeasurementDB], all: bool):
     print("")
     print_table(summary)
     print("")
+    print(f"listed {len(summary)} measurements")
+    print("")
     print("hint: use `s<id>' to select the measurement with the given <id>")
     print("hint: use `h' for help")
     print("")
