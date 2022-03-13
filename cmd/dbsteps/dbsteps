@@ -3,6 +3,7 @@
 """Allows to navigate measurements."""
 
 import argparse
+import gzip
 import traceback
 from dnslib import DNSRecord
 import json
@@ -28,7 +29,12 @@ from websteps.dblike import MeasurementDB
 
 def jsonl_reader(filepath: str):
     """Reads a JSONL file returning each measurement."""
-    with open(filepath, "rb") as filep:
+    openerFactory = {
+        True: gzip.open,
+        False: open,
+    }
+    opener = openerFactory[filepath.endswith(".gz")]
+    with opener(filepath, "rb") as filep:
         for line in filep:
             try:
                 measurement = json.loads(line)
