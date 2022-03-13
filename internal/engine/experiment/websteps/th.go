@@ -140,9 +140,7 @@ func (c *Client) websocketDial(ctx context.Context) (*websocket.Conn, error) {
 		NetDialContext:    c.dialContextFunc(),
 		NetDialTLSContext: c.dialTLSContextFunc(),
 		Proxy:             nil,
-		TLSClientConfig: &tls.Config{
-			RootCAs: netxlite.NewDefaultCertPool(),
-		},
+		TLSClientConfig:   nil, // not needed because we override NetDialTLSContext
 		HandshakeTimeout:  10 * time.Second,
 		ReadBufferSize:    0,
 		WriteBufferSize:   0,
@@ -179,7 +177,11 @@ func (c *Client) dialTLSContextFunc() func(ctx context.Context,
 	if c.dialerTLS != nil {
 		return c.dialerTLS.DialTLSContext
 	}
-	d := &tls.Dialer{}
+	d := &tls.Dialer{
+		Config: &tls.Config{
+			RootCAs: netxlite.NewDefaultCertPool(),
+		},
+	}
 	return d.DialContext
 }
 
