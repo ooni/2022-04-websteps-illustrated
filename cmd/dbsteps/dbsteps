@@ -343,6 +343,9 @@ def s_interactive(idx: int, meas: MeasurementDB):
 def main_command_help():
     """Implements the `h` command of the main environment."""
     print("")
+    print("  c")
+    print("    classifies the failure tags")
+    print("")
     print("  h")
     print("    prints this help screen")
     print("")
@@ -434,7 +437,7 @@ def main_command_slash(msmts: List[MeasurementDB], command: str):
 
 
 def main_command_s(msmts: List[MeasurementDB], command: str):
-    """Implements the s command of the CLI."""
+    """Implements the `s` command of the CLI."""
     try:
         idx = int(command[1:])
     except ValueError:
@@ -446,6 +449,37 @@ def main_command_s(msmts: List[MeasurementDB], command: str):
         print(f"dbsteps: measurement {idx} not found")
         return
     s_interactive(idx, meas)
+
+
+def main_command_c(msmts: List[MeasurementDB]):
+    """Implements the `c` command of the CLI."""
+    tags = {}
+    tot = 0
+    for meas in msmts:
+        for tag in meas.tags():
+            tags.setdefault(tag, 0)
+            tags[tag] += 1
+            tot += 1
+    tagslist = sorted(tags.items(), key=lambda v: v[1], reverse=True)
+    tagslist.append(("Total", tot))
+    final = []
+    for tag, count in tagslist:
+        percentage = f"{((100 *count)/tot):.1f}%"
+        final.append(
+            (
+                tag,
+                count,
+                percentage,
+            )
+        )
+    print(
+        tabulate.tabulate(
+            final,
+            headers=["tag", "count", "percentage"],
+            tablefmt="grid",
+            stralign="right",
+        )
+    )
 
 
 def main_interactive(msmts: List[MeasurementDB]):
@@ -460,6 +494,9 @@ def main_interactive(msmts: List[MeasurementDB]):
         command = input("🐚🐚🐚 main> ")
         if command.startswith("/"):
             main_command_slash(msmts, command)
+            continue
+        if command == "c":
+            main_command_c(msmts)
             continue
         if command.startswith("j"):
             main_command_j(msmts, command)
