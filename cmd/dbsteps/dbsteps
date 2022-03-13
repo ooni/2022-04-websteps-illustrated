@@ -6,6 +6,7 @@ import argparse
 import traceback
 from dnslib import DNSRecord
 import json
+import re
 import sys
 import tabulate
 from typing import Any
@@ -294,12 +295,6 @@ def s_interactive(idx: int, meas: MeasurementDB):
     print("")
     while True:
         command = input(f"🐚🐚🐚 s:{idx} [{s_truncate_url(meas)}]> ")
-        if command == "q":
-            print("")
-            print("leaving the `s' environment...")
-            print('hint: use `li\' to list "interesting" measurements')
-            print("")
-            break
         if command.startswith("d"):
             s_command_d(meas, command)
             continue
@@ -327,6 +322,12 @@ def s_interactive(idx: int, meas: MeasurementDB):
         if command == "lu":
             s_command_lu(idx, meas)
             continue
+        if command == "q":
+            print("")
+            print("leaving the `s' environment...")
+            print('hint: use `li\' to list "interesting" measurements')
+            print("")
+            break
         if command.startswith("v"):
             s_command_v(meas, command)
             continue
@@ -334,7 +335,7 @@ def s_interactive(idx: int, meas: MeasurementDB):
 
 
 def main_command_help():
-    """Prints the help screen."""
+    """Implements the `h` command of the main environment."""
     print("")
     print("  h")
     print("    prints this help screen")
@@ -357,7 +358,7 @@ def main_command_help():
 
 
 def main_command_j(meas: List[MeasurementDB], command: str):
-    """Implements the j command of the s environment."""
+    """Implements the `j` command of the main environment."""
     try:
         idx = int(command[1:])
     except ValueError:
@@ -372,14 +373,8 @@ def main_command_j(meas: List[MeasurementDB], command: str):
     sys.stdout.write("\n")
 
 
-def main_command_l(msmts: List[MeasurementDB], all: bool):
-    """Lists all the available measurements."""
-    summary: List[Dict[str, Any]] = []
-    for idx, meas in enumerate(msmts):
-        entry = {"idx": idx, "url": meas.url(), "flags": meas.tags()}
-        if not all and len(entry["flags"]) <= 0:
-            continue
-        summary.append(entry)
+def main_command_l_or_slash_finish(summary: List[Dict[str, Any]]):
+    """Finishes running an `l` or `/` command in the main environment."""
     if len(summary) <= 0:
         print("")
         print('no "interesting" measurements to show')
@@ -396,6 +391,40 @@ def main_command_l(msmts: List[MeasurementDB], all: bool):
     print("hint: use `s<id>' to select the measurement with the given <id>")
     print("hint: use `h' for help")
     print("")
+
+
+def main_command_l_or_slash_filter(
+    msmts: List[MeasurementDB], filter: Any
+) -> List[Dict[str, Any]]:
+    """Filter functionality for either `l` or `/` in the main environment"""
+    summary: List[Dict[str, Any]] = []
+    for idx, meas in enumerate(msmts):
+        if filter(meas):
+            entry = {"idx": idx, "url": meas.url(), "flags": meas.tags()}
+            summary.append(entry)
+    return summary
+
+
+def main_command_l(msmts: List[MeasurementDB], all: bool):
+    """Lists all the available measurements."""
+
+    def filter(meas):
+        return all or len(meas.tags()) > 0
+
+    summary = main_command_l_or_slash_filter(msmts, filter)
+    main_command_l_or_slash_finish(summary)
+
+
+def main_command_slash(msmts: List[MeasurementDB], command: str):
+    """Implements the `/` command of the main environment."""
+    pattern = command[1:]
+    regex = re.compile(pattern)
+
+    def filter(meas):
+        return regex.search(meas.url())
+
+    summary = main_command_l_or_slash_filter(msmts, filter)
+    main_command_l_or_slash_finish(summary)
 
 
 def main_command_s(msmts: List[MeasurementDB], command: str):
@@ -423,8 +452,9 @@ def main_interactive(msmts: List[MeasurementDB]):
     print("")
     while True:
         command = input("🐚🐚🐚 main> ")
-        if command == "q":
-            break
+        if command.startswith("/"):
+            main_command_slash(msmts, command)
+            continue
         if command.startswith("j"):
             main_command_j(msmts, command)
             continue
@@ -434,6 +464,8 @@ def main_interactive(msmts: List[MeasurementDB]):
         if command == "l" or command == "li":
             main_command_l(msmts, command != "li")
             continue
+        if command == "q":
+            break
         if command.startswith("s"):
             main_command_s(msmts, command)
             continue
@@ -455,7 +487,7 @@ def main():
         dest="th",
         action="store_true",
         help="load measurements from the TH",
-        required=False
+        required=False,
     )
     args = parser.parse_args()
     msmts = load(args.file, args.th)
