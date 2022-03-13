@@ -62,6 +62,7 @@ func (mw *measurementsWriter) Save(um *measurex.URLMeasurement) {
 	const bodyFlags = 0 // we want to store bodies inline
 	data, err := json.Marshal(um.ToArchival(mw.t, bodyFlags))
 	runtimex.PanicOnError(err, "json.Marshal failed")
+	data = append(data, '\n')
 	if _, err := mw.fp.Write(data); err != nil {
 		log.WithError(err).Fatal("cannot write into output file")
 	}
