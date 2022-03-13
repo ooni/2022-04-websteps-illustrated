@@ -50,6 +50,7 @@ func main() {
 	thh := websteps.NewTHHandler(thOptions)
 	http.Handle("/", thh)
 	log.Infof("Listening at: \"%s\"", opts.Address)
+	dropprivileges(log.Log)
 	http.ListenAndServe(opts.Address, nil)
 }
 
