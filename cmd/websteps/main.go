@@ -16,7 +16,7 @@ import (
 )
 
 type CLI struct {
-	Backend string   `doc:"backend URL (default: ws://127.0.0.1:9876)" short:"b"`
+	Backend string   `doc:"backend URL (default: use OONI backend)" short:"b"`
 	Help    bool     `doc:"prints this help message" short:"h"`
 	Input   []string `doc:"add URL to list of URLs to crawl" short:"i"`
 	Output  string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
@@ -25,7 +25,7 @@ type CLI struct {
 
 func main() {
 	opts := &CLI{
-		Backend: "ws://127.0.0.1:9876/",
+		Backend: "wss://0.th.ooni.org/websteps/v1/th",
 		Help:    false,
 		Input:   []string{},
 		Output:  "report.jsonl",
