@@ -343,6 +343,9 @@ def s_interactive(idx: int, meas: MeasurementDB):
 def main_command_help():
     """Implements the `h` command of the main environment."""
     print("")
+    print("  #<tagName>")
+    print("    shows all the measurements with the given tag (e.g., `#bogon`)")
+    print("")
     print("  c")
     print("    classifies the failure tags")
     print("")
@@ -437,7 +440,7 @@ def main_command_slash(msmts: List[MeasurementDB], command: str):
 
 
 def main_command_s(msmts: List[MeasurementDB], command: str):
-    """Implements the `s` command of the CLI."""
+    """Implements the `s` command of the main environment."""
     try:
         idx = int(command[1:])
     except ValueError:
@@ -452,7 +455,7 @@ def main_command_s(msmts: List[MeasurementDB], command: str):
 
 
 def main_command_c(msmts: List[MeasurementDB]):
-    """Implements the `c` command of the CLI."""
+    """Implements the `c` command of the main environment."""
     tags = {}
     tot = 0
     for meas in msmts:
@@ -480,6 +483,24 @@ def main_command_c(msmts: List[MeasurementDB]):
             stralign="right",
         )
     )
+    print("")
+    print("hint: use `#<tagName>' to filter by tag name (e.g., `#bogon`)")
+    print("hint: use `h' for help")
+    print("")
+
+
+def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
+    """Implements the `#` command of the main environment."""
+    selected = []
+    for idx, meas in enumerate(msmts):
+        if tag in meas.tags():
+            entry = {"idx": idx, "url": meas.url(), "flags": meas.tags()}
+            selected.append(entry)
+    print_table(selected)
+    print("")
+    print("hint: use `s<ID>' to select and focus on the measurement with ID <ID>")
+    print("hint: use `h' for help")
+    print("")
 
 
 def main_interactive(msmts: List[MeasurementDB]):
@@ -487,11 +508,15 @@ def main_interactive(msmts: List[MeasurementDB]):
     print("")
     print(f"loaded {len(msmts)} measurements; entering the main environment...")
     print("")
+    print('hint: use `c\' to get statistics by blocking type')
     print('hint: use `li\' to list "interesting" measurements')
     print("hint: use `h' for help")
     print("")
     while True:
         command = input("🐚🐚🐚 main> ")
+        if command.startswith("#"):
+            main_command_hashtag(msmts, command)
+            continue
         if command.startswith("/"):
             main_command_slash(msmts, command)
             continue
