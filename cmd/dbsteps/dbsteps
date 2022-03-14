@@ -469,6 +469,14 @@ def main_command_c(msmts: List[MeasurementDB]):
     tagslist = sorted(tags.items(), key=lambda v: v[1], reverse=True)
     tagslist.append(("Total", tot))
     final = []
+    if tot <= 0:
+        print("")
+        print("no blocking detected")
+        print("")
+        print("hint: use `l' to list measurements")
+        print("hint: use `h' for help")
+        print("")
+        return
     for tag, count in tagslist:
         percentage = f"{((100 *count)/tot):.1f}%"
         final.append(
