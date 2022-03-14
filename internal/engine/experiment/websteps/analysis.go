@@ -295,6 +295,8 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 				score.Flags &= ^AnalysisDNSTimeout
 				score.Flags |= AnalysisDNSCanceledTimeout
 			}
+		case netxlite.FailureDNSNoAnswer:
+			score.Flags |= AnalysisDNSNoAnswer
 		default:
 			score.Flags |= AnalysisDNSOther
 		}
