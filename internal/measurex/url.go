@@ -308,7 +308,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 			logger.Infof("🧐 too many %s addresses already, skipping %s", family, addr.Address)
 			continue
 		}
-		added := false
+		counted := false
 
 		if (flags & EndpointPlanningOnlyHTTP3) == 0 {
 			if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
@@ -318,7 +318,6 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 					continue
 				}
 				out = append(out, plan)
-				added = true
 			}
 
 			if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
@@ -328,21 +327,29 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 					continue
 				}
 				out = append(out, plan)
-				added = true
 			}
+
+			// Even if it has already been measured, this address still counts
+			// against the limit enforced by MaxAddressesPerFamily.
+			counted = true
 		}
 
-		if um.IsHTTPS() && addr.SupportsHTTP3() && !addr.AlreadyTestedHTTP3() {
-			plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
-			if err != nil {
-				log.Printf("cannot make plan: %s", err.Error())
-				continue
+		if um.IsHTTPS() && addr.SupportsHTTP3() {
+			if !addr.AlreadyTestedHTTP3() {
+				plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
+				if err != nil {
+					log.Printf("cannot make plan: %s", err.Error())
+					continue
+				}
+				out = append(out, plan)
 			}
-			out = append(out, plan)
-			added = true
+
+			// Even if it has already been measured, this address still counts
+			// against the limit enforced by MaxAddressesPerFamily.
+			counted = true
 		}
 
-		if added {
+		if counted {
 			familyCounter[family] += 1
 		}
 	}

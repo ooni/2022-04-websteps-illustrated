@@ -18,7 +18,8 @@ import (
 
 type CLI struct {
 	Backend string   `doc:"backend URL (default: use OONI backend)" short:"b"`
-	Deep    bool     `doc:"causes websteps to scan more IP addresses and follow more redirects"`
+	Deep    bool     `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
+	Fast    bool     `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
 	Help    bool     `doc:"prints this help message" short:"h"`
 	Input   []string `doc:"add URL to list of URLs to crawl" short:"i"`
 	Output  string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
@@ -29,6 +30,7 @@ func main() {
 	opts := &CLI{
 		Backend: "wss://0.th.ooni.org/websteps/v1/th",
 		Deep:    false,
+		Fast:    false,
 		Help:    false,
 		Input:   []string{},
 		Output:  "report.jsonl",
@@ -56,7 +58,13 @@ func main() {
 		MaxAddressesPerFamily: measurex.DefaultMaxAddressPerFamily,
 		MaxCrawlerDepth:       measurex.DefaultMaxCrawlerDepth,
 	}
+	if opts.Deep && opts.Fast {
+		log.Fatal("cannot use --deep and --fast together")
+	}
 	if opts.Deep {
+		clientOptions.MaxAddressesPerFamily = 32
+		clientOptions.MaxCrawlerDepth = 11
+	} else if opts.Fast {
 		clientOptions.MaxAddressesPerFamily = 1
 		clientOptions.MaxCrawlerDepth = 1
 	}

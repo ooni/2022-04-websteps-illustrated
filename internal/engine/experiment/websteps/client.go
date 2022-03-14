@@ -334,7 +334,7 @@ func (c *Client) waitForTHC(thc <-chan *THResponseOrError) *THResponseOrError {
 }
 
 func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result) *dnsping.Result {
-	ol := measurex.NewOperationLogger(c.logger, "waiting for dnsping to complete")
+	ol := measurex.NewOperationLogger(c.logger, "wait on dnsping if it was started")
 	out := <-dc
 	ol.Stop(nil)
 	return out
@@ -462,60 +462,60 @@ func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 }
 
 // expandProbeKnowledge returns a list of URL addresses that extends
-// the original set of facts known by the probe by adding:
+// the original list known to the probe by:
 //
-// 1. information about HTTP3 support for hosts;
+// 1. adding information about HTTP3 support to each address known to
+// the probe for which the probe didn't know about HTTP3 support;
 //
-// 2. new IP addresses previously unknown to the probe that were
-// discovered by the test helper;
+// 2. appending at the end of the list any address that was discovered
+// using TH/dnsping and the probe didn't previously know.
 //
-// 3. addresses discovered using dnsping.
+// The returned list will always containg everything the probe already
+// knew at the beginning, following by newly discovered addresses. This
+// sorting allows us to prevent the probe from testing more than the
+// configured maximum number of IP addresses per family.
 //
-// If the return value is (nil, false), it means we could not discover any
-// new information. Otherwise, we return a valid list and true.
+// The boolean returned value is true if we have at least one IP address
+// to return and false otherwise. Beware that returning a non-empty
+// list doesn't imply that the probe will end up testing it. Limitations
+// on the maximum number of addresses per family apply.
 func (c *Client) expandProbeKnowledge(
 	mx *measurex.Measurer, ssm *SingleStepMeasurement) ([]*measurex.URLAddress, bool) {
 	// 1. gather the lists for the probe and the th
 	pal, _ := ssm.probeInitialURLAddressList()
 	thal, _ := ssm.testHelperOrDNSPingURLAddressList()
-	// 2. build a map of the addresses known by the probe.
-	pam := make(map[string]*measurex.URLAddress)
-	for _, e := range pal {
-		pam[e.Address] = e
+	// 2. build a map of the addresses known by the test helper.
+	thm := make(map[string]*measurex.URLAddress)
+	for _, e := range thal {
+		thm[e.Address] = e
 	}
-	// 3. expand probe's knowledge using the TH+dnsping list.
-	var (
-		o    []*measurex.URLAddress
-		uniq = make(map[string]bool)
-	)
-	for _, the := range thal {
-		if p, found := pam[the.Address]; found {
-			// 3.1. if the TH+dnsping knows that a given IP address also known by
-			// the probe supports HTTP3 and the probe does not, we add such an address.
-			if (p.Flags & measurex.URLAddressAlreadyTestedHTTP3) != 0 {
-				continue
-			}
-			if (the.Flags & measurex.URLAddressAlreadyTestedHTTP3) != 0 {
+	// 3. amend the probe-discovered list with TH's HTTP3 information.
+	both := make(map[string]bool)
+	for _, pe := range pal {
+		if the, found := thm[pe.Address]; found {
+			if (pe.Flags&measurex.URLAddressSupportsHTTP3) == 0 &&
+				(the.Flags&measurex.URLAddressAlreadyTestedHTTP3) != 0 {
 				mx.Logger.Infof("🙌 discovered that %s supports HTTP3", the.Address)
-				p.Flags |= measurex.URLAddressSupportsHTTP3
-				o = append(o, p)
+				pe.Flags |= measurex.URLAddressSupportsHTTP3
 			}
-			continue
+			both[pe.Address] = true // track addresses known to both
 		}
-		// 3.2. otherwise, if this IP address is unknown to the probe, we're
-		// going to add such an address to the probe's list.
-		if _, found := uniq[the.Address]; found {
-			continue
+	}
+	// 4. append to the probe-discovered list the addresses that
+	// the probe did not previously know about.
+	for _, the := range thal {
+		if _, found := both[the.Address]; found {
+			continue // we already have this in the list
 		}
-		o = append(o, &measurex.URLAddress{
+		pal = append(pal, &measurex.URLAddress{
 			URLMeasurementID: the.URLMeasurementID,
 			Address:          the.Address,
 			Flags:            (the.Flags & measurex.URLAddressSupportsHTTP3),
 		})
 		mx.Logger.Infof("🙌 discovered new %s address for domain", the.Address)
-		uniq[the.Address] = true
 	}
-	return o, len(o) > 0
+	// 5. return the probe extended list.
+	return pal, len(pal) > 0
 }
 
 func (ssm *SingleStepMeasurement) probeInitialURLAddressList() (
