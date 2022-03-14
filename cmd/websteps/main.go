@@ -67,6 +67,9 @@ func main() {
 	} else if opts.Fast {
 		clientOptions.MaxAddressesPerFamily = 1
 		clientOptions.MaxCrawlerDepth = 1
+		clientOptions.MaxHTTPResponseBodySnapshotSize = 1 << 10
+		clientOptions.MaxHTTPSResponseBodySnapshotSizeConnectivity = 1 << 10
+		clientOptions.MaxHTTPSResponseBodySnapshotSizeThrottling = 1 << 10
 	}
 	clnt := websteps.StartClient(ctx, log.Log, nil, nil, opts.Backend, clientOptions)
 	wg := &sync.WaitGroup{}
