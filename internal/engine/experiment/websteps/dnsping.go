@@ -50,7 +50,7 @@ func (c *Client) dnsPingFollowUp(ctx context.Context, mx *measurex.Measurer,
 	}
 	engine := dnsping.NewEngine(c.logger, mx.IDGenerator)
 	engine.QueryTimeout = mx.Options.Flatten().DNSLookupTimeout
-	return engine.RunAsync(ctx, overall)
+	return engine.RunAsync(overall)
 }
 
 // dnsPingSelectQueries filters the list of all the queries

@@ -7,7 +7,6 @@ package dnsping
 //
 
 import (
-	"context"
 	"errors"
 	"net"
 	"sort"
@@ -83,6 +82,9 @@ type SinglePingReply struct {
 	// Finished is when we received this ping reply.
 	Finished time.Time
 
+	// Rcode contains the response rcode.
+	Rcode string
+
 	// Addresses contains the resolved addresses.
 	Addresses []string
 
@@ -133,7 +135,7 @@ func (spr *SinglePingResult) QueryTypeAsString() string {
 // Result is the result of a DNS ping session.
 type Result struct {
 	// Pings contains a list of ping results. If this list is empty,
-	// it means the input plan was empty as well.
+	// it means the input plan was empty or wrong.
 	Pings []*SinglePingResult
 }
 
@@ -172,37 +174,35 @@ func NewEngine(logger model.Logger, idgen *measurex.IDGenerator) *Engine {
 	}
 }
 
-// RunAsync runs the Engine asynchronously and returns the
-// channel on which we'll post the overall result when done.
-func (e *Engine) RunAsync(
-	ctx context.Context, plans []*SinglePingPlan) <-chan *Result {
-	const buffered = 1 // so early exit allows to collect goroutine earlier
-	chout := make(chan *Result, buffered)
-	go e.worker(ctx, plans, chout)
-	return chout
+// RunAsync runs the Engine asynchronously and returns the channel
+// on which we'll post the overall result when done. The channel we
+// return is buffered, so you're not going to leak goroutines if
+// you just decide to stop waiting on the channel earlier.
+func (e *Engine) RunAsync(plans []*SinglePingPlan) <-chan *Result {
+	const buffered = 1
+	c := make(chan *Result, buffered)
+	go e.worker(plans, c)
+	return c
 }
 
 // worker is the Engine worker. It emits the result on c.
-func (e *Engine) worker(
-	ctx context.Context, plans []*SinglePingPlan, c chan<- *Result) {
-	// Implementation note: createSchedule works on a copy of the plan to
-	// avoid data races and produces a schedule that we can follow
-	c <- e.followThePlans(ctx, e.createSchedule(plans))
+func (e *Engine) worker(plans []*SinglePingPlan, c chan<- *Result) {
+	if len(plans) < 1 {
+		c <- &Result{} // shortcut
+		return
+	}
+	e.stickToTheSchedule(e.createSchedule(plans), c)
 }
 
 // schedule is a scheduled list of SinglePingPlan instances
 type schedule struct {
-	maxDelay time.Duration
-	p        []*SinglePingPlan
+	p []*SinglePingPlan
 }
 
 // createSchedule returns a copy of the original plans where we've sorted
 // by Delay and made each delay relative to the previous one.
 func (e *Engine) createSchedule(in []*SinglePingPlan) (out *schedule) {
 	out = &schedule{}
-	if len(in) < 1 {
-		return out
-	}
 	// 1. we need to deep copy to avoid data races
 	for _, plan := range in {
 		out.p = append(out.p, &SinglePingPlan{
@@ -216,9 +216,7 @@ func (e *Engine) createSchedule(in []*SinglePingPlan) (out *schedule) {
 	sort.SliceStable(out.p, func(i, j int) bool {
 		return out.p[i].Delay < out.p[j].Delay
 	})
-	// 3. compute the deadline
-	out.maxDelay = out.p[len(out.p)-1].Delay + e.QueryTimeout
-	// 4. finally make the delays relative to each other.
+	// 3. finally make the delays relative to each other.
 	var prevDelay time.Duration
 	for _, plan := range out.p {
 		delta := plan.Delay - prevDelay
@@ -228,88 +226,110 @@ func (e *Engine) createSchedule(in []*SinglePingPlan) (out *schedule) {
 	return
 }
 
-// followThePlans implements the Engine algorithm. This function
+// stickToTheSchedule implements the Engine algorithm. This function
 // always returns a valid non-nil Result.
-func (e *Engine) followThePlans(ctx context.Context, s *schedule) (out *Result) {
-	out = &Result{}
-	// 1. if we don't have anything to do, shortcut the return
-	if len(s.p) < 1 {
+func (e *Engine) stickToTheSchedule(s *schedule, c chan<- *Result) {
+	out := &Result{}
+	wg := &sync.WaitGroup{}
+	pings := make(chan *resultWrapper, len(s.p)) // all writes nonblocking
+	for _, plan := range s.p {
+		time.Sleep(plan.Delay) // wait for our turn to run
+		wg.Add(1)
+		deadline := time.Now().Add(e.QueryTimeout)
+		go e.singlePinger(wg, plan, deadline, pings)
+	}
+	for len(out.Pings) < len(s.p) {
+		rw := <-pings
+		if rw.Err != nil {
+			continue // something was fundamentally wrong here
+		}
+		out.Pings = append(out.Pings, rw.Result)
+	}
+	wg.Wait() // synchronize with pingers
+	c <- out
+}
+
+type resultWrapper struct {
+	// Err indicates a fundamental error inside singlePinger.
+	Err error
+
+	// Result is the SinglePingResult.
+	Result *SinglePingResult
+}
+
+// singlePinger sends a ping and then waits for one or multiple replies
+// for the original query being sent. The reason why each ping uses a
+// different UDP socket is the following. We have experimentally observed
+// that an endpoint that has emitted a censored query may be completely
+// blocked for quite some time. Therefore, an observer may only see
+// one or just a few replies using the same UDP socket. Conversely, we
+// avoid this issue by using a new UDP socket for each ping.
+func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
+	deadline time.Time, out chan<- *resultWrapper) {
+	defer wg.Done() // synchronize with the parent
+
+	// encode the query
+	data, qid, err := e.Encoder.Encode(plan.Domain, plan.QueryType, false)
+	if err != nil {
+		e.Logger.Warnf("dnsping: cannot encode query: %s", err.Error())
+		out <- &resultWrapper{Err: err}
 		return
 	}
-	// 2. create UDP socket.
+
+	// resolve the destination address
+	destAddr, err := e.resolveAddr(plan.ResolverAddress)
+	if err != nil {
+		e.Logger.Warnf("dnsping: cannot resolve addr: %s", err.Error())
+		out <- &resultWrapper{Err: err}
+		return
+	}
+
+	// create UDP socket.
 	pconn, err := e.Listener.Listen(&net.UDPAddr{})
 	if err != nil {
-		// Because this error should not commonly happen, we don't bother
-		// with recording it into the results.
-		e.Logger.Warnf("cannot create UDP socket: %s", err.Error())
+		e.Logger.Warnf("dnsping: cannot create UDP socket: %s", err.Error())
+		out <- &resultWrapper{Err: err}
 		return
 	}
 	defer pconn.Close() // we own the connection
-	// 3. create board and spawn goroutines
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
-	board := &dnsPingBoard{
-		decoder:     e.Decoder,
-		idGenerator: e.IDGenerator,
-		logger:      e.Logger,
-		mu:          sync.Mutex{},
-		replies:     []*SinglePingResult{},
-	}
-	go e.sender(wg, board, pconn, s.p)
-	go e.receiver(wg, board, pconn)
-	// 4. wait for completion
-	select {
-	case <-time.After(s.maxDelay):
-	case <-ctx.Done():
-	}
-	pconn.Close() // explicitly interrupt the goroutines
-	wg.Wait()     // wait for goroutines to join
-	out = board.toResult()
-	return
-}
 
-// sender is the sender goroutine.
-func (e *Engine) sender(wg *sync.WaitGroup, board *dnsPingBoard,
-	pconn net.PacketConn, plans []*SinglePingPlan) {
-	defer wg.Done() // synchronize with the parent
-	for _, plan := range plans {
-		time.Sleep(plan.Delay)
-		data, qid, err := e.Encoder.Encode(plan.Domain, plan.QueryType, false)
-		if err != nil {
-			// This error should not happen unless the caller really screws
-			// up when creating the plan. So, it is a programmer error and it
-			// makes sense to just emit a warning on the console.
-			e.Logger.Warnf("dnsping: cannot encode: %s", err.Error())
-			continue
-		}
-		result := &SinglePingResult{
-			ID:              e.IDGenerator.Next(),
-			ResolverAddress: plan.ResolverAddress,
-			Domain:          plan.Domain,
-			QueryType:       plan.QueryType,
-			QueryID:         qid,
-			Query:           data,
-			Started:         time.Now(),
-			Replies:         []*SinglePingReply{},
-		}
-		destAddr, err := e.resolveAddr(plan.ResolverAddress)
-		if err != nil {
-			// Likewise also this error seems very unlikely.
-			e.Logger.Warnf("dnsping: cannot resolve addr: %s", err.Error())
-			continue
-		}
-		if _, err := pconn.WriteTo(data, destAddr); err != nil {
-			if errors.Is(err, net.ErrClosed) {
-				// This is when the parent has close the connection to
-				// inform us we should be terminating.
-				break
-			}
-			// Likewise also this error seems quite unlikely.
-			e.Logger.Warnf("dnsping: cannot send: %s", err.Error())
-			continue
-		}
-		board.sent(result)
+	// start filling in the result struct
+	result := &SinglePingResult{
+		ID:              e.IDGenerator.Next(),
+		ResolverAddress: plan.ResolverAddress,
+		Domain:          plan.Domain,
+		QueryType:       plan.QueryType,
+		QueryID:         qid,
+		Query:           data,
+		Started:         time.Now(),
+		Replies:         []*SinglePingReply{},
 	}
+
+	// ensure we eventually stop
+	pconn.SetDeadline(deadline)
+
+	// send query to the remote server
+	if _, err := pconn.WriteTo(data, destAddr); err != nil {
+		e.Logger.Warnf("dnsping: cannot send: %s", err.Error())
+		out <- &resultWrapper{Err: err}
+		return
+	}
+
+	// collect responses until the deadline expires
+	for {
+		buffer := make([]byte, 1<<13) // definitely enough room
+		count, srcAddr, err := pconn.ReadFrom(buffer)
+		if err != nil {
+			if err.Error() != netxlite.FailureGenericTimeoutError {
+				e.Logger.Warnf("dnsping: cannot recv: %s", err.Error())
+			}
+			break
+		}
+		e.received(result, time.Now(), buffer[:count], srcAddr)
+	}
+
+	// send result to parent.
+	out <- &resultWrapper{Result: result}
 }
 
 // ErrNotIPAddr indicates that you passed DNS ping an endpoint
@@ -338,119 +358,54 @@ func (e *Engine) resolveAddr(address string) (*net.UDPAddr, error) {
 	return udpAddr, nil
 }
 
-// receiver is the receiver goroutine.
-func (e *Engine) receiver(wg *sync.WaitGroup, board *dnsPingBoard, pconn net.PacketConn) {
-	defer wg.Done() // synchronize with the parent
-	for {
-		buffer := make([]byte, 1<<13) // definitely enough room
-		count, srcAddr, err := pconn.ReadFrom(buffer)
-		if err != nil {
-			if errors.Is(err, net.ErrClosed) {
-				// This is when the parent has close the connection to
-				// inform us we should be terminating.
-				break
-			}
-			// Likewise also this error seems quite unlikely.
-			e.Logger.Warnf("dnsping: cannot recv: %s", err.Error())
-			continue
-		}
-		board.received(time.Now(), buffer[:count], srcAddr)
-	}
-}
-
-// dnsPingBoard keeps track of what we've sent and received so far.
-type dnsPingBoard struct {
-	// decoder contains the DNSDecoder to use.
-	decoder model.DNSDecoder
-
-	// idGenerator points to the IDGenerator to use.
-	idGenerator *measurex.IDGenerator
-
-	// logger contains the logger to use.
-	logger model.Logger
-
-	// mu provides mutual exclusion.
-	mu sync.Mutex
-
-	// replies contains the pending replies.
-	replies []*SinglePingResult
-}
-
-// toResult converts the internal content to a Result.
-func (b *dnsPingBoard) toResult() *Result {
-	b.mu.Lock()
-	r := b.replies
-	b.replies = []*SinglePingResult{}
-	b.mu.Unlock()
-	return &Result{
-		Pings: r,
-	}
-}
-
-// sent is called after we've sent a query.
-func (b *dnsPingBoard) sent(r *SinglePingResult) {
-	b.mu.Lock()
-	b.replies = append(b.replies, r)
-	b.mu.Unlock()
-}
-
 // received is called when recvfrom returns successfully.
-func (b *dnsPingBoard) received(now time.Time, data []byte, srcAddr net.Addr) {
-	defer b.mu.Unlock()
-	b.mu.Lock()
-	reply, err := b.decoder.ParseReply(data)
+func (e *Engine) received(
+	result *SinglePingResult, now time.Time, data []byte, srcAddr net.Addr) {
+	reply, err := e.Decoder.ParseReply(data)
 	if err != nil {
 		// TODO(bassosimone): should we store this message?
-		b.logger.Warnf("dnsping: cannot parse reply: %s", err.Error())
+		e.Logger.Warnf("dnsping: cannot parse reply: %s", err.Error())
 		return
 	}
-	result, found := b.findResultLocked(reply)
-	if !found {
+	if reply.Id != result.QueryID {
 		// TODO(bassosimone): should we store this message?
-		b.logger.Warnf("dnsping: reply with unknown ID: %s", err.Error())
+		e.Logger.Warnf("dnsping: reply with unknown ID: %s", err.Error())
 		return
 	}
-	b.logger.Infof("🔔 [dnsping] %s for %s/%s from %s in %s",
-		dns.RcodeToString[reply.Rcode], result.Domain,
+	emojis := map[bool]string{
+		false: "🔔",
+		true:  "❓",
+	}
+	emoji := emojis[len(result.Replies) > 0]
+	e.Logger.Infof("%s [dnsping] %s for %s/%s from %s in %s with dns.id %d",
+		emoji, dns.RcodeToString[reply.Rcode], result.Domain,
 		result.QueryTypeAsString(), srcAddr.String(),
-		now.Sub(result.Started))
-	addrs, alpns, err := b.finishParsingLocked(result.QueryType, reply)
+		now.Sub(result.Started), reply.Id)
+	addrs, alpns, err := e.finishParsing(result.QueryType, reply)
 	result.Replies = append(result.Replies, &SinglePingReply{
-		ID:            b.idGenerator.Next(),
+		ID:            e.IDGenerator.Next(),
 		SourceAddress: srcAddr.String(),
 		Reply:         data,
-		Error:         b.errorToWrappedFlatFailure(err),
+		Error:         e.errorToWrappedFlatFailure(err),
 		Finished:      now,
+		Rcode:         dns.RcodeToString[reply.Rcode],
 		Addresses:     addrs,
 		ALPNs:         alpns,
 	})
 }
 
-// findResultLocked returns the matching result. This function
-// assumes to be invoked after the mutex has been locked.
-func (b *dnsPingBoard) findResultLocked(reply *dns.Msg) (*SinglePingResult, bool) {
-	// Implementation note: linear search faster for small N
-	for _, entry := range b.replies {
-		if reply.Id == entry.QueryID {
-			return entry, true
-		}
-	}
-	return nil, false
-}
-
-// finishParsingLocked finishes parsing the reply. This function
-// assumes to be invoked after the mutex has been locked.
-func (b *dnsPingBoard) finishParsingLocked(
+// finishParsing finishes parsing the reply.
+func (e *Engine) finishParsing(
 	qtype uint16, reply *dns.Msg) (addrs []string, alpns []string, err error) {
 	switch qtype {
 	case dns.TypeA, dns.TypeAAAA:
-		addrs, err := b.decoder.DecodeReplyLookupHost(qtype, reply)
+		addrs, err := e.Decoder.DecodeReplyLookupHost(qtype, reply)
 		if err != nil {
 			return nil, nil, err
 		}
 		return addrs, []string{}, nil
 	case dns.TypeHTTPS:
-		https, err := b.decoder.DecodeReplyLookupHTTPS(reply)
+		https, err := e.Decoder.DecodeReplyLookupHTTPS(reply)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -464,7 +419,7 @@ func (b *dnsPingBoard) finishParsingLocked(
 }
 
 // errorToWrappedFlatFailure wraps the error and converts it to a flat failure.
-func (b *dnsPingBoard) errorToWrappedFlatFailure(err error) (out archival.FlatFailure) {
+func (e *Engine) errorToWrappedFlatFailure(err error) (out archival.FlatFailure) {
 	if err != nil {
 		out = archival.NewFlatFailure(netxlite.NewErrWrapper(
 			netxlite.ClassifyResolverError,

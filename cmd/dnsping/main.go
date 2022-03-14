@@ -2,7 +2,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -57,7 +56,7 @@ func main() {
 	}
 	begin := time.Now()
 	engine := dnsping.NewEngine(log.Log, measurex.NewIDGenerator())
-	ch := engine.RunAsync(context.Background(), plans)
+	ch := engine.RunAsync(plans)
 	result := <-ch
 	data, err := json.Marshal(result.ToArchival(begin))
 	runtimex.PanicOnError(err, "json.Marshal failed")

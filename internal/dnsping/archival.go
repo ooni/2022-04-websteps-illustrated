@@ -18,6 +18,7 @@ type ArchivalSinglePingReply struct {
 	ALPNs         []string                  `json:"alpns"`
 	Failure       *string                   `json:"failure"`
 	ID            int64                     `json:"id"`
+	Rcode         string                    `json:"rcode"`
 	Reply         *model.ArchivalBinaryData `json:"reply"`
 	SourceAddress string                    `json:"source_address"`
 	T             float64                   `json:"t"`
@@ -30,6 +31,7 @@ func (spr *SinglePingReply) ToArchival(begin time.Time) *ArchivalSinglePingReply
 		ALPNs:         spr.ALPNs,
 		Failure:       spr.Error.ToArchivalFailure(),
 		ID:            spr.ID,
+		Rcode:         spr.Rcode,
 		Reply:         model.NewArchivalBinaryData(spr.Reply),
 		SourceAddress: spr.SourceAddress,
 		T:             spr.Finished.Sub(begin).Seconds(),
@@ -41,8 +43,9 @@ type ArchivalSinglePingResult struct {
 	Hostname        string                     `json:"hostname"`
 	ID              int64                      `json:"id"`
 	Query           *model.ArchivalBinaryData  `json:"query"`
-	ResolverAddress string                     `json:"resolver_address"`
+	QueryID         int64                      `json:"query_id"`
 	QueryType       string                     `json:"query_type"`
+	ResolverAddress string                     `json:"resolver_address"`
 	T               float64                    `json:"t"`
 	Replies         []*ArchivalSinglePingReply `json:"replies"`
 }
@@ -53,8 +56,9 @@ func (spr *SinglePingResult) ToArchival(begin time.Time) *ArchivalSinglePingResu
 		Hostname:        spr.Domain,
 		ID:              spr.ID,
 		Query:           model.NewArchivalBinaryData(spr.Query),
-		ResolverAddress: spr.ResolverAddress,
+		QueryID:         int64(spr.QueryID),
 		QueryType:       spr.QueryTypeAsString(),
+		ResolverAddress: spr.ResolverAddress,
 		T:               spr.Started.Sub(begin).Seconds(),
 		Replies:         []*ArchivalSinglePingReply{},
 	}
