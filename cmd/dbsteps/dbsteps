@@ -5,6 +5,7 @@
 import argparse
 import base64
 import gzip
+import random
 import traceback
 from dnslib import DNSRecord
 import json
@@ -379,6 +380,9 @@ def s_interactive(idx: int, meas: MeasurementDB):
 def main_command_help():
     """Implements the `h` command of the main environment."""
     print("")
+    print("  #<tagName>:<count>")
+    print("    like #<tagName> but shuffles and returns the first <count> entries")
+    print("")
     print("  #<tagName>")
     print("    shows all the measurements with the given tag (e.g., `#bogon`)")
     print("")
@@ -553,11 +557,26 @@ def main_command_c(msmts: List[MeasurementDB], command: str):
 
 def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
     """Implements the `#` command of the main environment."""
+    idx = tag.find(":")
+    if idx >= 0:
+        sample = tag[idx+1:]
+        tag = tag[:idx]
+        try:
+            samplecount = int(sample)
+        except ValueError:
+            print("error: the sample argument must be an integer")
+    else:
+        samplecount = None
     selected = []
     for idx, meas in enumerate(msmts):
         if tag in meas.tags():
             entry = {"idx": idx, "url": meas.url(), "flags": meas.tags()}
             selected.append(entry)
+    if samplecount is not None:
+        random.shuffle(selected)
+        selected = selected[:samplecount]
+        print(f"shuffling and returning the first {samplecount} entries")
+        print("")
     print_table(selected)
     print("")
     print("hint: use `s<ID>' to select and focus on the measurement with ID <ID>")
