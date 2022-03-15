@@ -3,6 +3,7 @@
 """Allows to navigate measurements."""
 
 import argparse
+import base64
 import gzip
 import traceback
 from dnslib import DNSRecord
@@ -20,6 +21,7 @@ import readline as _
 sys.path.insert(0, ".")
 
 from websteps.websteps import load as websteps_load
+from websteps.websteps import DNSLookupMeasurement
 from websteps.websteps import AnalysisDNSOrEndpoint
 from websteps.websteps import DNSSinglePingReply
 from websteps.websteps import DNSSinglePingResult
@@ -108,6 +110,33 @@ def s_command_help():
     print("")
 
 
+def s_decode_dns_round_trips(dns: DNSLookupMeasurement):
+    """Attempts to decode DNS round trips."""
+    raw = dns.raw
+    rtlist = raw.get("dns_round_trips")
+    if not rtlist:
+        print("nothing to decode")
+        return
+    for idx, rt in enumerate(rtlist):
+        print(f"decoding DNS round trip {idx}:")
+        raw_query = rt.get("raw_query")
+        if not raw_query:
+            continue
+        if raw_query.get("format", "") != "base64":
+            continue
+        print("")
+        print(DNSRecord.parse(base64.b64decode(raw_query.get("data"))))
+        print("")
+        raw_reply = rt.get("raw_reply")
+        if not raw_reply:
+            continue
+        if raw_reply.get("format", "") != "base64":
+            continue
+        print("")
+        print(DNSRecord.parse(base64.b64decode(raw_reply.get("data"))))
+        print("")
+
+
 def s_command_d(meas: MeasurementDB, command: str):
     """Implements the d command of the s environment."""
     try:
@@ -119,6 +148,9 @@ def s_command_d(meas: MeasurementDB, command: str):
         entry = meas.find_entry(idx)
     except KeyError:
         print(f"s: entry {idx} not found")
+        return
+    if entry.kind() == Kind.DNS:
+        s_decode_dns_round_trips(entry.unwrap())
         return
     if entry.kind() == Kind.DNS_SINGLE_PING_RESULT:
         result: DNSSinglePingResult = entry.unwrap()
