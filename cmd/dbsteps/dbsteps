@@ -7,6 +7,7 @@ import base64
 import gzip
 import random
 import traceback
+from urllib.parse import urlparse
 from dnslib import DNSRecord
 import json
 import re
@@ -21,14 +22,16 @@ import readline as _
 
 sys.path.insert(0, ".")
 
-from websteps.websteps import load as websteps_load
+from websteps.websteps import EndpointMeasurement
 from websteps.websteps import DNSLookupMeasurement
 from websteps.websteps import AnalysisDNSOrEndpoint
 from websteps.websteps import DNSSinglePingReply
 from websteps.websteps import DNSSinglePingResult
+from websteps.websteps import load as websteps_load
 from websteps.dblike import Entry
 from websteps.dblike import Kind
 from websteps.dblike import MeasurementDB
+from websteps.dblike import Origin
 
 
 def jsonl_reader(filepath: str):
@@ -111,6 +114,59 @@ def s_command_help():
     print("")
 
 
+def s_decode_http_round_trips(origin: Origin, http: EndpointMeasurement):
+    """Attempts to decode HTTP round trips."""
+    raw = http.raw
+    # Explanation: there was a bug where the name of the variable
+    # was `requests` even though it was a single request. We're going
+    # to keep the old name around because we have traces that use
+    # the old name and it would be a pity to not decode them.
+    req = raw.get("request")
+    if req is None:
+        req = raw.get("requests")
+    reqdata = req.get("request")
+    if not reqdata:
+        return
+    print("")
+    print(f"// origin: {origin}")
+    print(f"// endpoint: {http.endpoint}")
+    print(f"// url: {http.url}")
+    print("")
+    method = reqdata["method"]
+    url = reqdata["url"]
+    parsed = urlparse(url)
+    pathquery = parsed.path
+    if parsed.query:
+        pathquery += "?" + parsed.query
+    print(f"> {method} {pathquery}")
+    hdrs = reqdata.get("headers_list")
+    if hdrs:
+        for hdr in hdrs:
+            print(f"> {hdr[0]}: {hdr[1]}")
+    print(">")
+    respdata = req.get("response")
+    if respdata:
+        status = respdata.get("code")
+        print(f"< {status}")
+        hdrs = respdata.get("headers_list")
+        if hdrs:
+            for hdr in hdrs:
+                print(f"< {hdr[0]}: {hdr[1]}")
+        print("<")
+        print("")
+        bodylength = respdata.get("body_length")
+        print(f"// body_length: {bodylength}")
+        bodytrunc = respdata.get("body_is_truncated")
+        print(f"// body_is_truncated: {bodytrunc}")
+        bodytlsh = respdata.get("body_tlsh")
+        print(f"// body_tlsh: {bodytlsh}")
+    print("")
+    failure = req.get("failure")
+    if failure:
+        print(f"ERROR: {failure}")
+        print("")
+
+
 def s_decode_dns_round_trips(dns: DNSLookupMeasurement):
     """Attempts to decode DNS round trips."""
     raw = dns.raw
@@ -149,6 +205,9 @@ def s_command_d(meas: MeasurementDB, command: str):
         entry = meas.find_entry(idx)
     except KeyError:
         print(f"s: entry {idx} not found")
+        return
+    if entry.kind() == Kind.ENDPOINT:
+        s_decode_http_round_trips(entry.origin(), entry.unwrap())
         return
     if entry.kind() == Kind.DNS:
         s_decode_dns_round_trips(entry.unwrap())
@@ -559,7 +618,7 @@ def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
     """Implements the `#` command of the main environment."""
     idx = tag.find(":")
     if idx >= 0:
-        sample = tag[idx+1:]
+        sample = tag[idx + 1 :]
         tag = tag[:idx]
         try:
             samplecount = int(sample)
@@ -589,7 +648,7 @@ def main_interactive(msmts: List[MeasurementDB]):
     print("")
     print(f"loaded {len(msmts)} measurements; entering the main environment...")
     print("")
-    print("hint: use `ci' or `cu' to get statistics by blocking type")
+    print("hint: use `ci' or `cu' to classify failures")
     print('hint: use `li\' to list "interesting" measurements')
     print("hint: use `h' for help")
     print("")
