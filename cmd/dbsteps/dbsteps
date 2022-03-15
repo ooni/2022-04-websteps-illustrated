@@ -14,7 +14,8 @@ from typing import Any
 from typing import Dict
 from typing import List
 
-import readline as _  # Imported to make `input()` better
+# Imported to make `input()` better
+import readline as _
 
 sys.path.insert(0, ".")
 
@@ -349,8 +350,11 @@ def main_command_help():
     print("  #<tagName>")
     print("    shows all the measurements with the given tag (e.g., `#bogon`)")
     print("")
-    print("  c")
-    print("    classifies the failure tags")
+    print("  ci")
+    print("    classifies the failure tags _individually_")
+    print("")
+    print("  cu")
+    print("    classifies the failure tags _per URL_")
     print("")
     print("  h")
     print("    prints this help screen")
@@ -457,14 +461,29 @@ def main_command_s(msmts: List[MeasurementDB], command: str):
     s_interactive(idx, meas)
 
 
-def main_command_c(msmts: List[MeasurementDB]):
+def main_command_c(msmts: List[MeasurementDB], command: str):
     """Implements the `c` command of the main environment."""
+    modifier = command[1:]
+    if modifier != "i" and modifier != "u":
+        print("")
+        print("error: the `c' command has two forms: `ci` and `cu'")
+        print("")
+        print("hint: use `l' to list measurements")
+        print("hint: use `h' for help")
+        print("")
+        return
     tags = {}
     tot = 0
     for meas in msmts:
-        for tag in meas.tags():
-            tags.setdefault(tag, 0)
-            tags[tag] += 1
+        if modifier == "i":
+            for tag in meas.tags():
+                tags.setdefault(tag, 0)
+                tags[tag] += 1
+                tot += 1
+        else:
+            v = " ".join(meas.tags())
+            tags.setdefault(v, 0)
+            tags[v] += 1
             tot += 1
     tagslist = sorted(tags.items(), key=lambda v: v[1], reverse=True)
     tagslist.append(("Total", tot))
@@ -519,7 +538,7 @@ def main_interactive(msmts: List[MeasurementDB]):
     print("")
     print(f"loaded {len(msmts)} measurements; entering the main environment...")
     print("")
-    print('hint: use `c\' to get statistics by blocking type')
+    print("hint: use `ci' or `cu' to get statistics by blocking type")
     print('hint: use `li\' to list "interesting" measurements')
     print("hint: use `h' for help")
     print("")
@@ -531,8 +550,8 @@ def main_interactive(msmts: List[MeasurementDB]):
         if command.startswith("/"):
             main_command_slash(msmts, command)
             continue
-        if command == "c":
-            main_command_c(msmts)
+        if command.startswith("c"):
+            main_command_c(msmts, command)
             continue
         if command.startswith("j"):
             main_command_j(msmts, command)
