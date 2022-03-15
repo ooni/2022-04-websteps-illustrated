@@ -84,7 +84,7 @@ type ArchivalEndpointMeasurement struct {
 	QUICTLSHandshake *model.ArchivalTLSOrQUICHandshakeResult `json:"quic_tls_handshake"`
 
 	// HTTPRoundTrip contains the HTTP round trip event (if any).
-	HTTPRoundTrip *model.ArchivalHTTPRequestResult `json:"requests"`
+	HTTPRoundTrip *model.ArchivalHTTPRequestResult `json:"request"`
 }
 
 // ToArchival converts a EndpointMeasurement to ArchivalEndpointMeasurement.
