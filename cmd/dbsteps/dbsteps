@@ -124,6 +124,11 @@ def s_decode_http_round_trips(origin: Origin, http: EndpointMeasurement):
     req = raw.get("request")
     if req is None:
         req = raw.get("requests")
+        if req is None:
+            print("")
+            print(f"BUG: did not find request or requests: {raw}")
+            print("")
+            return
     reqdata = req.get("request")
     if not reqdata:
         return
@@ -147,19 +152,20 @@ def s_decode_http_round_trips(origin: Origin, http: EndpointMeasurement):
     respdata = req.get("response")
     if respdata:
         status = respdata.get("code")
-        print(f"< {status}")
-        hdrs = respdata.get("headers_list")
-        if hdrs:
-            for hdr in hdrs:
-                print(f"< {hdr[0]}: {hdr[1]}")
-        print("<")
-        print("")
-        bodylength = respdata.get("body_length")
-        print(f"// body_length: {bodylength}")
-        bodytrunc = respdata.get("body_is_truncated")
-        print(f"// body_is_truncated: {bodytrunc}")
-        bodytlsh = respdata.get("body_tlsh")
-        print(f"// body_tlsh: {bodytlsh}")
+        if status is not None and status > 0:
+            print(f"< {status}")
+            hdrs = respdata.get("headers_list")
+            if hdrs:
+                for hdr in hdrs:
+                    print(f"< {hdr[0]}: {hdr[1]}")
+            print("<")
+            print("")
+            bodylength = respdata.get("body_length")
+            print(f"// body_length: {bodylength}")
+            bodytrunc = respdata.get("body_is_truncated")
+            print(f"// body_is_truncated: {bodytrunc}")
+            bodytlsh = respdata.get("body_tlsh")
+            print(f"// body_tlsh: {bodytlsh}")
     print("")
     failure = req.get("failure")
     if failure:
