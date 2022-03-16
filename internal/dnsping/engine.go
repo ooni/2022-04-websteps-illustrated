@@ -7,10 +7,7 @@ package dnsping
 //
 
 import (
-	"errors"
-	"net"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
 
@@ -266,32 +263,34 @@ type resultWrapper struct {
 // avoid this issue by using a new UDP socket for each ping.
 func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 	deadline time.Time, out chan<- *resultWrapper) {
-	defer wg.Done() // synchronize with the parent
+
+	// synchronize with the parent
+	defer wg.Done()
 
 	// encode the query
-	data, qid, err := e.Encoder.Encode(plan.Domain, plan.QueryType, false)
+	rawQuery, qid, err := e.Encoder.Encode(plan.Domain, plan.QueryType, false)
 	if err != nil {
 		e.Logger.Warnf("dnsping: cannot encode query: %s", err.Error())
 		out <- &resultWrapper{Err: err}
 		return
 	}
 
-	// resolve the destination address
-	destAddr, err := e.resolveAddr(plan.ResolverAddress)
+	// send the query
+	pconn, expectedAddr, err := netxlite.DNSOverUDPWriteRawQueryTo(
+		e.Listener, plan.ResolverAddress, rawQuery)
 	if err != nil {
-		e.Logger.Warnf("dnsping: cannot resolve addr: %s", err.Error())
-		out <- &resultWrapper{Err: err}
-		return
-	}
-
-	// create UDP socket.
-	pconn, err := e.Listener.Listen(&net.UDPAddr{})
-	if err != nil {
-		e.Logger.Warnf("dnsping: cannot create UDP socket: %s", err.Error())
+		e.Logger.Warnf("dnsping: cannot send query: %s", err.Error())
 		out <- &resultWrapper{Err: err}
 		return
 	}
 	defer pconn.Close() // we own the connection
+
+	// start collecting replies
+	var flags int64
+	flags |= netxlite.DNSOverUDPIncludeRepliesFromUnexpectedServers
+	flags |= netxlite.DNSOverUDPCollectMultipleReplies
+	flags |= netxlite.DNSOverUDPOmitTimeoutIfSomeRepliesReturned
+	rrch := netxlite.DNSOverUDPReadRawRepliesFrom(pconn, expectedAddr, deadline, flags)
 
 	// start filling in the result struct
 	result := &SinglePingResult{
@@ -300,76 +299,61 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 		Domain:          plan.Domain,
 		QueryType:       plan.QueryType,
 		QueryID:         qid,
-		Query:           data,
+		Query:           rawQuery,
 		Started:         time.Now(),
 		Replies:         []*SinglePingReply{},
 	}
 
-	// ensure we eventually stop
-	pconn.SetDeadline(deadline)
-
-	// send query to the remote server
-	if _, err := pconn.WriteTo(data, destAddr); err != nil {
-		e.Logger.Warnf("dnsping: cannot send: %s", err.Error())
-		out <- &resultWrapper{Err: err}
-		return
-	}
-
-	// collect responses until the deadline expires
-	for {
-		buffer := make([]byte, 1<<13) // definitely enough room
-		count, srcAddr, err := pconn.ReadFrom(buffer)
-		if err != nil {
-			if err.Error() != netxlite.FailureGenericTimeoutError {
-				e.Logger.Warnf("dnsping: cannot recv: %s", err.Error())
-			}
-			break
-		}
-		e.received(result, time.Now(), buffer[:count], srcAddr)
+	// process raw round trip results
+	for rr := range rrch {
+		e.received(plan.ResolverAddress, result, rr)
 	}
 
 	// send result to parent.
 	out <- &resultWrapper{Result: result}
 }
 
-// ErrNotIPAddr indicates that you passed DNS ping an endpoint
-// address containing a domain name instead of an IP addr.
-var ErrNotIPAddr = errors.New("dnsping: passed an address containing a domain name")
-
-// resolveAddr maps address to an UDPAddr.
-func (e *Engine) resolveAddr(address string) (*net.UDPAddr, error) {
-	addr, port, err := net.SplitHostPort(address)
-	if err != nil {
-		return nil, err
-	}
-	ipAddr := net.ParseIP(addr)
-	if ipAddr == nil {
-		return nil, ErrNotIPAddr
-	}
-	dport, err := strconv.Atoi(port)
-	if err != nil {
-		return nil, err
-	}
-	udpAddr := &net.UDPAddr{
-		IP:   ipAddr,
-		Port: dport,
-		Zone: "",
-	}
-	return udpAddr, nil
-}
-
 // received is called when recvfrom returns successfully.
-func (e *Engine) received(
-	result *SinglePingResult, now time.Time, data []byte, srcAddr net.Addr) {
-	reply, err := e.Decoder.ParseReply(data)
-	if err != nil {
-		// TODO(bassosimone): should we store this message?
-		e.Logger.Warnf("dnsping: cannot parse reply: %s", err.Error())
+func (e *Engine) received(sourceAddress string,
+	result *SinglePingResult, rr *netxlite.DNSOverUDPRawReply) {
+	if rr.Error != nil {
+		result.Replies = append(result.Replies, &SinglePingReply{
+			ID:            e.IDGenerator.Next(),
+			SourceAddress: sourceAddress,
+			Reply:         []byte{},
+			Error:         archival.NewFlatFailure(rr.Error),
+			Finished:      rr.Received,
+			Rcode:         "",
+			Addresses:     []string{},
+			ALPNs:         []string{},
+		})
 		return
 	}
-	if reply.Id != result.QueryID {
-		// TODO(bassosimone): should we store this message?
-		e.Logger.Warnf("dnsping: reply with unknown ID: %s", err.Error())
+	reply, err := e.Decoder.ParseReply(rr.RawReply, result.QueryID)
+	if err != nil {
+		result.Replies = append(result.Replies, &SinglePingReply{
+			ID:            e.IDGenerator.Next(),
+			SourceAddress: sourceAddress,
+			Reply:         rr.RawReply,
+			Error:         archival.NewFlatFailure(err),
+			Finished:      rr.Received,
+			Rcode:         "",
+			Addresses:     []string{},
+			ALPNs:         []string{},
+		})
+		return
+	}
+	if !rr.ValidSourceAddr {
+		result.Replies = append(result.Replies, &SinglePingReply{
+			ID:            e.IDGenerator.Next(),
+			SourceAddress: sourceAddress,
+			Reply:         rr.RawReply,
+			Error:         archival.FlatFailure(netxlite.FailureDNSReplyFromUnexpectedServer),
+			Finished:      rr.Received,
+			Rcode:         dns.RcodeToString[reply.Rcode],
+			Addresses:     []string{},
+			ALPNs:         []string{},
+		})
 		return
 	}
 	emojis := map[bool]string{
@@ -379,15 +363,15 @@ func (e *Engine) received(
 	emoji := emojis[len(result.Replies) > 0]
 	e.Logger.Infof("%s [dnsping] %s for %s/%s from %s in %s with dns.id %d",
 		emoji, dns.RcodeToString[reply.Rcode], result.Domain,
-		result.QueryTypeAsString(), srcAddr.String(),
-		now.Sub(result.Started), reply.Id)
+		result.QueryTypeAsString(), sourceAddress,
+		rr.Received.Sub(result.Started), reply.Id)
 	addrs, alpns, err := e.finishParsing(result.QueryType, reply)
 	result.Replies = append(result.Replies, &SinglePingReply{
 		ID:            e.IDGenerator.Next(),
-		SourceAddress: srcAddr.String(),
-		Reply:         data,
+		SourceAddress: sourceAddress,
+		Reply:         rr.RawReply,
 		Error:         e.errorToWrappedFlatFailure(err),
-		Finished:      now,
+		Finished:      rr.Received,
 		Rcode:         dns.RcodeToString[reply.Rcode],
 		Addresses:     addrs,
 		ALPNs:         alpns,

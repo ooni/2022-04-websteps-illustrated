@@ -41,6 +41,9 @@ func (spr *SinglePingResult) DNSLookupMeasurementList(
 		return
 	}
 	for _, entry := range spr.Replies {
+		if entry.Error != "" {
+			continue // ensure we skip any ping attempt that failed
+		}
 		out = append(out, &measurex.DNSLookupMeasurement{
 			ID:               entry.ID,
 			URLMeasurementID: urlMeasurementID,

@@ -1,6 +1,8 @@
 package netxlite
 
 import (
+	"errors"
+
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/miekg/dns"
 )
@@ -8,10 +10,16 @@ import (
 // DNSDecoderMiekg uses github.com/miekg/dns to implement the Decoder.
 type DNSDecoderMiekg struct{}
 
-func (d *DNSDecoderMiekg) ParseReply(data []byte) (*dns.Msg, error) {
+// ErrDNSReplyWithWrongQueryID indicates we have got a DNS reply with the wrong queryID.
+var ErrDNSReplyWithWrongQueryID = errors.New(FailureDNSReplyWithWrongQueryID)
+
+func (d *DNSDecoderMiekg) ParseReply(data []byte, queryID uint16) (*dns.Msg, error) {
 	reply := &dns.Msg{}
 	if err := reply.Unpack(data); err != nil {
 		return nil, err
+	}
+	if reply.Id != queryID {
+		return nil, ErrDNSReplyWithWrongQueryID
 	}
 	return reply, nil
 }
@@ -33,8 +41,8 @@ func (d *DNSDecoderMiekg) rcodeToError(reply *dns.Msg) error {
 	}
 }
 
-func (d *DNSDecoderMiekg) DecodeHTTPS(data []byte) (*model.HTTPSSvc, error) {
-	reply, err := d.ParseReply(data)
+func (d *DNSDecoderMiekg) DecodeHTTPS(data []byte, queryID uint16) (*model.HTTPSSvc, error) {
+	reply, err := d.ParseReply(data, queryID)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +88,9 @@ func (d *DNSDecoderMiekg) DecodeReplyLookupHTTPS(reply *dns.Msg) (*model.HTTPSSv
 	return out, nil
 }
 
-func (d *DNSDecoderMiekg) DecodeLookupHost(qtype uint16, data []byte) ([]string, error) {
-	reply, err := d.ParseReply(data)
+func (d *DNSDecoderMiekg) DecodeLookupHost(
+	qtype uint16, data []byte, queryID uint16) ([]string, error) {
+	reply, err := d.ParseReply(data, queryID)
 	if err != nil {
 		return nil, err
 	}

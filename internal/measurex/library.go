@@ -226,12 +226,12 @@ type netxliteLibrary struct{}
 
 func (nl *netxliteLibrary) NewDNSOverUDPTransport(
 	dialer model.Dialer, address string) model.DNSTransport {
-	return netxlite.NewDNSOverUDP(dialer, address)
+	return netxlite.NewDNSOverUDPTransport(dialer, address)
 }
 
 func (nl *netxliteLibrary) NewDNSOverHTTPSTransport(
 	clnt model.HTTPClient, network, address string) model.DNSTransport {
-	return &netxlite.DNSOverHTTPS{
+	return &netxlite.DNSOverHTTPSTransport{
 		Client:       clnt,
 		URL:          address,
 		HostOverride: "",

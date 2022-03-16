@@ -34,7 +34,7 @@ func NewResolverStdlib(logger model.DebugLogger) model.Resolver {
 // - address is the server address (e.g., 1.1.1.1:53)
 func NewResolverUDP(logger model.DebugLogger, dialer model.Dialer, address string) model.Resolver {
 	return WrapResolver(logger, NewSerialResolver(
-		NewDNSOverUDP(dialer, address),
+		NewDNSOverUDPTransport(dialer, address),
 	))
 }
 

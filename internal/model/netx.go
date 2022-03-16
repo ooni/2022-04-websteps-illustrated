@@ -27,6 +27,8 @@ type DNSDecoder interface {
 	//
 	// - data contains the reply bytes read from a DNSTransport
 	//
+	// - queryID is the original query ID
+	//
 	// Returns:
 	//
 	// - on success, a list of IP addrs inside the reply and a nil error
@@ -38,7 +40,7 @@ type DNSDecoder interface {
 	//
 	// Note that the error returned by this function is not wrapped and
 	// it is your responsiblity to wrap it if needed.
-	DecodeLookupHost(qtype uint16, data []byte) ([]string, error)
+	DecodeLookupHost(qtype uint16, data []byte, queryID uint16) ([]string, error)
 
 	// DecodeHTTPS decodes an HTTPS reply.
 	//
@@ -54,7 +56,7 @@ type DNSDecoder interface {
 	//
 	// Note that the error returned by this function is not wrapped and
 	// it is your responsiblity to wrap it if needed.
-	DecodeHTTPS(data []byte) (*HTTPSSvc, error)
+	DecodeHTTPS(data []byte, queryID uint16) (*HTTPSSvc, error)
 
 	// ParseReply parses a reply without decoding it. This function
 	// will ONLY return error if data is not a valid DNS message. In
@@ -65,7 +67,7 @@ type DNSDecoder interface {
 	//
 	// Note that the error returned by this function is not wrapped and
 	// it is your responsiblity to wrap it if needed.
-	ParseReply(data []byte) (*dns.Msg, error)
+	ParseReply(data []byte, queryID uint16) (*dns.Msg, error)
 
 	// DecodeReplyLookupHost is like DecodeLookupHost but acts
 	// on an already parsed reply rather than on data.
