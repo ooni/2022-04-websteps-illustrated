@@ -63,8 +63,17 @@ func (d *DNSDecoderMiekg) DecodeReplyLookupHTTPS(reply *dns.Msg) (*model.HTTPSSv
 			}
 		}
 	}
-	if len(out.ALPN) <= 0 {
+	if len(out.IPv4) <= 0 && len(out.IPv6) <= 0 {
 		return nil, ErrOODNSNoAnswer
+	}
+	if len(out.ALPN) <= 0 {
+		out.ALPN = []string{} // ensure it's not nil
+	}
+	if len(out.IPv4) <= 0 {
+		out.IPv4 = []string{} // ensure it's not nil
+	}
+	if len(out.IPv6) <= 0 {
+		out.IPv6 = []string{} // ensure it's not nil
 	}
 	return out, nil
 }
