@@ -15,6 +15,7 @@ _FLAGS: List[Tuple[int, str]] = [
     (1 << 3, "#dnsNoAnswer"),
     (1 << 4, "#dnsRefused"),
     (1 << 6, "#dnsDiff"),
+    (1 << 7, "#dnsServfail"),
     (1 << 15, "#dnsOther"),
     (1 << 16, "#tcpTimeout"),
     (1 << 17, "#tcpRefused"),

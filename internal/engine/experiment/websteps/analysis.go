@@ -46,7 +46,7 @@ const (
 	AnalysisDNSRefused   = 1 << 4
 	AnalysisUnassigned5  = 1 << 5
 	AnalysisDNSDiff      = 1 << 6
-	AnalysisUnassigned7  = 1 << 7
+	AnalysisDNSServfail  = 1 << 7
 	AnalysisUnassigned8  = 1 << 8
 	AnalysisUnassigned9  = 1 << 9
 	AnalysisUnassigned10 = 1 << 10
@@ -297,6 +297,8 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
 			}
 		case netxlite.FailureDNSNoAnswer:
 			score.Flags |= AnalysisDNSNoAnswer
+		case netxlite.FailureDNSServfailError:
+			score.Flags |= AnalysisDNSServfail
 		default:
 			score.Flags |= AnalysisDNSOther
 		}

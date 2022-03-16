@@ -27,6 +27,7 @@ const (
 	FailureDNSRefusedError             = "dns_refused_error"
 	FailureDNSServerMisbehaving        = "dns_server_misbehaving"
 	FailureDNSTemporaryFailure         = "dns_temporary_failure"
+	FailureDNSServfailError            = "dns_servfail_error"
 	FailureDestinationAddressRequired  = "destination_address_required"
 	FailureEOFError                    = "eof_error"
 	FailureGenericTimeoutError         = "generic_timeout_error"
@@ -76,6 +77,7 @@ var failuresMap = map[string]string{
 	"dns_refused_error":              "dns_refused_error",
 	"dns_server_misbehaving":         "dns_server_misbehaving",
 	"dns_temporary_failure":          "dns_temporary_failure",
+	"dns_servfail_error":             "dns_servfail_error",
 	"eof_error":                      "eof_error",
 	"generic_timeout_error":          "generic_timeout_error",
 	"host_unreachable":               "host_unreachable",

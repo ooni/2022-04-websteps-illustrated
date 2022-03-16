@@ -26,6 +26,8 @@ func (d *DNSDecoderMiekg) rcodeToError(reply *dns.Msg) error {
 		return ErrOODNSNoSuchHost
 	case dns.RcodeRefused:
 		return ErrOODNSRefused
+	case dns.RcodeServerFailure:
+		return ErrOODNSServfail
 	default:
 		return ErrOODNSMisbehaving
 	}
