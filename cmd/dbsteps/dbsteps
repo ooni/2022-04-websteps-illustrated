@@ -640,9 +640,9 @@ def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
     if samplecount is not None:
         random.shuffle(selected)
         selected = selected[:samplecount]
-        print(f"shuffling and returning the first {samplecount} entries")
-        print("")
     print_table(selected)
+    print("")
+    print(f"showing {len(selected)} results matching the selected criteria")
     print("")
     print("hint: use `s<ID>' to select and focus on the measurement with ID <ID>")
     print("hint: use `h' for help")
