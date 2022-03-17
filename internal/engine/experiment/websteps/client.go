@@ -168,6 +168,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 			Steps: []*SingleStepMeasurement{},
 		},
 	}
+	cache := newStepsCache()
 	for ctx.Err() == nil { // know that a user has requested to stop
 		cur, found := q.PopLeft()
 		if !found {
@@ -180,7 +181,8 @@ func (c *Client) steps(ctx context.Context, input string) {
 		// Implementation note: here we use a background context for the
 		// measurement step because we don't want to interrupt web measurements
 		// midway. We'll stop when we enter into the next iteration.
-		ssm := c.step(context.Background(), mx, cur)
+		ssm := c.step(context.Background(), cache, mx, cur)
+		cache.update(ssm)
 		ssm.rememberVisitedURLs(q)
 		redirects, _ := ssm.redirects(mx)
 		tkoe.TestKeys.Steps = append(tkoe.TestKeys.Steps, ssm)
@@ -302,9 +304,9 @@ func defaultResolvers() (out []*measurex.DNSResolverInfo) {
 }
 
 // step performs a single step.
-func (c *Client) step(ctx context.Context,
+func (c *Client) step(ctx context.Context, cache *stepsCache,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) *SingleStepMeasurement {
-	c.dnsLookup(ctx, mx, cur)
+	c.dnsLookup(ctx, cache, mx, cur)
 	dc := c.dnsPingFollowUp(ctx, mx, cur)
 	ssm := newSingleStepMeasurement(cur)
 	thc := c.th(ctx, cur)
@@ -340,9 +342,15 @@ func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result) *dnsping.Result {
 	return out
 }
 
-func (c *Client) dnsLookup(ctx context.Context,
+func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
-	c.logger.Info("📡 [initial] resolving the domain name using all resolvers")
+	dnsv, found := cache.dnsLookup(mx, cur.ID, cur.Domain())
+	if found {
+		c.logger.Infof("📡 [initial] domain %s already in dnscache", cur.Domain())
+		cur.DNS = append(cur.DNS, dnsv)
+		return
+	}
+	c.logger.Infof("📡 [initial] resolving %s name using all resolvers", cur.Domain())
 	dnsPlan := cur.NewDNSLookupPlan(c.resolvers)
 	for m := range mx.DNSLookups(ctx, dnsPlan) {
 		cur.DNS = append(cur.DNS, m)

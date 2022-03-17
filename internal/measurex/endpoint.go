@@ -127,6 +127,38 @@ type EndpointMeasurement struct {
 	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent
 }
 
+// URLAddressList converts this EndpointMeasurement to an URLAddress list.
+func (em *EndpointMeasurement) URLAddressList() ([]*URLAddress, bool) {
+	return NewURLAddressList(em.URLMeasurementID, em.URLDomain(),
+		[]*DNSLookupMeasurement{}, []*EndpointMeasurement{em})
+}
+
+// EndpointMeasurementListToURLAddressList takes in input a list
+// of EndpointMeasurement and produces an URLAddressList.
+//
+// The domain filter selects only the measurements that are
+// actually valid for the given domain.
+//
+// Note: do not use this function if you have better ways of creating
+// an URLAddress list, such as, URLMeasurement.URLAddressList.
+func EndpointMeasurementListToURLAddressList(
+	domain string, eml ...*EndpointMeasurement) ([]*URLAddress, bool) {
+	out := []*URLAddress{}
+	for _, epnt := range eml {
+		ual, good := epnt.URLAddressList()
+		if !good {
+			continue
+		}
+		for _, e := range ual {
+			if domain != e.Domain {
+				continue // not the domain we wanted to see
+			}
+			out = append(out, e)
+		}
+	}
+	return out, len(out) > 0
+}
+
 // TCPQUICConnectRuntime returns the TCP/QUIC connect runtime depending
 // on which network is used by this endpoint.
 func (em *EndpointMeasurement) TCPQUICConnectRuntime() (out time.Duration) {
