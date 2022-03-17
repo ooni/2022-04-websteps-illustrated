@@ -438,12 +438,13 @@ func (c *Client) importHTTPRoundTripEvent(now time.Time,
 	return
 }
 
-// URLAddressList builds a []*URLAddress from the TH measurement. In case
+// URLAddressList builds a []*URLAddress from the TH measurement. The
+// domain argument is the domain of the URL we're measuring. In case
 // the TH measurement is nil or there are no suitable addresses, the return
 // value is a nil list and false. Otherwise, a valid list and true.
-func (thm *THResponseWithID) URLAddressList() (o []*measurex.URLAddress, v bool) {
+func (thm *THResponseWithID) URLAddressList(domain string) (o []*measurex.URLAddress, v bool) {
 	if thm != nil {
-		o, v = measurex.NewURLAddressList(thm.id, thm.DNS, thm.Endpoint)
+		o, v = measurex.NewURLAddressList(thm.id, domain, thm.DNS, thm.Endpoint)
 	}
 	return
 }
@@ -484,38 +485,21 @@ func (c *Client) expandProbeKnowledge(
 	// 1. gather the lists for the probe and the th
 	pal, _ := ssm.probeInitialURLAddressList()
 	thal, _ := ssm.testHelperOrDNSPingURLAddressList()
-	// 2. build a map of the addresses known by the test helper.
-	thm := make(map[string]*measurex.URLAddress)
-	for _, e := range thal {
-		thm[e.Address] = e
-	}
-	// 3. amend the probe-discovered list with TH's HTTP3 information.
-	both := make(map[string]bool)
-	for _, pe := range pal {
-		if the, found := thm[pe.Address]; found {
-			if (pe.Flags&measurex.URLAddressSupportsHTTP3) == 0 &&
-				(the.Flags&measurex.URLAddressAlreadyTestedHTTP3) != 0 {
-				mx.Logger.Infof("🙌 discovered that %s supports HTTP3", the.Address)
-				pe.Flags |= measurex.URLAddressSupportsHTTP3
-			}
-			both[pe.Address] = true // track addresses known to both
+	// 2. merge the two lists making sure that we specify the probe
+	// list before the other lists.
+	o := measurex.MergeURLAddressListStable(pal, thal)
+	// 3. compute the diff between the new list and the probe's
+	// list, so we can log the changes.
+	diff := measurex.NewURLAddressListDiff(o, pal)
+	for _, e := range diff.ModifiedFlags {
+		if (e.Flags & measurex.URLAddressSupportsHTTP3) != 0 {
+			mx.Logger.Infof("🙌 discovered that %s supports HTTP3", e.Address)
 		}
 	}
-	// 4. append to the probe-discovered list the addresses that
-	// the probe did not previously know about.
-	for _, the := range thal {
-		if _, found := both[the.Address]; found {
-			continue // we already have this in the list
-		}
-		pal = append(pal, &measurex.URLAddress{
-			URLMeasurementID: the.URLMeasurementID,
-			Address:          the.Address,
-			Flags:            (the.Flags & measurex.URLAddressSupportsHTTP3),
-		})
-		mx.Logger.Infof("🙌 discovered new %s address for domain", the.Address)
+	for _, e := range diff.NewEntries {
+		mx.Logger.Infof("🙌 discovered new %s address for %s", e.Address, e.Domain)
 	}
-	// 5. return the probe extended list.
-	return pal, len(pal) > 0
+	return o, len(o) > 0
 }
 
 func (ssm *SingleStepMeasurement) probeInitialURLAddressList() (
@@ -529,7 +513,7 @@ func (ssm *SingleStepMeasurement) probeInitialURLAddressList() (
 func (ssm *SingleStepMeasurement) testHelperOrDNSPingURLAddressList() (
 	out []*measurex.URLAddress, good bool) {
 	if ssm.TH != nil {
-		data, _ := ssm.TH.URLAddressList()
+		data, _ := ssm.TH.URLAddressList(ssm.ProbeInitialDomain())
 		out = append(out, data...)
 	}
 	if ssm.DNSPing != nil {

@@ -29,7 +29,7 @@ func (r *Result) URLAddressList(
 		dns = append(dns, spr.DNSLookupMeasurementList(urlMeasurementID, domain)...)
 	}
 	endpoint := []*measurex.EndpointMeasurement{}
-	return measurex.NewURLAddressList(urlMeasurementID, dns, endpoint)
+	return measurex.NewURLAddressList(urlMeasurementID, domain, dns, endpoint)
 }
 
 // DNSLookupMeasurementList converts a SinglePingResult into a

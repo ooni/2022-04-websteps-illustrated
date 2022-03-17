@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sort"
 	"sync"
 	"time"
 
@@ -155,8 +156,103 @@ type URLAddress struct {
 	// Address is the target IPv4/IPv6 address.
 	Address string
 
+	// Domain is the domain of the URL.
+	Domain string
+
 	// Flags contains URL flags.
 	Flags int64
+}
+
+// Clone creates a clone of this URLAddressList.
+func (ua *URLAddress) Clone() *URLAddress {
+	return &URLAddress{
+		URLMeasurementID: ua.URLMeasurementID,
+		Address:          ua.Address,
+		Domain:           ua.Domain,
+		Flags:            ua.Flags,
+	}
+}
+
+// urlAddressWithIndex is an helper struct used by the
+// MergeURLAddressListStable algorithm.
+type urlAddressWithIndex struct {
+	idx int
+	ua  *URLAddress
+}
+
+// MergeURLAddressListStable takes in input a list of []*URLAddress and it
+// returns a new list where each IP address appears just once and the flags
+// of all its duplicates in input have been merged. The first step of the
+// algorithm is creating a unique list concatenating all the lists provided
+// in input. Then, it will proceed to remove duplicates. In doing so, it
+// will preserve the original order in which unique IP addresses appear in
+// the concatenated list. For example, if IP A appears before IP B in the
+// concatenated list, the same will hold for the return list. Note that
+// the elements of the returned list are clones of the original. So this
+// is a non-destructive and data-race-safe operation.
+func MergeURLAddressListStable(in ...[]*URLAddress) []*URLAddress {
+	uas := []*URLAddress{}
+	for _, ua := range in {
+		uas = append(uas, ua...)
+	}
+	m := make(map[string]*urlAddressWithIndex)
+	for idx, ua := range uas {
+		if e, ok := m[ua.Address]; ok {
+			e.ua.Flags |= ua.Flags
+			continue
+		}
+		m[ua.Address] = &urlAddressWithIndex{
+			idx: idx,
+			ua:  ua.Clone(), // allow for safe mutation
+		}
+	}
+	sortable := []*urlAddressWithIndex{}
+	for _, value := range m {
+		sortable = append(sortable, value)
+	}
+	sort.SliceStable(sortable, func(i, j int) bool {
+		return sortable[i].idx < sortable[j].idx
+	})
+	out := []*URLAddress{}
+	for _, e := range sortable {
+		out = append(out, e.ua)
+	}
+	return out
+}
+
+// URLAddressListDiff is the diff of two []*URLAddress.
+type URLAddressListDiff struct {
+	// ModifiedFlags contains all the entries in A that have different
+	// flags compared to the respective entries in B.
+	ModifiedFlags []*URLAddress
+
+	// NewEntries contains all the entries in A that do not appear in B.
+	NewEntries []*URLAddress
+}
+
+// NewURLAddressListDiff takes in input two []*URLAddress A and B and returns
+// in output all the elements of A that do not appear in B or appear in B with
+// different flags than they appear in A. If the two lists are equal, we just
+// return to the caller an empty diff. The output will always be a valid struct
+// containing lists with pointers to the original matching elements in the A
+// list. The relative order of elements in the lists of the returned diff struct
+// is consistent with the order they appear in the A list.
+func NewURLAddressListDiff(A, B []*URLAddress) *URLAddressListDiff {
+	m := map[string]*URLAddress{}
+	for _, b := range B {
+		m[b.Address] = b
+	}
+	out := &URLAddressListDiff{}
+	for _, a := range A {
+		if b, ok := m[a.Address]; ok {
+			if a.Flags != b.Flags {
+				out.ModifiedFlags = append(out.ModifiedFlags, a)
+			}
+			continue
+		}
+		out.NewEntries = append(out.NewEntries, a)
+	}
+	return out
 }
 
 const (
@@ -197,13 +293,17 @@ func (ua *URLAddress) AlreadyTestedHTTP3() bool {
 }
 
 // NewURLAddressList generates a list of URLAddresses based on DNS lookups and
-// Endpoint measurements, all relative to the given ID. The boolean
+// Endpoint measurements, all relative to the given ID. We'll _only_ include into
+// the result the IP addresses relative to the given domain. The boolean
 // return value indicates whether we have at least one IP address in the result.
-func NewURLAddressList(ID int64, dns []*DNSLookupMeasurement,
+func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 	endpoint []*EndpointMeasurement) ([]*URLAddress, bool) {
 	uniq := make(map[string]int64)
 	// start searching into the DNS lookup results.
 	for _, dns := range dns {
+		if domain != dns.Domain() {
+			continue // we're not including unrelated domains
+		}
 		var flags int64
 		if dns.SupportsHTTP3() {
 			flags |= URLAddressSupportsHTTP3
@@ -219,6 +319,9 @@ func NewURLAddressList(ID int64, dns []*DNSLookupMeasurement,
 	}
 	// continue searching into HTTP responses.
 	for _, epnt := range endpoint {
+		if domain != epnt.URLDomain() {
+			continue // we're not including unrelated domains
+		}
 		ipAddr, err := epnt.IPAddress()
 		if err != nil {
 			// This may actually be an IPv6 address with explicit scope
@@ -244,6 +347,7 @@ func NewURLAddressList(ID int64, dns []*DNSLookupMeasurement,
 		out = append(out, &URLAddress{
 			URLMeasurementID: ID,
 			Address:          addr,
+			Domain:           domain,
 			Flags:            flags,
 		})
 	}
@@ -252,7 +356,7 @@ func NewURLAddressList(ID int64, dns []*DNSLookupMeasurement,
 
 // URLAddressList calls NewURLAddressList using um.ID, um.DNS, and um.Endpoint.
 func (um *URLMeasurement) URLAddressList() ([]*URLAddress, bool) {
-	return NewURLAddressList(um.ID, um.DNS, um.Endpoint)
+	return NewURLAddressList(um.ID, um.Domain(), um.DNS, um.Endpoint)
 }
 
 const (
