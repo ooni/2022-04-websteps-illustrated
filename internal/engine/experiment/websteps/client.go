@@ -310,7 +310,7 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 	dc := c.dnsPingFollowUp(ctx, mx, cur)
 	ssm := newSingleStepMeasurement(cur)
 	thc := c.th(ctx, cur)
-	c.measureDiscoveredEndpoints(ctx, mx, cur)
+	c.measureDiscoveredEndpoints(ctx, cache, mx, cur)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
 	maybeTH := c.waitForTHC(thc)
 	if maybeTH.Err == nil {
@@ -357,10 +357,17 @@ func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 	}
 }
 
-func (c *Client) measureDiscoveredEndpoints(ctx context.Context,
+func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCache,
 	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
 	c.logger.Info("📡 [initial] measuring endpoints discovered using the DNS")
-	plan, _ := cur.NewEndpointPlan(c.logger, 0)
+	ual, _ := cur.URLAddressList()
+	// Rewrite the current URLAddressList to ensure that IP addresses we've already
+	// used, even if with different domains, end up at the beginning. A test case
+	// for this is http://torproject.org, which has four A and four AAAA addrs. In the
+	// default configuration, we want the redirect to https://www.torproject.org to
+	// use the same two A and two AAAA it used in the first step.
+	ual = cache.prioritizeKnownAddrs(ual)
+	plan, _ := cur.NewEndpointPlanWithAddressList(c.logger, ual, 0)
 	for m := range mx.MeasureEndpoints(ctx, plan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}

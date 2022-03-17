@@ -20,16 +20,20 @@ type stepsCache struct {
 	// mu is the mutex we're using.
 	mu sync.Mutex
 
-	// uas contains the list of URLAddress we've visited. We expect this
+	// pa contains the IP addrs used by the probe.
+	pa map[string]bool
+
+	// ual contains the list of URLAddress we've visited. We expect this
 	// list to be reasonably short, so O(N) is fine.
-	uas []*measurex.URLAddress
+	ual []*measurex.URLAddress
 }
 
 // newStepsCache creates a new StepsCache instance.
 func newStepsCache() *stepsCache {
 	return &stepsCache{
 		mu:  sync.Mutex{},
-		uas: []*measurex.URLAddress{},
+		pa:  map[string]bool{},
+		ual: []*measurex.URLAddress{},
 	}
 }
 
@@ -41,14 +45,30 @@ func (sc *stepsCache) update(ssm *SingleStepMeasurement) {
 	if ssm == nil {
 		return // just in case
 	}
+	sc.updateUsedAddrsLocked(ssm)
 	plu, _ := ssm.probeInitialURLAddressList()
 	discu, _ := ssm.testHelperOrDNSPingURLAddressList()
 	domain := ssm.ProbeInitialDomain()
 	xu, _ := measurex.EndpointMeasurementListToURLAddressList(domain, ssm.ProbeAdditional...)
 	// The merge will be stable, i.e., it will preseve the relative order with which
-	// IP addrs first appear. This implies that the next steps using sc.uas will first
+	// IP addrs first appear. This implies that the next steps using sc.ual will first
 	// see the IP addrs in plu first, then the ones inside plu, etc.
-	sc.uas = measurex.MergeURLAddressListStable(sc.uas, plu, discu, xu)
+	sc.ual = measurex.MergeURLAddressListStable(sc.ual, plu, discu, xu)
+}
+
+func (sc *stepsCache) updateUsedAddrsLocked(ssm *SingleStepMeasurement) {
+	if ssm.ProbeInitial != nil {
+		for _, epnt := range ssm.ProbeInitial.Endpoint {
+			if ipAddr, err := epnt.IPAddress(); err == nil {
+				sc.pa[ipAddr] = true
+			}
+		}
+	}
+	for _, epnt := range ssm.ProbeAdditional {
+		if ipAddr, err := epnt.IPAddress(); err == nil {
+			sc.pa[ipAddr] = true
+		}
+	}
 }
 
 // dnsLookup performs a DNS lookup for the given domain using the cache.
@@ -60,7 +80,7 @@ func (sc *stepsCache) dnsLookup(mx *measurex.Measurer,
 		flags int64
 		addrs []string
 	)
-	for _, e := range sc.uas {
+	for _, e := range sc.ual {
 		if domain != e.Domain {
 			continue // this entry is not relevant
 		}
@@ -92,4 +112,24 @@ func (sc *stepsCache) dnsLookup(mx *measurex.Measurer,
 		RoundTrip: []*archival.FlatDNSRoundTripEvent{},
 	}
 	return o, true
+}
+
+// prioritizeKnownAddrs rewrites the candidate URL address list we'll use
+// for measuring endpoints to move addrs we already used towards the beginning of
+// the list. We want to reuse the same addrs for subsequent measurements to
+// construct more realistic-looking redirect chains.
+func (sc *stepsCache) prioritizeKnownAddrs(in []*measurex.URLAddress) []*measurex.URLAddress {
+	defer sc.mu.Unlock()
+	sc.mu.Lock()
+	used := []*measurex.URLAddress{}
+	unused := []*measurex.URLAddress{}
+	for _, e := range in {
+		if _, found := sc.pa[e.Address]; !found {
+			unused = append(unused, e)
+		} else {
+			used = append(used, e)
+		}
+	}
+	o := append(used, unused...)
+	return o
 }
