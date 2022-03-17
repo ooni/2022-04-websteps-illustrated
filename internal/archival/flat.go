@@ -25,6 +25,7 @@ type FlatDNSLookupEvent struct {
 	Failure         FlatFailure
 	Finished        time.Time
 	LookupType      DNSLookupType
+	NS              []string
 	ResolverAddress string
 	ResolverNetwork NetworkType
 	Started         time.Time

@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/url"
 	"sync"
 	"time"
@@ -59,7 +60,16 @@ type DNSLookupPlan struct {
 
 	// Resolvers describes the resolvers to use.
 	Resolvers []*DNSResolverInfo
+
+	// Flags contains optional flags to perform extra queries.
+	Flags int64
 }
+
+const (
+	// DNSLookupFlagNS modifies the DNSLookupPlan to request resolving
+	// the target domain's nameservers using NS.
+	DNSLookupFlagNS = 1 << iota
+)
 
 // DNSLookupMeasurement is a DNS lookup measurement.
 type DNSLookupMeasurement struct {
@@ -276,6 +286,13 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			output <- mx.lookupHTTPSSvcUDP(ctx, t)
 			wg.Done()
 		}()
+		if (t.plan.Flags & DNSLookupFlagNS) != 0 {
+			wg.Add(1)
+			go func() {
+				output <- mx.lookupNSUDP(ctx, t)
+				wg.Done()
+			}()
+		}
 	case DNSResolverDoH, DNSResolverDoH3:
 		wg.Add(2)
 		go func() {
@@ -286,6 +303,13 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			output <- mx.lookupHTTPSSvcDoH(ctx, t)
 			wg.Done()
 		}()
+		if (t.plan.Flags & DNSLookupFlagNS) != 0 {
+			wg.Add(1)
+			go func() {
+				output <- mx.lookupNSDoH(ctx, t)
+				wg.Done()
+			}()
+		}
 	}
 	wg.Wait()
 }
@@ -355,6 +379,29 @@ func (mx *Measurer) lookupHTTPSSvcDoH(
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+func (mx *Measurer) lookupNSUDP(
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
+	defer r.CloseIdleConnections()
+	id := mx.NextID()
+	_, _ = mx.doLookupNS(ctx, t.targetDomain(), r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
+}
+
+func (mx *Measurer) lookupNSDoH(
+	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	hc := mx.httpClientForDNSLookupTarget(t)
+	r := mx.Library.NewResolverDoH(
+		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
+	// Note: no close idle connections because actually we'd like to keep
+	// open connections with the server.
+	id := mx.NextID()
+	_, _ = mx.doLookupNS(ctx, t.targetDomain(), r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
+}
+
 func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
 	r model.Resolver, t *dnsLookupTarget, id int64) ([]string, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHost %s with %s resolver %s",
@@ -377,6 +424,18 @@ func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
 	https, err := r.LookupHTTPS(ctx, domain)
 	ol.Stop(err)
 	return https, err
+}
+
+func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
+	r model.Resolver, t *dnsLookupTarget, id int64) ([]*net.NS, error) {
+	ol := NewOperationLogger(mx.Logger, "[#%d] LookupNS %s with %s resolver %s",
+		id, domain, r.Network(), r.Address())
+	timeout := t.plan.Options.dnsLookupTimeout()
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	ns, err := r.LookupNS(ctx, domain)
+	ol.Stop(err)
+	return ns, err
 }
 
 func (mx *Measurer) newDNSLookupMeasurement(id int64,

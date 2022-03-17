@@ -192,6 +192,8 @@ func (ev *FlatDNSLookupEvent) ToArchival(begin time.Time) []model.ArchivalDNSLoo
 		return ev.toArchivalHTTPS(begin)
 	case DNSLookupTypeGetaddrinfo:
 		return ev.toArchivalGetaddrinfo(begin)
+	case DNSLookupTypeNS:
+		return ev.toArchivalNS(begin)
 	default:
 		log.Printf("ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
 		return []model.ArchivalDNSLookupResult{}
@@ -237,6 +239,39 @@ func (ev *FlatDNSLookupEvent) gatherHTTPS() (out []model.ArchivalDNSAnswer) {
 		answer := model.ArchivalDNSAnswer{AnswerType: "ALPN"}
 		answer.ALPN = alpn
 		out = append(out, answer)
+	}
+	return
+}
+
+func (ev *FlatDNSLookupEvent) toArchivalNS(begin time.Time) (out []model.ArchivalDNSLookupResult) {
+	out = append(out, model.ArchivalDNSLookupResult{
+		Answers:          ev.gatherNS(),
+		Engine:           string(ev.ResolverNetwork),
+		Failure:          ev.Failure.ToArchivalFailure(),
+		Hostname:         ev.Domain,
+		QueryType:        "NS",
+		ResolverHostname: nil, // legacy
+		ResolverPort:     nil, // legacy
+		ResolverAddress:  ev.ResolverAddress,
+		Started:          ev.Started.Sub(begin).Seconds(),
+		T:                ev.Finished.Sub(begin).Seconds(),
+	})
+	return
+}
+
+func (ev *FlatDNSLookupEvent) gatherNS() (out []model.ArchivalDNSAnswer) {
+	for _, e := range ev.NS {
+		out = append(out, model.ArchivalDNSAnswer{
+			ALPN:       "",
+			ASN:        0,
+			ASOrgName:  "",
+			AnswerType: "NS",
+			Hostname:   "",
+			IPv4:       "",
+			IPv6:       "",
+			NS:         e,
+			TTL:        nil,
+		})
 	}
 	return
 }

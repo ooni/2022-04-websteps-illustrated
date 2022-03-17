@@ -2,6 +2,7 @@ package netxlite
 
 import (
 	"errors"
+	"net"
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/miekg/dns"
@@ -49,6 +50,14 @@ func (d *DNSDecoderMiekg) DecodeHTTPS(data []byte, queryID uint16) (*model.HTTPS
 	return d.DecodeReplyLookupHTTPS(reply)
 }
 
+func (d *DNSDecoderMiekg) DecodeNS(data []byte, queryID uint16) ([]*net.NS, error) {
+	reply, err := d.ParseReply(data, queryID)
+	if err != nil {
+		return nil, err
+	}
+	return d.DecodeReplyLookupNS(reply)
+}
+
 func (d *DNSDecoderMiekg) DecodeReplyLookupHTTPS(reply *dns.Msg) (*model.HTTPSSvc, error) {
 	if err := d.rcodeToError(reply); err != nil {
 		return nil, err
@@ -84,6 +93,23 @@ func (d *DNSDecoderMiekg) DecodeReplyLookupHTTPS(reply *dns.Msg) (*model.HTTPSSv
 	}
 	if len(out.IPv6) <= 0 {
 		out.IPv6 = []string{} // ensure it's not nil
+	}
+	return out, nil
+}
+
+func (d *DNSDecoderMiekg) DecodeReplyLookupNS(reply *dns.Msg) ([]*net.NS, error) {
+	if err := d.rcodeToError(reply); err != nil {
+		return nil, err
+	}
+	out := []*net.NS{}
+	for _, answer := range reply.Answer {
+		switch avalue := answer.(type) {
+		case *dns.NS:
+			out = append(out, &net.NS{Host: avalue.Ns})
+		}
+	}
+	if len(out) < 1 {
+		return nil, ErrOODNSNoAnswer
 	}
 	return out, nil
 }

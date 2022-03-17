@@ -6,6 +6,7 @@ package archival
 
 import (
 	"context"
+	"net"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -21,6 +22,9 @@ var (
 
 	// DNSLookupTypeHTTPS indicates we're performing an HTTPS lookup.
 	DNSLookupTypeHTTPS = DNSLookupType("https")
+
+	// DNSLookupTypeNS indicates we're performing a NS lookup type.
+	DNSLookupTypeNS = DNSLookupType("ns")
 )
 
 // WrapResolver wraps a resolver to use the saver.
@@ -52,6 +56,10 @@ func (r *resolverSaver) LookupHTTPS(ctx context.Context, domain string) (*model.
 	return r.s.lookupHTTPS(ctx, r.Resolver, domain)
 }
 
+func (r *resolverSaver) LookupNS(ctx context.Context, domain string) ([]*net.NS, error) {
+	return r.s.lookupNS(ctx, r.Resolver, domain)
+}
+
 func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain string) ([]string, error) {
 	started := time.Now()
 	addrs, err := reso.LookupHost(ctx, domain)
@@ -62,6 +70,7 @@ func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain stri
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		LookupType:      DNSLookupTypeGetaddrinfo,
+		NS:              nil,
 		ResolverAddress: reso.Address(),
 		ResolverNetwork: NetworkType(reso.Network()),
 		Started:         started,
@@ -85,6 +94,7 @@ func (s *Saver) lookupHTTPS(ctx context.Context, reso model.Resolver, domain str
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
 		LookupType:      DNSLookupTypeHTTPS,
+		NS:              nil,
 		ResolverAddress: reso.Address(),
 		ResolverNetwork: NetworkType(reso.Network()),
 		Started:         started,
@@ -103,6 +113,31 @@ func (s *Saver) safeAddresses(https *model.HTTPSSvc) (out []string) {
 	if https != nil {
 		out = append(out, https.IPv4...)
 		out = append(out, https.IPv6...)
+	}
+	return
+}
+
+func (s *Saver) lookupNS(ctx context.Context, reso model.Resolver, domain string) ([]*net.NS, error) {
+	started := time.Now()
+	ns, err := reso.LookupNS(ctx, domain)
+	s.appendDNSLookupEvent(&FlatDNSLookupEvent{
+		ALPNs:           nil,
+		Addresses:       nil,
+		Domain:          domain,
+		Failure:         NewFlatFailure(err),
+		Finished:        time.Now(),
+		LookupType:      DNSLookupTypeNS,
+		NS:              s.ns(ns),
+		ResolverAddress: reso.Address(),
+		ResolverNetwork: NetworkType(reso.Network()),
+		Started:         started,
+	})
+	return ns, err
+}
+
+func (s *Saver) ns(ns []*net.NS) (out []string) {
+	for _, e := range ns {
+		out = append(out, e.Host)
 	}
 	return
 }

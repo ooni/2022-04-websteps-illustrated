@@ -130,3 +130,18 @@ func (r *SerialResolver) lookupHostWithoutRetry(
 	}
 	return r.Decoder.DecodeLookupHost(qtype, replydata, queryID)
 }
+
+// LookupNS implements Resolver.LookupNS.
+func (r *SerialResolver) LookupNS(
+	ctx context.Context, hostname string) ([]*net.NS, error) {
+	querydata, queryID, err := r.Encoder.Encode(
+		hostname, dns.TypeNS, r.Txp.RequiresPadding())
+	if err != nil {
+		return nil, err
+	}
+	replydata, err := r.Txp.RoundTrip(ctx, querydata)
+	if err != nil {
+		return nil, err
+	}
+	return r.Decoder.DecodeNS(replydata, queryID)
+}

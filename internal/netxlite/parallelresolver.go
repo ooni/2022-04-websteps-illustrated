@@ -2,6 +2,7 @@ package netxlite
 
 import (
 	"context"
+	"net"
 
 	"github.com/bassosimone/websteps-illustrated/internal/atomicx"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -127,4 +128,19 @@ func (r *ParallelResolver) lookupHost(ctx context.Context, hostname string,
 		err:   err,
 		qtype: qtype,
 	}
+}
+
+// LookupNS implements Resolver.LookupNS.
+func (r *ParallelResolver) LookupNS(
+	ctx context.Context, hostname string) ([]*net.NS, error) {
+	querydata, queryID, err := r.Encoder.Encode(
+		hostname, dns.TypeNS, r.Txp.RequiresPadding())
+	if err != nil {
+		return nil, err
+	}
+	replydata, err := r.Txp.RoundTrip(ctx, querydata)
+	if err != nil {
+		return nil, err
+	}
+	return r.Decoder.DecodeNS(replydata, queryID)
 }

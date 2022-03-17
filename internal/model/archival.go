@@ -150,6 +150,7 @@ type ArchivalDNSAnswer struct {
 	Hostname   string  `json:"hostname,omitempty"`
 	IPv4       string  `json:"ipv4,omitempty"`
 	IPv6       string  `json:"ipv6,omitempty"`
+	NS         string  `json:"ns,omitempty"`
 	TTL        *uint32 `json:"ttl"`
 }
 

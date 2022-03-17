@@ -58,6 +58,9 @@ type DNSDecoder interface {
 	// it is your responsiblity to wrap it if needed.
 	DecodeHTTPS(data []byte, queryID uint16) (*HTTPSSvc, error)
 
+	// DecodeNS is like DecodeHTTPS but for NS queries.
+	DecodeNS(data []byte, queryID uint16) ([]*net.NS, error)
+
 	// ParseReply parses a reply without decoding it. This function
 	// will ONLY return error if data is not a valid DNS message. In
 	// particular, it WILL NOT return any error that depends on the
@@ -82,6 +85,9 @@ type DNSDecoder interface {
 	// Note that the error returned by this function is not wrapped and
 	// it is your responsiblity to wrap it if needed.
 	DecodeReplyLookupHTTPS(reply *dns.Msg) (*HTTPSSvc, error)
+
+	// DecodeReplyLookupNS is like DecodeReplyLookupHTTPS but for NS queries.
+	DecodeReplyLookupNS(reply *dns.Msg) ([]*net.NS, error)
 }
 
 // The DNSEncoder encodes DNS queries to bytes
@@ -210,6 +216,9 @@ type Resolver interface {
 	// LookupHTTPS issues an HTTPS query for a domain.
 	LookupHTTPS(
 		ctx context.Context, domain string) (*HTTPSSvc, error)
+
+	// LookupNS issues a NS query for a domain.
+	LookupNS(ctx context.Context, domain string) ([]*net.NS, error)
 }
 
 // TLSConn is the kind of TLS conn we use in ooniprobe.

@@ -96,6 +96,7 @@ func (um *URLMeasurement) NewDNSLookupPlan(ri []*DNSResolverInfo) *DNSLookupPlan
 		URL:              um.URL,
 		Options:          um.Options,
 		Resolvers:        ri,
+		Flags:            0, // by default no extras
 	}
 }
 
