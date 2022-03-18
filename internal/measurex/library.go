@@ -24,6 +24,12 @@ type NetxliteLibrary interface {
 	// network argument should be one of "doh" and "doh3".
 	NewDNSOverHTTPSTransport(clnt model.HTTPClient, network, address string) model.DNSTransport
 
+	// NewDNSSystemResolver creates a DNS resolver using the system resolver.
+	NewDNSSystemResolver(txp model.DNSTransport) model.Resolver
+
+	// NewDNSSystemTransport creates a DNS transport using the system resolver.
+	NewDNSSystemTransport() model.DNSTransport
+
 	// NewDialerWithResolver creates a new dialer using the given logger and resolver
 	NewDialerWithResolver(logger model.Logger, reso model.Resolver) model.Dialer
 
@@ -51,9 +57,6 @@ type NetxliteLibrary interface {
 
 	// NewUDPListener creates a new UDP listener.
 	NewUDPListener() model.UDPListener
-
-	// NewResolverSystem creates a new "system" resolver.
-	NewResolverSystem(logger model.Logger) model.Resolver
 
 	// NewUnwrappedParallelResolver creates a new "parallel" resolver. (Note that
 	// this resolver needs to be wrapped.)
@@ -170,7 +173,13 @@ func (lib *Library) NewQUICDialerWithoutResolver(saver *archival.Saver) model.QU
 // NewResolverSystem creates a system resolver and then wraps
 // it using the WrapResolver function.
 func (lib *Library) NewResolverSystem(saver *archival.Saver) model.Resolver {
-	return saver.WrapResolver(lib.netxlite.NewResolverSystem(lib.logger))
+	return saver.WrapResolver(
+		lib.netxlite.WrapResolver(
+			lib.logger,
+			lib.netxlite.NewDNSSystemResolver(
+				saver.WrapDNSTransport(
+					lib.netxlite.NewDNSSystemTransport(),
+				))))
 }
 
 // NewResolverUDP is a convenience factory for creating a Resolver
@@ -239,6 +248,14 @@ func (nl *netxliteLibrary) NewDNSOverHTTPSTransport(
 	}
 }
 
+func (nl *netxliteLibrary) NewDNSSystemResolver(txp model.DNSTransport) model.Resolver {
+	return netxlite.NewDNSSystemResolver(txp)
+}
+
+func (nl *netxliteLibrary) NewDNSSystemTransport() model.DNSTransport {
+	return netxlite.NewDNSSystemTransport()
+}
+
 func (nl *netxliteLibrary) NewDialerWithResolver(
 	logger model.Logger, reso model.Resolver) model.Dialer {
 	return netxlite.NewDialerWithResolver(logger, reso)
@@ -273,10 +290,6 @@ func (nl *netxliteLibrary) NewQUICDialerWithoutResolver(
 
 func (nl *netxliteLibrary) NewUDPListener() model.UDPListener {
 	return netxlite.NewUDPListener()
-}
-
-func (nl *netxliteLibrary) NewResolverSystem(logger model.Logger) model.Resolver {
-	return netxlite.NewResolverStdlib(logger)
 }
 
 func (nl *netxliteLibrary) NewUnwrappedParallelResolver(txp model.DNSTransport) model.Resolver {

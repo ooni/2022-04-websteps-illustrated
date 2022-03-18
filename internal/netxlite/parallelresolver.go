@@ -82,7 +82,7 @@ func (r *ParallelResolver) LookupHost(ctx context.Context, hostname string) ([]s
 // LookupHTTPS implements Resolver.LookupHTTPS.
 func (r *ParallelResolver) LookupHTTPS(
 	ctx context.Context, hostname string) (*model.HTTPSSvc, error) {
-	querydata, queryID, err := r.Encoder.Encode(
+	querydata, queryID, err := r.Encoder.EncodeQuery(
 		hostname, dns.TypeHTTPS, r.Txp.RequiresPadding())
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (r *ParallelResolver) LookupHTTPS(
 	if err != nil {
 		return nil, err
 	}
-	return r.Decoder.DecodeHTTPS(replydata, queryID)
+	return r.Decoder.DecodeLookupHTTPS(replydata, queryID)
 }
 
 // parallelResolverResult is the internal representation of a lookup result.
@@ -104,7 +104,7 @@ type parallelResolverResult struct {
 // lookupHost issues a lookup host query for the specified qtype (e.g., dns.A).
 func (r *ParallelResolver) lookupHost(ctx context.Context, hostname string,
 	qtype uint16, out chan<- *parallelResolverResult) {
-	querydata, queryID, err := r.Encoder.Encode(hostname, qtype, r.Txp.RequiresPadding())
+	querydata, queryID, err := r.Encoder.EncodeQuery(hostname, qtype, r.Txp.RequiresPadding())
 	if err != nil {
 		out <- &parallelResolverResult{
 			addrs: []string{},
@@ -133,7 +133,7 @@ func (r *ParallelResolver) lookupHost(ctx context.Context, hostname string,
 // LookupNS implements Resolver.LookupNS.
 func (r *ParallelResolver) LookupNS(
 	ctx context.Context, hostname string) ([]*net.NS, error) {
-	querydata, queryID, err := r.Encoder.Encode(
+	querydata, queryID, err := r.Encoder.EncodeQuery(
 		hostname, dns.TypeNS, r.Txp.RequiresPadding())
 	if err != nil {
 		return nil, err
@@ -142,5 +142,5 @@ func (r *ParallelResolver) LookupNS(
 	if err != nil {
 		return nil, err
 	}
-	return r.Decoder.DecodeNS(replydata, queryID)
+	return r.Decoder.DecodeLookupNS(replydata, queryID)
 }

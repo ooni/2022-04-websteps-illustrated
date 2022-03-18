@@ -1,6 +1,8 @@
 package netxlite
 
 import (
+	"net"
+
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/miekg/dns"
 )
@@ -19,7 +21,7 @@ const (
 	dnsDNSSECEnabled = true
 )
 
-func (e *DNSEncoderMiekg) Encode(
+func (e *DNSEncoderMiekg) EncodeQuery(
 	domain string, qtype uint16, padding bool) ([]byte, uint16, error) {
 	question := dns.Question{
 		Name:   dns.Fqdn(domain),
@@ -49,6 +51,46 @@ func (e *DNSEncoderMiekg) Encode(
 		return nil, 0, err
 	}
 	return data, query.Id, nil
+}
+
+func (e *DNSEncoderMiekg) EncodeReply(query *dns.Msg, addresses []string) (*dns.Msg, error) {
+	if len(query.Question) != 1 {
+		return nil, errDNSExpectedSingleQuestion
+	}
+	m := new(dns.Msg)
+	m.Compress = true
+	m.MsgHdr.RecursionAvailable = true
+	m.SetReply(query)
+	for _, addr := range addresses {
+		ip := net.ParseIP(addr)
+		if ip == nil {
+			continue
+		}
+		switch isIPv6(addr) {
+		case false:
+			m.Answer = append(m.Answer, &dns.A{
+				Hdr: dns.RR_Header{
+					Name:   query.Question[0].Name,
+					Rrtype: dns.TypeA,
+					Class:  dns.ClassINET,
+					Ttl:    0,
+				},
+				A: ip,
+			})
+		case true:
+			m.Answer = append(m.Answer, &dns.AAAA{
+				Hdr: dns.RR_Header{
+					Name:   query.Question[0].Name,
+					Rrtype: dns.TypeAAAA,
+					Class:  dns.ClassINET,
+					Ttl:    0,
+				},
+				AAAA: ip,
+			})
+
+		}
+	}
+	return m, nil
 }
 
 var _ model.DNSEncoder = &DNSEncoderMiekg{}

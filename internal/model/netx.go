@@ -42,7 +42,7 @@ type DNSDecoder interface {
 	// it is your responsiblity to wrap it if needed.
 	DecodeLookupHost(qtype uint16, data []byte, queryID uint16) ([]string, error)
 
-	// DecodeHTTPS decodes an HTTPS reply.
+	// DecodeLookupHTTPS decodes an HTTPS reply.
 	//
 	// The argument is the reply as read by the DNSTransport.
 	//
@@ -56,10 +56,10 @@ type DNSDecoder interface {
 	//
 	// Note that the error returned by this function is not wrapped and
 	// it is your responsiblity to wrap it if needed.
-	DecodeHTTPS(data []byte, queryID uint16) (*HTTPSSvc, error)
+	DecodeLookupHTTPS(data []byte, queryID uint16) (*HTTPSSvc, error)
 
-	// DecodeNS is like DecodeHTTPS but for NS queries.
-	DecodeNS(data []byte, queryID uint16) ([]*net.NS, error)
+	// DecodeLookupNS is like DecodeLookupHTTPS but for NS queries.
+	DecodeLookupNS(data []byte, queryID uint16) ([]*net.NS, error)
 
 	// ParseReply parses a reply without decoding it. This function
 	// will ONLY return error if data is not a valid DNS message. In
@@ -71,6 +71,9 @@ type DNSDecoder interface {
 	// Note that the error returned by this function is not wrapped and
 	// it is your responsiblity to wrap it if needed.
 	ParseReply(data []byte, queryID uint16) (*dns.Msg, error)
+
+	// ParseQuery parses a DNS query.
+	ParseQuery(data []byte) (*dns.Msg, error)
 
 	// DecodeReplyLookupHost is like DecodeLookupHost but acts
 	// on an already parsed reply rather than on data.
@@ -92,7 +95,7 @@ type DNSDecoder interface {
 
 // The DNSEncoder encodes DNS queries to bytes
 type DNSEncoder interface {
-	// Encode transforms its arguments into a serialized DNS query.
+	// EncodeQuery transforms its arguments into a serialized DNS query.
 	//
 	// Arguments:
 	//
@@ -104,7 +107,10 @@ type DNSEncoder interface {
 	//
 	// On success, this function returns a valid byte array, the query ID
 	// and a nil error. On failure, only the error matters.
-	Encode(domain string, qtype uint16, padding bool) ([]byte, uint16, error)
+	EncodeQuery(domain string, qtype uint16, padding bool) ([]byte, uint16, error)
+
+	// EncodeReply encodes a reply for the given query given some addresses.
+	EncodeReply(query *dns.Msg, addresses []string) (*dns.Msg, error)
 }
 
 // DNSTransport represents an abstract DNS transport.

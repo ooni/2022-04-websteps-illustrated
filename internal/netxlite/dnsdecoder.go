@@ -11,8 +11,24 @@ import (
 // DNSDecoderMiekg uses github.com/miekg/dns to implement the Decoder.
 type DNSDecoderMiekg struct{}
 
-// ErrDNSReplyWithWrongQueryID indicates we have got a DNS reply with the wrong queryID.
-var ErrDNSReplyWithWrongQueryID = errors.New(FailureDNSReplyWithWrongQueryID)
+var (
+	// ErrDNSReplyWithWrongQueryID indicates we have got a DNS reply with the wrong queryID.
+	ErrDNSReplyWithWrongQueryID = errors.New(FailureDNSReplyWithWrongQueryID)
+
+	// ErrDNSIsResponse indicates that we were passed a DNS response.
+	ErrDNSIsResponse = errors.New("ooresolver: expected query but received response")
+)
+
+func (d *DNSDecoderMiekg) ParseQuery(data []byte) (*dns.Msg, error) {
+	query := &dns.Msg{}
+	if err := query.Unpack(data); err != nil {
+		return nil, err
+	}
+	if query.Response {
+		return nil, ErrDNSIsResponse
+	}
+	return query, nil
+}
 
 func (d *DNSDecoderMiekg) ParseReply(data []byte, queryID uint16) (*dns.Msg, error) {
 	reply := &dns.Msg{}
@@ -42,7 +58,7 @@ func (d *DNSDecoderMiekg) rcodeToError(reply *dns.Msg) error {
 	}
 }
 
-func (d *DNSDecoderMiekg) DecodeHTTPS(data []byte, queryID uint16) (*model.HTTPSSvc, error) {
+func (d *DNSDecoderMiekg) DecodeLookupHTTPS(data []byte, queryID uint16) (*model.HTTPSSvc, error) {
 	reply, err := d.ParseReply(data, queryID)
 	if err != nil {
 		return nil, err
@@ -50,7 +66,7 @@ func (d *DNSDecoderMiekg) DecodeHTTPS(data []byte, queryID uint16) (*model.HTTPS
 	return d.DecodeReplyLookupHTTPS(reply)
 }
 
-func (d *DNSDecoderMiekg) DecodeNS(data []byte, queryID uint16) ([]*net.NS, error) {
+func (d *DNSDecoderMiekg) DecodeLookupNS(data []byte, queryID uint16) ([]*net.NS, error) {
 	reply, err := d.ParseReply(data, queryID)
 	if err != nil {
 		return nil, err
@@ -129,16 +145,14 @@ func (d *DNSDecoderMiekg) DecodeReplyLookupHost(qtype uint16, reply *dns.Msg) ([
 	}
 	var addrs []string
 	for _, answer := range reply.Answer {
-		switch qtype {
-		case dns.TypeA:
-			if rra, ok := answer.(*dns.A); ok {
-				ip := rra.A
-				addrs = append(addrs, ip.String())
+		switch v := answer.(type) {
+		case *dns.A:
+			if qtype == dns.TypeA || qtype == dns.TypeANY {
+				addrs = append(addrs, v.A.String())
 			}
-		case dns.TypeAAAA:
-			if rra, ok := answer.(*dns.AAAA); ok {
-				ip := rra.AAAA
-				addrs = append(addrs, ip.String())
+		case *dns.AAAA:
+			if qtype == dns.TypeAAAA || qtype == dns.TypeANY {
+				addrs = append(addrs, v.AAAA.String())
 			}
 		}
 	}

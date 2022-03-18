@@ -268,7 +268,7 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 	defer wg.Done()
 
 	// encode the query
-	rawQuery, qid, err := e.Encoder.Encode(plan.Domain, plan.QueryType, false)
+	rawQuery, qid, err := e.Encoder.EncodeQuery(plan.Domain, plan.QueryType, false)
 	if err != nil {
 		e.Logger.Warnf("dnsping: cannot encode query: %s", err.Error())
 		out <- &resultWrapper{Err: err}
