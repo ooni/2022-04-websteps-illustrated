@@ -33,9 +33,6 @@ type ArchivalDNSLookupMeasurement struct {
 	// ALPNs contains the ALPNs obtained using this lookup (if any).
 	ALPNs []string `json:"alpns"`
 
-	// DNSRoundTrips contains DNS round trips.
-	DNSRoundTrips []model.ArchivalDNSRoundTripEvent `json:"dns_round_trips"`
-
 	// Queries contains the DNS lookup events.
 	Queries []model.ArchivalDNSLookupResult `json:"queries"`
 }
@@ -49,9 +46,15 @@ func (m *DNSLookupMeasurement) ToArchival(begin time.Time) ArchivalDNSLookupMeas
 		Failure:          m.Failure().ToArchivalFailure(),
 		Addresses:        m.Addresses(),
 		ALPNs:            m.ALPNs(),
-		DNSRoundTrips:    archival.NewArchivalDNSRoundTripEventList(begin, m.RoundTrip),
-		Queries:          m.Lookup.ToArchival(begin),
+		Queries:          m.queries(begin),
 	}
+}
+
+func (m *DNSLookupMeasurement) queries(begin time.Time) (out []model.ArchivalDNSLookupResult) {
+	for _, rt := range m.RoundTrip {
+		out = append(out, *rt.ToArchival(begin))
+	}
+	return
 }
 
 // ArchivalEndpointMeasurement is the archival format of an endpoint measurement.

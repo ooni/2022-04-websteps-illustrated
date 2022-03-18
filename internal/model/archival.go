@@ -134,6 +134,8 @@ type ArchivalDNSLookupResult struct {
 	Failure          *string             `json:"failure"`
 	Hostname         string              `json:"hostname"`
 	QueryType        string              `json:"query_type"`
+	RawQuery         *ArchivalBinaryData `json:"raw_query"`
+	RawReply         *ArchivalBinaryData `json:"raw_reply"`
 	ResolverHostname *string             `json:"resolver_hostname"`
 	ResolverPort     *string             `json:"resolver_port"`
 	ResolverAddress  string              `json:"resolver_address"`
@@ -374,23 +376,4 @@ type ArchivalNetworkEvent struct {
 	Started   float64  `json:"started"`
 	T         float64  `json:"t"`
 	Tags      []string `json:"tags,omitempty"`
-}
-
-//
-// DNSRoundTripEvent
-//
-
-// ArchivalDNSRoundTripEvent is the OONI data format representation
-// of a DNS round trip, which is currently not specified.
-//
-// We are trying to use names compatible with the names currently
-// used by other specifications we currently use.
-type ArchivalDNSRoundTripEvent struct {
-	Address  string              `json:"resolver_address"`
-	Failure  *string             `json:"failure"`
-	Finished float64             `json:"t"`
-	Network  string              `json:"engine"`
-	Query    *ArchivalBinaryData `json:"raw_query"`
-	Reply    *ArchivalBinaryData `json:"raw_reply"`
-	Started  float64             `json:"started"`
 }

@@ -10,11 +10,13 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
+	"github.com/miekg/dns"
 )
 
 //
@@ -207,6 +209,8 @@ func (ev *FlatDNSLookupEvent) toArchivalHTTPS(begin time.Time) (out []model.Arch
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         ev.Domain,
 		QueryType:        "HTTPS",
+		RawQuery:         nil,
+		RawReply:         nil,
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
 		ResolverAddress:  ev.ResolverAddress,
@@ -250,6 +254,8 @@ func (ev *FlatDNSLookupEvent) toArchivalNS(begin time.Time) (out []model.Archiva
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         ev.Domain,
 		QueryType:        "NS",
+		RawQuery:         nil,
+		RawReply:         nil,
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
 		ResolverAddress:  ev.ResolverAddress,
@@ -283,6 +289,8 @@ func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []mode
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         ev.Domain,
 		QueryType:        "A",
+		RawQuery:         nil,
+		RawReply:         nil,
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
 		ResolverAddress:  ev.ResolverAddress,
@@ -301,6 +309,8 @@ func (ev *FlatDNSLookupEvent) toArchivalGetaddrinfo(begin time.Time) (out []mode
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         ev.Domain,
 		QueryType:        "AAAA",
+		RawQuery:         nil,
+		RawReply:         nil,
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
 		ResolverAddress:  ev.ResolverAddress,
@@ -424,13 +434,13 @@ func (ev *FlatQUICTLSHandshakeEvent) makePeerCerts(in [][]byte) (out []model.Arc
 
 // NewArchivalDNSRoundTripEventList converts the DNSRoundTripEvent list
 // inside the trace to the corresponding archival format.
-func (t *Trace) NewArchivalDNSRoundTripEventList(begin time.Time) []model.ArchivalDNSRoundTripEvent {
+func (t *Trace) NewArchivalDNSRoundTripEventList(begin time.Time) []model.ArchivalDNSLookupResult {
 	return NewArchivalDNSRoundTripEventList(begin, t.DNSRoundTrip)
 }
 
 // NewArchivalDNSRoundTripEventList converts the DNSRoundTripEvent list
 // inside the trace to the corresponding archival format.
-func NewArchivalDNSRoundTripEventList(begin time.Time, in []*FlatDNSRoundTripEvent) (out []model.ArchivalDNSRoundTripEvent) {
+func NewArchivalDNSRoundTripEventList(begin time.Time, in []*FlatDNSRoundTripEvent) (out []model.ArchivalDNSLookupResult) {
 	for _, ev := range in {
 		out = append(out, *ev.ToArchival(begin))
 	}
@@ -438,15 +448,121 @@ func NewArchivalDNSRoundTripEventList(begin time.Time, in []*FlatDNSRoundTripEve
 }
 
 // ToArchival converts a FlatDNSRoundTripEvent into ArchivalDNSRoundTripEvent.
-func (ev *FlatDNSRoundTripEvent) ToArchival(begin time.Time) *model.ArchivalDNSRoundTripEvent {
-	return &model.ArchivalDNSRoundTripEvent{
-		Address:  ev.Address,
-		Failure:  ev.Failure.ToArchivalFailure(),
-		Finished: ev.Finished.Sub(begin).Seconds(),
-		Network:  string(ev.Network),
-		Query:    ev.bytesToBinaryData(ev.Query),
-		Reply:    ev.bytesToBinaryData(ev.Reply),
-		Started:  ev.Started.Sub(begin).Seconds(),
+func (ev *FlatDNSRoundTripEvent) ToArchival(begin time.Time) *model.ArchivalDNSLookupResult {
+	out := &model.ArchivalDNSLookupResult{
+		Answers:          []model.ArchivalDNSAnswer{}, // later
+		Engine:           string(ev.Network),
+		Failure:          ev.Failure.ToArchivalFailure(),
+		Hostname:         "", // later
+		QueryType:        "", // later
+		RawQuery:         ev.bytesToBinaryData(ev.Query),
+		RawReply:         ev.bytesToBinaryData(ev.Reply),
+		ResolverHostname: nil, // legacy
+		ResolverPort:     nil, // legacy
+		ResolverAddress:  ev.Address,
+		Started:          ev.Started.Sub(begin).Seconds(),
+		T:                ev.Finished.Sub(begin).Seconds(),
+	}
+	ev.fillHostnameAndQueryType(out)
+	ev.fillAnswers(out)
+	return out
+}
+
+func (ev *FlatDNSRoundTripEvent) fillHostnameAndQueryType(out *model.ArchivalDNSLookupResult) {
+	query := &dns.Msg{}
+	if err := query.Unpack(ev.Query); err != nil {
+		return
+	}
+	if len(query.Question) != 1 {
+		return
+	}
+	q0 := query.Question[0]
+	hostname := q0.Name
+	if len(hostname) > 0 && strings.HasSuffix(hostname, ".") {
+		hostname = hostname[:len(hostname)-1]
+	}
+	out.Hostname = hostname
+	switch q0.Qtype {
+	case dns.TypeHTTPS:
+		out.QueryType = "HTTPS"
+	case dns.TypeA:
+		out.QueryType = "A"
+	case dns.TypeAAAA:
+		out.QueryType = "AAAA"
+	case dns.TypeNS:
+		out.QueryType = "NS"
+	case dns.TypeCNAME:
+		out.QueryType = "CNAME"
+	case dns.TypeANY:
+		out.QueryType = "ANY"
+	default:
+		// nothing
+	}
+}
+
+func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult) {
+	reply := &dns.Msg{}
+	if err := reply.Unpack(ev.Reply); err != nil {
+		return
+	}
+	if len(reply.Answer) < 1 {
+		return
+	}
+	for _, answer := range reply.Answer {
+		switch v := answer.(type) {
+		case *dns.HTTPS:
+			// TODO(bassosimone): properly decode HTTPS replies
+		case *dns.A:
+			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
+				ALPN:       "",
+				ASN:        0,
+				ASOrgName:  "",
+				AnswerType: "A",
+				Hostname:   "",
+				IPv4:       v.A.String(),
+				IPv6:       "",
+				NS:         "",
+				TTL:        &v.Hdr.Ttl,
+			})
+		case *dns.AAAA:
+			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
+				ALPN:       "",
+				ASN:        0,
+				ASOrgName:  "",
+				AnswerType: "AAAA",
+				Hostname:   "",
+				IPv4:       v.AAAA.String(),
+				IPv6:       "",
+				NS:         "",
+				TTL:        &v.Hdr.Ttl,
+			})
+		case *dns.NS:
+			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
+				ALPN:       "",
+				ASN:        0,
+				ASOrgName:  "",
+				AnswerType: "NS",
+				Hostname:   "",
+				IPv4:       "",
+				IPv6:       "",
+				NS:         v.Ns,
+				TTL:        &v.Hdr.Ttl,
+			})
+		case *dns.CNAME:
+			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
+				ALPN:       "",
+				ASN:        0,
+				ASOrgName:  "",
+				AnswerType: "CNAME",
+				Hostname:   v.Target,
+				IPv4:       "",
+				IPv6:       "",
+				NS:         "",
+				TTL:        &v.Hdr.Ttl,
+			})
+		default:
+			// nothing
+		}
 	}
 }
 
