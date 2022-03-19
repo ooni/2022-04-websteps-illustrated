@@ -69,6 +69,10 @@ const (
 	// DNSLookupFlagNS modifies the DNSLookupPlan to request resolving
 	// the target domain's nameservers using NS.
 	DNSLookupFlagNS = 1 << iota
+
+	// DNSLookupFlagHTTPS modifies the DNSLookupPlan to request resolving
+	// the target domain using HTTPS.
+	DNSLookupFlagHTTPS
 )
 
 // DNSLookupMeasurement is a DNS lookup measurement.
@@ -277,15 +281,18 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 	case DNSResolverSystem:
 		output <- mx.lookupHostSystem(ctx, t)
 	case DNSResolverUDP:
-		wg.Add(2)
+		wg.Add(1)
 		go func() {
 			output <- mx.lookupHostUDP(ctx, t)
 			wg.Done()
 		}()
-		go func() {
-			output <- mx.lookupHTTPSSvcUDP(ctx, t)
-			wg.Done()
-		}()
+		if (t.plan.Flags & DNSLookupFlagHTTPS) != 0 {
+			wg.Add(1)
+			go func() {
+				output <- mx.lookupHTTPSSvcUDP(ctx, t)
+				wg.Done()
+			}()
+		}
 		if (t.plan.Flags & DNSLookupFlagNS) != 0 {
 			wg.Add(1)
 			go func() {
@@ -294,15 +301,18 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			}()
 		}
 	case DNSResolverDoH, DNSResolverDoH3:
-		wg.Add(2)
+		wg.Add(1)
 		go func() {
 			output <- mx.lookupHostDoH(ctx, t)
 			wg.Done()
 		}()
-		go func() {
-			output <- mx.lookupHTTPSSvcDoH(ctx, t)
-			wg.Done()
-		}()
+		if (t.plan.Flags & DNSLookupFlagHTTPS) != 0 {
+			wg.Add(1)
+			go func() {
+				output <- mx.lookupHTTPSSvcDoH(ctx, t)
+				wg.Done()
+			}()
+		}
 		if (t.plan.Flags & DNSLookupFlagNS) != 0 {
 			wg.Add(1)
 			go func() {
