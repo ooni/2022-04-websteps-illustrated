@@ -709,7 +709,7 @@ func NewTHHandler(options *THHandlerOptions) *THHandler {
 func (thh *THHandler) newTHRequestHandler() *THRequestHandler {
 	return &THRequestHandler{
 		Options: thh.Options,
-		ID:      thh.IDGenerator.Next(),
+		ID:      thh.IDGenerator.NextID(),
 	}
 }
 

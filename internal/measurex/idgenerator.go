@@ -20,7 +20,7 @@ func NewIDGenerator() *IDGenerator {
 	}
 }
 
-// Next returns the next unique ID.
-func (g *IDGenerator) Next() int64 {
+// NextID returns the next unique ID.
+func (g *IDGenerator) NextID() int64 {
 	return g.c.Add(1)
 }

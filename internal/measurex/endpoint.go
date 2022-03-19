@@ -287,7 +287,7 @@ func (em *EndpointMeasurement) Summary() (string, bool) {
 
 // RedirectSummary is a summary of the endpoint's redirect. If there's no
 // redirect, we return an empty string and false. Otherwise, we return a
-// string that uniquely identify this redirect and true.
+// string that uniquely identifies this redirect and true.
 //
 // Two redirects are ~same if they have the same redirect summary.
 //

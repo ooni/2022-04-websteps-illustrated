@@ -170,7 +170,7 @@ func (ad *AnalysisDNS) Describe() string {
 // dnsAnalysis analyzes the probe's DNS lookups. This function returns
 // nil when there's no DNS lookup data to analyze.
 func (ssm *SingleStepMeasurement) dnsAnalysis(
-	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisDNS) {
+	mx measurex.AbstractMeasurer, logger model.Logger) (out []*AnalysisDNS) {
 	if ssm.ProbeInitial == nil {
 		// should not happen in practice, just a safety net.
 		return nil
@@ -188,7 +188,7 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(
 }
 
 // dnsSingleLookupAnalysis analyzes a single DNS lookup.
-func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx *measurex.Measurer,
+func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMeasurer,
 	logger model.Logger, pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
 	score := &AnalysisDNS{
 		ID:               mx.NextID(),
@@ -448,7 +448,7 @@ func (ad *AnalysisEndpoint) Describe() string {
 // endpointAnalysis analyzes the probe's endpoint measurements. This function
 // returns nil when there's no endpoint data to analyze.
 func (ssm *SingleStepMeasurement) endpointAnalysis(
-	mx *measurex.Measurer, logger model.Logger) (out []*AnalysisEndpoint) {
+	mx measurex.AbstractMeasurer, logger model.Logger) (out []*AnalysisEndpoint) {
 	var flags int64
 	if ssm.TH == nil {
 		flags |= AnalysisTHFailure
@@ -469,8 +469,9 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(
 }
 
 // endpointSingleMeasurementAnalysis analyzes a single DNS lookup.
-func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx *measurex.Measurer,
-	logger model.Logger, pe *measurex.EndpointMeasurement) *AnalysisEndpoint {
+func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
+	mx measurex.AbstractMeasurer, logger model.Logger,
+	pe *measurex.EndpointMeasurement) *AnalysisEndpoint {
 	score := &AnalysisEndpoint{
 		ID:               mx.NextID(),
 		URLMeasurementID: pe.URLMeasurementID,

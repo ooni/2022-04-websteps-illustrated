@@ -148,8 +148,7 @@ func (c *Client) loop(ctx context.Context) {
 // steps performs all the steps.
 func (c *Client) steps(ctx context.Context, input string) {
 	library := measurex.NewDefaultLibrary(c.logger)
-	mx := measurex.NewMeasurer(c.logger, library)
-	mx.Options = c.options // ensure we use user-selected options (if any)
+	mx := measurex.NewMeasurerWithOptions(c.logger, library, c.options)
 	initial, err := mx.NewURLMeasurement(input)
 	if err != nil {
 		c.logger.Warnf("❌ cannot parse input as URL: %s", err.Error())
@@ -216,7 +215,8 @@ func (ssm *SingleStepMeasurement) rememberVisitedURLs(q *measurex.URLRedirectDeq
 
 // redirects computes all the redirects from all the results
 // that are stored inside the test keys.
-func (ssm *SingleStepMeasurement) redirects(mx *measurex.Measurer) (o []*measurex.URLMeasurement, v bool) {
+func (ssm *SingleStepMeasurement) redirects(
+	mx measurex.AbstractMeasurer) (o []*measurex.URLMeasurement, v bool) {
 	if ssm.ProbeInitial != nil {
 		r, _ := mx.Redirects(ssm.ProbeInitial.Endpoint, ssm.ProbeInitial.Options)
 		o = append(o, r...)
@@ -305,7 +305,7 @@ func defaultResolvers() (out []*measurex.DNSResolverInfo) {
 
 // step performs a single step.
 func (c *Client) step(ctx context.Context, cache *stepsCache,
-	mx *measurex.Measurer, cur *measurex.URLMeasurement) *SingleStepMeasurement {
+	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) *SingleStepMeasurement {
 	c.dnsLookup(ctx, cache, mx, cur)
 	dc := c.dnsPingFollowUp(ctx, mx, cur)
 	ssm := newSingleStepMeasurement(cur)
@@ -343,7 +343,7 @@ func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result) *dnsping.Result {
 }
 
 func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
-	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
+	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
 	dnsv, found := cache.dnsLookup(mx, cur.ID, cur.Domain())
 	if found {
 		c.logger.Infof("📡 [initial] domain %s already in dnscache", cur.Domain())
@@ -358,7 +358,7 @@ func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 }
 
 func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCache,
-	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
+	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
 	c.logger.Info("📡 [initial] measuring endpoints discovered using the DNS")
 	ual, _ := cur.URLAddressList()
 	// Rewrite the current URLAddressList to ensure that IP addresses we've already
@@ -374,7 +374,7 @@ func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCac
 }
 
 func (c *Client) measureAltSvcEndpoints(ctx context.Context,
-	mx *measurex.Measurer, cur *measurex.URLMeasurement) {
+	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
 	c.logger.Info("📡 [initial] measuring extra endpoints discovered using Alt-Svc (if any)")
 	epntPlan, _ := cur.NewEndpointPlan(c.logger, measurex.EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
@@ -384,7 +384,7 @@ func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 
 // importTHMeasurement returns a copy of the input measurement with
 // adjusted IDs (related to the measurer) and times.
-func (c *Client) importTHMeasurement(mx *measurex.Measurer, in *THResponse,
+func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THResponse,
 	cur *measurex.URLMeasurement) (out *THResponseWithID) {
 	out = &THResponseWithID{
 		id:       cur.ID,
@@ -465,7 +465,7 @@ func (thm *THResponseWithID) URLAddressList(domain string) (o []*measurex.URLAdd
 }
 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
-	mx *measurex.Measurer, ssm *SingleStepMeasurement) {
+	mx measurex.AbstractMeasurer, ssm *SingleStepMeasurement) {
 	c.logger.Info("📡 [additional] looking for new endpoints in TH/dnsping results")
 	addrslist, _ := c.expandProbeKnowledge(mx, ssm)
 	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(c.logger, addrslist, 0)
@@ -495,8 +495,8 @@ func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 // to return and false otherwise. Beware that returning a non-empty
 // list doesn't imply that the probe will end up testing it. Limitations
 // on the maximum number of addresses per family apply.
-func (c *Client) expandProbeKnowledge(
-	mx *measurex.Measurer, ssm *SingleStepMeasurement) ([]*measurex.URLAddress, bool) {
+func (c *Client) expandProbeKnowledge(mx measurex.AbstractMeasurer,
+	ssm *SingleStepMeasurement) ([]*measurex.URLAddress, bool) {
 	// 1. gather the lists for the probe and the th
 	pal, _ := ssm.probeInitialURLAddressList()
 	thal, _ := ssm.testHelperOrDNSPingURLAddressList()
@@ -508,11 +508,11 @@ func (c *Client) expandProbeKnowledge(
 	diff := measurex.NewURLAddressListDiff(o, pal)
 	for _, e := range diff.ModifiedFlags {
 		if (e.Flags & measurex.URLAddressSupportsHTTP3) != 0 {
-			mx.Logger.Infof("🙌 discovered that %s supports HTTP3", e.Address)
+			c.logger.Infof("🙌 discovered that %s supports HTTP3", e.Address)
 		}
 	}
 	for _, e := range diff.NewEntries {
-		mx.Logger.Infof("🙌 discovered new %s address for %s", e.Address, e.Domain)
+		c.logger.Infof("🙌 discovered new %s address for %s", e.Address, e.Domain)
 	}
 	return o, len(o) > 0
 }

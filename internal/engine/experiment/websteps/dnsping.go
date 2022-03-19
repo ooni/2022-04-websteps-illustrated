@@ -36,7 +36,7 @@ import (
 // The pointer returned by the channel is nil if there's no work that the
 // dnsping experiment has actually performed. This happens when none of
 // three above triggering conditions are actually met.
-func (c *Client) dnsPingFollowUp(ctx context.Context, mx *measurex.Measurer,
+func (c *Client) dnsPingFollowUp(ctx context.Context, mx measurex.AbstractMeasurer,
 	current *measurex.URLMeasurement) <-chan *dnsping.Result {
 	var overall []*dnsping.SinglePingPlan
 	for _, entry := range c.dnsPingSelectQueries(current.DNS) {
@@ -48,8 +48,8 @@ func (c *Client) dnsPingFollowUp(ctx context.Context, mx *measurex.Measurer,
 		// when reading the logs to know it has started.
 		c.logger.Infof("🚧️ [dnsping] starting in the background to validate lookups")
 	}
-	engine := dnsping.NewEngine(c.logger, mx.IDGenerator)
-	engine.QueryTimeout = mx.Options.Flatten().DNSLookupTimeout
+	engine := dnsping.NewEngine(c.logger, mx)
+	engine.QueryTimeout = mx.FlattenOptions().DNSLookupTimeout
 	return engine.RunAsync(overall)
 }
 

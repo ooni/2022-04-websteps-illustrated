@@ -74,7 +74,8 @@ type HashingBody struct {
 //
 // This function will always return an initialized HashingBodies
 // pointer pointing to a valid initialized structure.
-func (tk *TestKeys) buildHashingBodies(mx *measurex.Measurer) (hb *HashingBodies) {
+func (tk *TestKeys) buildHashingBodies(
+	mx measurex.AbstractMeasurer) (hb *HashingBodies) {
 	hb = &HashingBodies{
 		Bodies: map[string]*HashingBody{},
 	}
@@ -90,7 +91,7 @@ func (tk *TestKeys) buildHashingBodies(mx *measurex.Measurer) (hb *HashingBodies
 
 // fromEndpoints fills this HashingBodies struct from the
 // given list of endpoints (which may be empty.)
-func (hb *HashingBodies) fromEndpoints(mx *measurex.Measurer,
+func (hb *HashingBodies) fromEndpoints(mx measurex.AbstractMeasurer,
 	epnts []*measurex.EndpointMeasurement) {
 	for _, epnt := range epnts {
 		body := epnt.ResponseBody()

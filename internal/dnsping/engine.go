@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
@@ -146,7 +145,7 @@ type Engine struct {
 	Encoder model.DNSEncoder
 
 	// IDGenerator is the MANDATORY IDGenerator to use.
-	IDGenerator *measurex.IDGenerator
+	IDGenerator IDGenerator
 
 	// Listener is the specific MANDATORY UDPListener to use.
 	Listener model.UDPListener
@@ -158,9 +157,14 @@ type Engine struct {
 	QueryTimeout time.Duration
 }
 
+// IDGenerator is a generic unique-IDs generator.
+type IDGenerator interface {
+	NextID() int64
+}
+
 // NewEngine creates a new  engine instance using the given
 // logger, the given generator, and typical values for other fields.
-func NewEngine(logger model.Logger, idgen *measurex.IDGenerator) *Engine {
+func NewEngine(logger model.Logger, idgen IDGenerator) *Engine {
 	return &Engine{
 		Decoder:      &netxlite.DNSDecoderMiekg{},
 		Encoder:      &netxlite.DNSEncoderMiekg{},
@@ -294,7 +298,7 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 
 	// start filling in the result struct
 	result := &SinglePingResult{
-		ID:              e.IDGenerator.Next(),
+		ID:              e.IDGenerator.NextID(),
 		ResolverAddress: plan.ResolverAddress,
 		Domain:          plan.Domain,
 		QueryType:       plan.QueryType,
@@ -318,7 +322,7 @@ func (e *Engine) received(sourceAddress string,
 	result *SinglePingResult, rr *netxlite.DNSOverUDPRawReply) {
 	if rr.Error != nil {
 		result.Replies = append(result.Replies, &SinglePingReply{
-			ID:            e.IDGenerator.Next(),
+			ID:            e.IDGenerator.NextID(),
 			SourceAddress: sourceAddress,
 			Reply:         []byte{},
 			Error:         archival.NewFlatFailure(rr.Error),
@@ -332,7 +336,7 @@ func (e *Engine) received(sourceAddress string,
 	reply, err := e.Decoder.ParseReply(rr.RawReply, result.QueryID)
 	if err != nil {
 		result.Replies = append(result.Replies, &SinglePingReply{
-			ID:            e.IDGenerator.Next(),
+			ID:            e.IDGenerator.NextID(),
 			SourceAddress: sourceAddress,
 			Reply:         rr.RawReply,
 			Error:         archival.NewFlatFailure(err),
@@ -345,7 +349,7 @@ func (e *Engine) received(sourceAddress string,
 	}
 	if !rr.ValidSourceAddr {
 		result.Replies = append(result.Replies, &SinglePingReply{
-			ID:            e.IDGenerator.Next(),
+			ID:            e.IDGenerator.NextID(),
 			SourceAddress: sourceAddress,
 			Reply:         rr.RawReply,
 			Error:         archival.FlatFailure(netxlite.FailureDNSReplyFromUnexpectedServer),
@@ -367,7 +371,7 @@ func (e *Engine) received(sourceAddress string,
 		rr.Received.Sub(result.Started), reply.Id)
 	addrs, alpns, err := e.finishParsing(result.QueryType, reply)
 	result.Replies = append(result.Replies, &SinglePingReply{
-		ID:            e.IDGenerator.Next(),
+		ID:            e.IDGenerator.NextID(),
 		SourceAddress: sourceAddress,
 		Reply:         rr.RawReply,
 		Error:         e.errorToWrappedFlatFailure(err),

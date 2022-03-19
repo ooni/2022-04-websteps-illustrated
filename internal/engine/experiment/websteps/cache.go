@@ -72,7 +72,7 @@ func (sc *stepsCache) updateUsedAddrsLocked(ssm *SingleStepMeasurement) {
 }
 
 // dnsLookup performs a DNS lookup for the given domain using the cache.
-func (sc *stepsCache) dnsLookup(mx *measurex.Measurer,
+func (sc *stepsCache) dnsLookup(mx measurex.AbstractMeasurer,
 	urlMeasurementID int64, domain string) (*measurex.DNSLookupMeasurement, bool) {
 	defer sc.mu.Unlock()
 	sc.mu.Lock()

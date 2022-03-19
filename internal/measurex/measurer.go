@@ -13,6 +13,7 @@ package measurex
 //
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -54,18 +55,58 @@ var DefaultHTTP3Transport = &http3.RoundTripper{}
 
 // NewMeasurer creates a new Measurer instance using the default settings.
 func NewMeasurer(logger model.Logger, library *Library) *Measurer {
+	return NewMeasurerWithOptions(logger, library, &Options{})
+}
+
+// AbstractMeasurer is an abstract view of a Measurer.
+type AbstractMeasurer interface {
+	// DNSLookups behaves like Measurer.DNSLookups.
+	DNSLookups(ctx context.Context,
+		dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement
+
+	// FlattenOptions returns flattened options.
+	FlattenOptions() *Options
+
+	// MeasureEndpoints behaves like Measurer.MeasureEndpoints.
+	MeasureEndpoints(ctx context.Context,
+		epnts ...*EndpointPlan) <-chan *EndpointMeasurement
+
+	// NewURLMeasurement behaves like Measurer.NewURLMeasurement.
+	NewURLMeasurement(input string) (*URLMeasurement, error)
+
+	// NewURLRedirectDeque behaves like Measurer.NewURLRedirectDeque.
+	NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque
+
+	// NextID behaves like Measurer.NextID.
+	NextID() int64
+
+	// Redirects behaves like Measurer.Redirects.
+	Redirects(epnts []*EndpointMeasurement,
+		opts *Options) ([]*URLMeasurement, bool)
+}
+
+var _ AbstractMeasurer = &Measurer{}
+
+// NewMeasurerWithOptions creates a new Measurer instance with the given options.
+func NewMeasurerWithOptions(
+	logger model.Logger, library *Library, options *Options) *Measurer {
 	return &Measurer{
 		HTTP3ClientForDoH: &http.Client{Transport: DefaultHTTP3Transport},
 		HTTPClientForDoH:  http.DefaultClient,
 		IDGenerator:       NewIDGenerator(),
 		Library:           library,
 		Logger:            logger,
-		Options:           nil, // meaning: use default values
+		Options:           options,
 		TLSHandshaker:     library.NewTLSHandshakerStdlib(),
 	}
 }
 
+// FlattenOptions implements AbstractMeasurer.FlattenOptions.
+func (mx *Measurer) FlattenOptions() *Options {
+	return mx.Options.Flatten()
+}
+
 // NextID returns the next measurement ID.
 func (mx *Measurer) NextID() int64 {
-	return mx.IDGenerator.Next()
+	return mx.IDGenerator.NextID()
 }
