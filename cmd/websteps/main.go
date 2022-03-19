@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -25,6 +26,7 @@ type CLI struct {
 	Input     []string `doc:"add URL to list of URLs to crawl" short:"i"`
 	InputFile []string `doc:"add input file containing URLs to crawl" short:"f"`
 	Output    string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
+	Random    bool     `doc:"shuffle input list before running through it"`
 	Raw       bool     `doc:"emit raw websteps format rather than OONI data format"`
 	Verbose   bool     `doc:"enable verbose mode" short:"v"`
 }
@@ -39,6 +41,7 @@ func getopt() *CLI {
 		Input:     []string{},
 		InputFile: []string{},
 		Output:    "report.jsonl",
+		Random:    false,
 		Raw:       false,
 		Verbose:   false,
 	}
@@ -55,6 +58,12 @@ func getopt() *CLI {
 		log.SetLevel(log.DebugLevel)
 	}
 	readInputFiles(opts)
+	if opts.Random {
+		rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+		rnd.Shuffle(len(opts.Input), func(i, j int) {
+			opts.Input[i], opts.Input[j] = opts.Input[j], opts.Input[i]
+		})
+	}
 	return opts
 }
 
