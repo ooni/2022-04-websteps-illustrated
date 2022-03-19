@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"io"
@@ -17,26 +18,29 @@ import (
 )
 
 type CLI struct {
-	Backend string   `doc:"backend URL (default: use OONI backend)" short:"b"`
-	Deep    bool     `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
-	Fast    bool     `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
-	Help    bool     `doc:"prints this help message" short:"h"`
-	Input   []string `doc:"add URL to list of URLs to crawl" short:"i"`
-	Output  string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
-	Raw     bool     `doc:"emit raw websteps format rathern than OONI data format"`
-	Verbose bool     `doc:"enable verbose mode" short:"v"`
+	Backend   string   `doc:"backend URL (default: use OONI backend)" short:"b"`
+	Deep      bool     `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
+	Fast      bool     `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
+	Help      bool     `doc:"prints this help message" short:"h"`
+	Input     []string `doc:"add URL to list of URLs to crawl" short:"i"`
+	InputFile []string `doc:"add input file containing URLs to crawl" short:"f"`
+	Output    string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
+	Raw       bool     `doc:"emit raw websteps format rather than OONI data format"`
+	Verbose   bool     `doc:"enable verbose mode" short:"v"`
 }
 
-func main() {
+// getopt parses command line flags.
+func getopt() *CLI {
 	opts := &CLI{
-		Backend: "wss://0.th.ooni.org/websteps/v1/th",
-		Deep:    false,
-		Fast:    false,
-		Help:    false,
-		Input:   []string{},
-		Output:  "report.jsonl",
-		Raw:     false,
-		Verbose: false,
+		Backend:   "wss://0.th.ooni.org/websteps/v1/th",
+		Deep:      false,
+		Fast:      false,
+		Help:      false,
+		Input:     []string{},
+		InputFile: []string{},
+		Output:    "report.jsonl",
+		Raw:       false,
+		Verbose:   false,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -44,18 +48,51 @@ func main() {
 		parser.PrintUsage(os.Stdout)
 		os.Exit(0)
 	}
-	if len(opts.Input) < 1 {
+	if len(opts.Input) < 1 && len(opts.InputFile) < 1 {
 		log.Fatal("no input provided (try `./websteps --help' for more help)")
 	}
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-	filep, err := os.OpenFile(opts.Output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.WithError(err).Fatal("cannot create output file")
+	readInputFiles(opts)
+	return opts
+}
+
+// readInputFiles reads the input files.
+func readInputFiles(opts *CLI) {
+	for _, inputfile := range opts.InputFile {
+		inputs := readInputFile(inputfile)
+		opts.Input = append(opts.Input, inputs...)
 	}
-	begin := time.Now()
-	ctx := context.Background()
+}
+
+// readInputFile reads a single input file.
+//
+// Note: this is a simplified version of a much better function that
+// we have in probe-cli and checks also for empty files.
+func readInputFile(filepath string) (inputs []string) {
+	fp, err := os.Open(filepath)
+	if err != nil {
+		log.WithError(err).Fatal("cannot open input file")
+	}
+	defer fp.Close()
+	// Implementation note: when you save file with vim, you have newline at
+	// end of file and you don't want to consider that an input line. While there
+	// ignore any other empty line that may occur inside the file.
+	scanner := bufio.NewScanner(fp)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line != "" {
+			inputs = append(inputs, line)
+		}
+	}
+	if scanner.Err() != nil {
+		log.WithError(err).Fatal("scanner error while processing input file")
+	}
+	return
+}
+
+func measurexOptions(opts *CLI) *measurex.Options {
 	clientOptions := &measurex.Options{
 		MaxAddressesPerFamily: measurex.DefaultMaxAddressPerFamily,
 		MaxCrawlerDepth:       measurex.DefaultMaxCrawlerDepth,
@@ -73,6 +110,18 @@ func main() {
 		clientOptions.MaxHTTPSResponseBodySnapshotSizeConnectivity = 1 << 10
 		clientOptions.MaxHTTPSResponseBodySnapshotSizeThrottling = 1 << 10
 	}
+	return clientOptions
+}
+
+func main() {
+	opts := getopt()
+	filep, err := os.OpenFile(opts.Output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.WithError(err).Fatal("cannot create output file")
+	}
+	begin := time.Now()
+	ctx := context.Background()
+	clientOptions := measurexOptions(opts)
 	clnt := websteps.StartClient(ctx, log.Log, nil, nil, opts.Backend, clientOptions)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
