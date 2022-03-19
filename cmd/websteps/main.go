@@ -23,6 +23,7 @@ type CLI struct {
 	Help    bool     `doc:"prints this help message" short:"h"`
 	Input   []string `doc:"add URL to list of URLs to crawl" short:"i"`
 	Output  string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
+	Raw     bool     `doc:"emit raw websteps format rathern than OONI data format"`
 	Verbose bool     `doc:"enable verbose mode" short:"v"`
 }
 
@@ -34,6 +35,7 @@ func main() {
 		Help:    false,
 		Input:   []string{},
 		Output:  "report.jsonl",
+		Raw:     false,
 		Verbose: false,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
@@ -75,7 +77,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go submitInput(ctx, wg, clnt, opts)
-	processOutput(begin, filep, clnt)
+	processOutput(begin, filep, clnt, opts.Raw)
 	wg.Wait()
 	if err := filep.Close(); err != nil {
 		log.WithError(err).Fatal("cannot close output file")
@@ -99,18 +101,26 @@ type result struct {
 	TestKeys *websteps.ArchivalTestKeys `json:"test_keys"`
 }
 
-func processOutput(begin time.Time, filep io.Writer, clnt *websteps.Client) {
+func processOutput(begin time.Time, filep io.Writer, clnt *websteps.Client, raw bool) {
 	for tkoe := range clnt.Output {
 		if err := tkoe.Err; err != nil {
 			log.Warn(err.Error())
 			continue
 		}
-		r := &result{TestKeys: tkoe.TestKeys.ToArchival(begin)}
-		data, err := json.Marshal(r)
-		runtimex.PanicOnError(err, "json.Marshal failed")
-		data = append(data, '\n')
-		if _, err := filep.Write(data); err != nil {
-			log.WithError(err).Fatal("cannot write output file")
+		if raw {
+			store(filep, tkoe.TestKeys)
+			continue
 		}
+		r := &result{TestKeys: tkoe.TestKeys.ToArchival(begin)}
+		store(filep, r)
+	}
+}
+
+func store(filep io.Writer, r interface{}) {
+	data, err := json.Marshal(r)
+	runtimex.PanicOnError(err, "json.Marshal failed")
+	data = append(data, '\n')
+	if _, err := filep.Write(data); err != nil {
+		log.WithError(err).Fatal("cannot write output file")
 	}
 }

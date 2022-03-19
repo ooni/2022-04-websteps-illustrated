@@ -20,15 +20,15 @@ type SingleStepMeasurement struct {
 	ProbeInitial *measurex.URLMeasurement
 
 	// TH contains the response from the test helper.
-	TH *THResponseWithID
+	TH *THResponseWithID `json:",omitempty"`
 
 	// DNSPing contains the optional result of
 	// the dnsping follow-up experiment.
-	DNSPing *dnsping.Result
+	DNSPing *dnsping.Result `json:",omitempty"`
 
 	// ProbeAdditional contains additional measurements performed
 	// by the probe using extra info from the TH.
-	ProbeAdditional []*measurex.EndpointMeasurement
+	ProbeAdditional []*measurex.EndpointMeasurement `json:",omitempty"`
 
 	// Analysis contains the results analysis.
 	Analysis *Analysis

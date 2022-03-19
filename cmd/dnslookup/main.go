@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"time"
 
@@ -48,7 +47,7 @@ func main() {
 		for _, domain := range parser.Args() {
 			plan := &measurex.DNSLookupPlan{
 				URLMeasurementID: 0,
-				URL: &url.URL{
+				URL: &measurex.SimpleURL{
 					Host: domain,
 				},
 				Options: &measurex.Options{},

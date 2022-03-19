@@ -36,7 +36,7 @@ func ALPNForHTTPSEndpoint(network archival.NetworkType) []string {
 var ErrCannotDeterminePortFromURL = errors.New("cannot determine port from URL")
 
 // PortFromURL returns the port determined from the URL or an error.
-func PortFromURL(URL *url.URL) (string, error) {
+func PortFromURL(URL *SimpleURL) (string, error) {
 	switch {
 	case URL.Port() != "":
 		return URL.Port(), nil
@@ -75,7 +75,7 @@ func SortedSerializedCookies(in []*http.Cookie) (out []string) {
 // SPDX-License-Identifier: MIT
 //
 // Adapted from: https://github.com/sekimura/go-normalize-url.
-func CanonicalURLString(URL *url.URL) string {
+func CanonicalURLString(URL *SimpleURL) string {
 	u := newURLWithScheme(URL, URL.Scheme)
 	// TODO(bassosimone): canonicalize path if needed?
 	// TODO(bassosimone): how about IDNA?

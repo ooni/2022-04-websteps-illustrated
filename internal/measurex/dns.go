@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/url"
 	"sync"
 	"time"
 
@@ -53,7 +52,7 @@ type DNSLookupPlan struct {
 	URLMeasurementID int64
 
 	// URL is the URL to resolve.
-	URL *url.URL
+	URL *SimpleURL
 
 	// Options contains the options. If nil we'll use default values.
 	Options *Options
@@ -81,13 +80,13 @@ type DNSLookupMeasurement struct {
 	ID int64
 
 	// URLMeasurementID is the ID of the parent URLMeasurement.
-	URLMeasurementID int64
+	URLMeasurementID int64 `json:"-"`
 
 	// Lookup contains the DNS lookup event.
 	Lookup *archival.FlatDNSLookupEvent
 
 	// RoundTrip contains DNS round trips.
-	RoundTrip []*archival.FlatDNSRoundTripEvent
+	RoundTrip []*archival.FlatDNSRoundTripEvent `json:",omitempty"`
 }
 
 // UsingResolverIPv6 returns true whether this specific DNS lookup

@@ -52,7 +52,7 @@ type EndpointPlan struct {
 	Address string
 
 	// URL is the endpoint URL.
-	URL *url.URL
+	URL *SimpleURL
 
 	// Options contains the options. A nil value implies that we're
 	// going to use the default value of each option.
@@ -72,7 +72,7 @@ func (e *EndpointPlan) tlsConfig() *tls.Config {
 
 func (e *EndpointPlan) newCookieJar() http.CookieJar {
 	jar := NewCookieJar()
-	jar.SetCookies(e.URL, e.Cookies)
+	jar.SetCookies(e.URL.ToURL(), e.Cookies)
 	return jar
 }
 
@@ -85,10 +85,10 @@ type EndpointMeasurement struct {
 	ID int64
 
 	// URLMeasurementID is the ID of the URLMeasurement that created us.
-	URLMeasurementID int64
+	URLMeasurementID int64 `json:"-"`
 
 	// URL is the URL this measurement refers to.
-	URL *url.URL
+	URL *SimpleURL
 
 	// Network is the network of this endpoint.
 	Network archival.NetworkType
@@ -97,34 +97,34 @@ type EndpointMeasurement struct {
 	Address string
 
 	// OrigCookies contains the cookies we originally used.
-	OrigCookies []*http.Cookie
+	OrigCookies []*http.Cookie `json:",omitempty"`
 
 	// Failure is the error that occurred.
-	Failure archival.FlatFailure
+	Failure archival.FlatFailure `json:",omitempty"`
 
 	// FailedOperation is the operation that failed.
-	FailedOperation FlatFailedOperation
+	FailedOperation FlatFailedOperation `json:",omitempty"`
 
 	// NewCookies contains cookies the next redirection (if any) should use.
-	NewCookies []*http.Cookie
+	NewCookies []*http.Cookie `json:",omitempty"`
 
 	// Location is the URL we're redirected to (if any).
-	Location *url.URL
+	Location *url.URL `json:",omitempty"`
 
 	// HTTPTitle is the webpage title (if any).
-	HTTPTitle string
+	HTTPTitle string `json:",omitempty"`
 
 	// NetworkEvent contains network events (if any).
-	NetworkEvent []*archival.FlatNetworkEvent
+	NetworkEvent []*archival.FlatNetworkEvent `json:",omitempty"`
 
 	// TCPConnect contains the TCP connect event (if any).
-	TCPConnect *archival.FlatNetworkEvent
+	TCPConnect *archival.FlatNetworkEvent `json:",omitempty"`
 
 	// QUICTLSHandshake contains the QUIC/TLS handshake event (if any).
-	QUICTLSHandshake *archival.FlatQUICTLSHandshakeEvent
+	QUICTLSHandshake *archival.FlatQUICTLSHandshakeEvent `json:",omitempty"`
 
 	// HTTPRoundTrip contains the HTTP round trip event (if any).
-	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent
+	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent `json:",omitempty"`
 }
 
 // URLAddressList converts this EndpointMeasurement to an URLAddress list.
@@ -308,7 +308,7 @@ func (em *EndpointMeasurement) RedirectSummary() (string, bool) {
 		return "", false // skip this entry if we don't have a valid location
 	}
 	var digest []string
-	digest = append(digest, CanonicalURLString(em.Location))
+	digest = append(digest, CanonicalURLString(NewSimpleURL(em.Location)))
 	if em.Location.Scheme == "http" {
 		digest = append(digest, SortedSerializedCookies(em.NewCookies)...)
 	}
@@ -617,7 +617,7 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointPlan)
 	)
 	if resp != nil {
 		resp.Body.Close()
-		responseJar = jar.Cookies(epnt.URL)
+		responseJar = jar.Cookies(epnt.URL.ToURL())
 		if loc, err := resp.Location(); err == nil {
 			location = loc
 		}

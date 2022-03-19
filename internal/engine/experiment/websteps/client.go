@@ -27,7 +27,7 @@ type TestKeys struct {
 	Steps []*SingleStepMeasurement
 
 	// Bodies contains information about the bodies.
-	Bodies *HashingBodies
+	Bodies *HashingBodies `json:"-"`
 
 	// Flags contains the analysis flags.
 	Flags int64

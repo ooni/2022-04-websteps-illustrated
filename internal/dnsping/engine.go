@@ -133,7 +133,7 @@ func (spr *SinglePingResult) QueryTypeAsString() string {
 type Result struct {
 	// Pings contains a list of ping results. If this list is empty,
 	// it means the input plan was empty or wrong.
-	Pings []*SinglePingResult
+	Pings []*SinglePingResult `json:",omitempty"`
 }
 
 // Engine is the engine performing a DNS ping session. To initialize, fill all

@@ -144,7 +144,7 @@ type AnalysisDNS struct {
 	ID int64 `json:"id"`
 
 	// URLMeasurementID is the related URL measurement ID.
-	URLMeasurementID int64 `json:"url_measurement_id"`
+	URLMeasurementID int64 `json:"-"`
 
 	// Ref references the measurements we used.
 	Refs []int64 `json:"refs"`
@@ -423,7 +423,7 @@ type AnalysisEndpoint struct {
 	ID int64 `json:"id"`
 
 	// URLMeasurementID is the related URL measurement ID.
-	URLMeasurementID int64 `json:"url_measurement_id"`
+	URLMeasurementID int64 `json:"-"`
 
 	// Ref is the ID of the lookup.
 	Refs []int64 `json:"refs"`

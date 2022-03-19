@@ -15,81 +15,81 @@ import (
 // and all the methods works as intended when *Options is nil.
 type Options struct {
 	// ALPN allows to override the QUIC/TLS ALPN we'll use.
-	ALPN []string
+	ALPN []string `json:",omitempty"`
 
 	// DNSLookupTimeout is the maximum time we're willing to wait
 	// for any DNS lookup to complete.
-	DNSLookupTimeout time.Duration
+	DNSLookupTimeout time.Duration `json:",omitempty"`
 
 	// DNSParallelism is the number of parallel goroutines we will
 	// use for measuring HTTP/HTTPS/HTTP3 endpoints.
-	DNSParallelism int64
+	DNSParallelism int64 `json:",omitempty"`
 
 	// EndpointParallellism is the number of parallel goroutines we will
 	// use for measuring HTTP/HTTPS/HTTP3 endpoints.
-	EndpointParallelism int64
+	EndpointParallelism int64 `json:",omitempty"`
 
 	// HTTPExtractTitle tells us whether to attempt to extract the
 	// title once we fetched a webpage.
-	HTTPExtractTitle bool
+	HTTPExtractTitle bool `json:",omitempty"`
 
 	// HTTPGetTimeout is the maximum time we're willing to wait
 	// for any HTTP GET operation to complete.
-	HTTPGetTimeout time.Duration
+	HTTPGetTimeout time.Duration `json:",omitempty"`
 
 	// HTTPHostHeader allows to override the Host header we'll use.
-	HTTPHostHeader string
+	HTTPHostHeader string `json:",omitempty"`
 
 	// HTTPRequestHeaders controls the HTTP request headers we'll use in
 	// the first HTTP request. Subsequent requests following redirects
 	// will use the same headers of the first request.
-	HTTPRequestHeaders http.Header
+	HTTPRequestHeaders http.Header `json:",omitempty"`
 
 	// DoNotInitiallyForceHTTPAndHTTPS controls whether we're going to
 	// initially force using both HTTP and HTTPS for the first URL.
-	DoNotInitiallyForceHTTPAndHTTPS bool
+	DoNotInitiallyForceHTTPAndHTTPS bool `json:",omitempty"`
 
 	// MaxAddressesPerFamily controls the maximum number of IP addresses
 	// per family (i.e., A and AAAA) we'll test.
-	MaxAddressesPerFamily int64
+	MaxAddressesPerFamily int64 `json:",omitempty"`
 
 	// MaxCrawlerDepth is the maximum exploration depth. Every different
 	// redirection is another depth level. We will stop exploring when we'll
 	// have reached the maximum depth.
-	MaxCrawlerDepth int64
+	MaxCrawlerDepth int64 `json:",omitempty"`
 
 	// MaxHTTPResponseBodySnapshotSize is the maximum response body
 	// snapshot size for cleartext requests (HTTP).
-	MaxHTTPResponseBodySnapshotSize int64
+	MaxHTTPResponseBodySnapshotSize int64 `json:",omitempty"`
 
 	// MaxHTTPSResponseBodySnapshotSizeConnectivity is the maximum response body
 	// snapshot size for encrypted requests (HTTPS/HTTP3), used when we're just
 	// ensuring that we can speak with a given HTTPS endpoint.
-	MaxHTTPSResponseBodySnapshotSizeConnectivity int64
+	MaxHTTPSResponseBodySnapshotSizeConnectivity int64 `json:",omitempty"`
 
 	// MaxHTTPSResponseBodySnapshotSizeThrottling is the maximum response body
 	// snapshot size for encrypted requests (HTTPS/HTTP3), used when we want
 	// to measure the download speed by downloading a sizable body chunk.
-	MaxHTTPSResponseBodySnapshotSizeThrottling int64
+	MaxHTTPSResponseBodySnapshotSizeThrottling int64 `json:",omitempty"`
 
 	// Parent is the parent Options data structure. By setting this field
 	// you can layer new Options on top of existing Options.
-	Parent *Options
+	Parent *Options `json:",omitempty"`
 
 	// QUICHandshakeTimeout is the maximum time we're willing to wait
 	// for any QUIC handshake to complete.
-	QUICHandshakeTimeout time.Duration
+	QUICHandshakeTimeout time.Duration `json:",omitempty"`
 
 	// TCPConnectTimeout is the maximum time we're willing to wait
 	// for any TCP connect attempt to complete.
-	TCPconnectTimeout time.Duration
+	TCPconnectTimeout time.Duration `json:",omitempty"`
 
 	// TLSHandshakeTimeout is the maximum time we're willing to wait
 	// for any TLS handshake to complete.
-	TLSHandshakeTimeout time.Duration
+	TLSHandshakeTimeout time.Duration `json:",omitempty"`
 
 	// SNI allows to override the QUIC/TLS SNI we'll use.
-	SNI string
+	SNI string `json:",omitempty"`
 }
 
 // Chain returns child configured to use the current parent as

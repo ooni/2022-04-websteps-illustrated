@@ -16,6 +16,90 @@ import (
 	"golang.org/x/net/idna"
 )
 
+// SimpleURL is a simpler URL representation.
+type SimpleURL struct {
+	// Scheme is the URL scheme.
+	Scheme string `json:",omitempty"`
+
+	// Host is the host (possily containing a port)
+	Host string
+
+	// Path is the URL path.
+	Path string `json:",omitempty"`
+
+	// RawQuery contains the unparsed query.
+	RawQuery string `json:",omitempty"`
+}
+
+// NewSimpleURL creates a simple URL from an URL.
+func NewSimpleURL(URL *url.URL) *SimpleURL {
+	return &SimpleURL{
+		Scheme:   URL.Scheme,
+		Host:     URL.Host,
+		Path:     URL.Path,
+		RawQuery: URL.RawQuery,
+	}
+}
+
+// Hostname is like url.URL.Hostname.
+func (su *SimpleURL) Hostname() string {
+	return su.ToURL().Hostname()
+}
+
+// Port is like url.URL.Port.
+func (su *SimpleURL) Port() string {
+	return su.ToURL().Port()
+}
+
+// String is like url.URL.String.
+func (su *SimpleURL) String() string {
+	return su.ToURL().String()
+}
+
+// Query is like url.URL.Query.
+func (su *SimpleURL) Query() url.Values {
+	return su.ToURL().Query()
+}
+
+// ToURL converts SimpleURL back to stdlib URL.
+func (su *SimpleURL) ToURL() *url.URL {
+	return &url.URL{
+		Scheme:      su.Scheme,
+		Opaque:      "",
+		User:        nil,
+		Host:        su.Host,
+		Path:        su.Path,
+		RawPath:     su.RawQuery,
+		ForceQuery:  false,
+		RawQuery:    "",
+		Fragment:    "",
+		RawFragment: "",
+	}
+}
+
+// ParseSimpleURL parses a simple URL and returns it.
+func ParseSimpleURL(URL string) (*SimpleURL, error) {
+	parsed, err := url.Parse(URL)
+	if err != nil {
+		return nil, err
+	}
+	switch parsed.Scheme {
+	case "http", "https":
+	default:
+		return nil, ErrUnknownURLScheme
+	}
+	// ensure that we're using the punycoded domain
+	if host, err := idna.ToASCII(parsed.Host); err == nil {
+		parsed.Host = host
+	}
+	// if needed normalize the URL path and fragment
+	if parsed.Path == "" {
+		parsed.Path = "/"
+	}
+	parsed.Fragment = ""
+	return NewSimpleURL(parsed), nil
+}
+
 // URLMeasurement is the (possibly interim) result of measuring an URL.
 type URLMeasurement struct {
 	// ID is the unique ID of this URLMeasurement.
@@ -23,16 +107,16 @@ type URLMeasurement struct {
 
 	// EndpointIDs contains the ID of the EndpointMeasurement(s) that
 	// generated this URLMeasurement through redirects.
-	EndpointIDs []int64
+	EndpointIDs []int64 `json:",omitempty"`
 
 	// Options contains options. If nil, we'll use default values.
-	Options *Options
+	Options *Options `json:",omitempty"`
 
 	// URL is the underlying URL to measure.
-	URL *url.URL
+	URL *SimpleURL
 
 	// Cookies contains the list of cookies to use.
-	Cookies []*http.Cookie
+	Cookies []*http.Cookie `json:",omitempty"`
 
 	// DNS contains a list of DNS measurements.
 	DNS []*DNSLookupMeasurement
@@ -58,24 +142,10 @@ func (um *URLMeasurement) IsHTTPS() bool {
 
 // NewURLMeasurement creates a new URLMeasurement from a string URL.
 func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
-	parsed, err := url.Parse(input)
+	parsed, err := ParseSimpleURL(input)
 	if err != nil {
 		return nil, err
 	}
-	switch parsed.Scheme {
-	case "http", "https":
-	default:
-		return nil, ErrUnknownURLScheme
-	}
-	// ensure that we're using the punycoded domain
-	if host, err := idna.ToASCII(parsed.Host); err == nil {
-		parsed.Host = host
-	}
-	// if needed normalize the URL path and fragment
-	if parsed.Path == "" {
-		parsed.Path = "/"
-	}
-	parsed.Fragment = ""
 	out := &URLMeasurement{
 		ID:          mx.NextID(),
 		EndpointIDs: []int64{},
@@ -482,24 +552,18 @@ func (um *URLMeasurement) newEndpointPlan(
 }
 
 // newURLWithScheme creates a copy of an URL with a different scheme.
-func newURLWithScheme(URL *url.URL, scheme string) *url.URL {
-	return &url.URL{
-		Scheme:      scheme,
-		Opaque:      URL.Opaque,
-		User:        URL.User,
-		Host:        URL.Host,
-		Path:        URL.Path,
-		RawPath:     URL.RawPath,
-		ForceQuery:  URL.ForceQuery,
-		RawQuery:    URL.RawQuery,
-		Fragment:    URL.Fragment,
-		RawFragment: URL.RawFragment,
+func newURLWithScheme(URL *SimpleURL, scheme string) *SimpleURL {
+	return &SimpleURL{
+		Scheme:   scheme,
+		Host:     URL.Host,
+		Path:     URL.Path,
+		RawQuery: URL.RawQuery,
 	}
 }
 
 // urlMakeEndpoint makes a level-4 endpoint given the address and either the URL scheme
 // or the explicit port provided inside the URL.
-func urlMakeEndpoint(URL *url.URL, address string) (string, error) {
+func urlMakeEndpoint(URL *SimpleURL, address string) (string, error) {
 	port, err := PortFromURL(URL)
 	if err != nil {
 		return "", err
@@ -526,7 +590,7 @@ func (mx *Measurer) Redirects(
 			next = &URLMeasurement{
 				ID:          mx.NextID(),
 				EndpointIDs: []int64{},
-				URL:         epnt.Location,
+				URL:         NewSimpleURL(epnt.Location),
 				Cookies:     epnt.NewCookies,
 				Options: opts.Chain(&Options{
 					// Note: all other fields intentionally left empty. We do not
