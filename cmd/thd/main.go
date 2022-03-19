@@ -44,6 +44,7 @@ func main() {
 	if err != nil {
 		log.WithError(err).Fatal("cannot open cache dir")
 	}
+	dropprivileges(log.Log, opts.User) // must drop before touch the disk
 	olog := measurex.NewOperationLogger(log.Log, "trimming the cache")
 	cache.Trim()
 	olog.Stop(nil)
@@ -65,7 +66,6 @@ func main() {
 	thh := websteps.NewTHHandler(thOptions)
 	http.Handle("/", thh)
 	log.Infof("Listening at: \"%s\"", opts.Address)
-	dropprivileges(log.Log, opts.User)
 	http.ListenAndServe(opts.Address, nil)
 }
 
