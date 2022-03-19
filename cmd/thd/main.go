@@ -2,32 +2,34 @@
 package main
 
 import (
-	"encoding/json"
-	"io"
+	"context"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
+	"github.com/bassosimone/websteps-illustrated/internal/cachex"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
+	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
 type CLI struct {
-	Address string `doc:"address where to listen (default: \":9876\")" short:"A"`
-	Help    bool   `doc:"prints this help message" short:"h"`
-	Output  string `doc:"file where to save our measurements (default: none)" short:"o"`
-	Verbose bool   `doc:"enable verbose mode" short:"v"`
+	Address  string `doc:"address where to listen (default: \":9876\")" short:"A"`
+	CacheDir string `doc:"directory where to store cache" short:"C"`
+	Help     bool   `doc:"prints this help message" short:"h"`
+	User     string `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
+	Verbose  bool   `doc:"enable verbose mode" short:"v"`
 }
 
 func main() {
 	opts := &CLI{
-		Address: ":9876",
-		Help:    false,
-		Output:  "",
-		Verbose: false,
+		Address:  ":9876",
+		CacheDir: "",
+		Help:     false,
+		User:     "nobody",
+		Verbose:  false,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -38,51 +40,60 @@ func main() {
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-	thOptions := &websteps.THHandlerOptions{
-		Logger:    log.Log,
-		Resolvers: nil, // use the default
+	cache, err := cachex.Open(opts.CacheDir)
+	if err != nil {
+		log.WithError(err).Fatal("cannot open cache dir")
 	}
-	if opts.Output != "" {
-		mw := newMeasurementWriter(opts.Output)
-		defer mw.Close()
-		thOptions.Saver = mw
+	olog := measurex.NewOperationLogger(log.Log, "trimming the cache")
+	cache.Trim()
+	olog.Stop(nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go trimCache(ctx, cache)
+	thOptions := &websteps.THHandlerOptions{
+		Logger: log.Log,
+		MeasurerFactory: func(logger model.Logger,
+			options *measurex.Options) (measurex.AbstractMeasurer, error) {
+			lib := measurex.NewDefaultLibrary(logger)
+			mx := measurex.NewMeasurerWithOptions(logger, lib, options)
+			cmx := measurex.NewCachingMeasurer(mx, logger, cache, &cachePruningPolicy{})
+			return cmx, nil
+		},
+		Resolvers: nil,
+		Saver:     nil,
 	}
 	thh := websteps.NewTHHandler(thOptions)
 	http.Handle("/", thh)
 	log.Infof("Listening at: \"%s\"", opts.Address)
-	dropprivileges(log.Log)
+	dropprivileges(log.Log, opts.User)
 	http.ListenAndServe(opts.Address, nil)
 }
 
-type measurementsWriter struct {
-	fp io.WriteCloser
-	t  time.Time
-}
-
-func (mw *measurementsWriter) Save(um *measurex.URLMeasurement) {
-	const bodyFlags = 0 // we want to store bodies inline
-	data, err := json.Marshal(um.ToArchival(mw.t, bodyFlags))
-	runtimex.PanicOnError(err, "json.Marshal failed")
-	data = append(data, '\n')
-	if _, err := mw.fp.Write(data); err != nil {
-		log.WithError(err).Fatal("cannot write into output file")
+func trimCache(ctx context.Context, cache *cachex.Cache) {
+	ticker := time.NewTicker(15 * time.Minute)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			// Note that this does not _actually_ trim the cache but _may_ trim
+			// the cache if enough time has passed since last time.
+			cache.Trim()
+		}
 	}
 }
 
-func (mw *measurementsWriter) Close() error {
-	if err := mw.fp.Close(); err != nil {
-		log.WithError(err).Fatal("cannot close output file")
-	}
-	return nil
+type cachePruningPolicy struct{}
+
+var _ measurex.CachingPolicy = &cachePruningPolicy{}
+
+const staleTime = 15 * time.Minute
+
+func (*cachePruningPolicy) StaleDNSLookupMeasurement(m *measurex.CachedDNSLookupMeasurement) bool {
+	return m == nil || time.Since(m.T) > staleTime
 }
 
-func newMeasurementWriter(path string) *measurementsWriter {
-	filep, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.WithError(err).Fatal("cannot open output file")
-	}
-	return &measurementsWriter{
-		fp: filep,
-		t:  time.Now(),
-	}
+func (*cachePruningPolicy) StaleEndpointMeasurement(m *measurex.CachedEndpointMeasurement) bool {
+	return m == nil || time.Since(m.T) > staleTime
 }

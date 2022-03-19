@@ -58,10 +58,24 @@ func SerializeCookies(in []*http.Cookie) (out []string) {
 	return
 }
 
-// SortedSerializedCookies returns a sorted copy of the cookies.
-func SortedSerializedCookies(in []*http.Cookie) (out []string) {
-	out = SerializeCookies(in)
+// SortedSerializedCookiesNames returns a sorted copy of the cookies names.
+func SortedSerializedCookiesNames(in []*http.Cookie) (out []string) {
+	out = SerializeCookiesNames(in)
 	sort.Strings(out)
+	return
+}
+
+// SerializeCookiesNames takes in input []*http.Cookie and returns
+// a []string where each string is a cookie name.
+func SerializeCookiesNames(in []*http.Cookie) (out []string) {
+	for _, cookie := range in {
+		// TODO(bassosimone): in principle adding cookies like this is not
+		// safe because we don't know whether their names are correct. That
+		// said, we only receive cookies from the stdlib and set them also
+		// using the stdlib. And the stdlib ensures cookies are okay. Should
+		// we do anything else here to validate cookies names?
+		out = append(out, cookie.Name)
+	}
 	return
 }
 

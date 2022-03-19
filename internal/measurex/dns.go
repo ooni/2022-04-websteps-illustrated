@@ -64,6 +64,32 @@ type DNSLookupPlan struct {
 	Flags int64
 }
 
+// Clone creates a DNSLookupPlan deep copy.
+func (dlp *DNSLookupPlan) Clone() *DNSLookupPlan {
+	out := &DNSLookupPlan{
+		URLMeasurementID: dlp.URLMeasurementID,
+		URL:              dlp.URL.Clone(),
+		Options:          dlp.Options.Flatten(),
+		Resolvers:        []*DNSResolverInfo{},
+		Flags:            dlp.Flags,
+	}
+	for _, ri := range dlp.Resolvers {
+		out.Resolvers = append(out.Resolvers, &DNSResolverInfo{
+			Network: ri.Network,
+			Address: ri.Address,
+		})
+	}
+	return out
+}
+
+// Domain returns the domain used by the plan.
+func (dlp *DNSLookupPlan) Domain() string {
+	if dlp.URL != nil {
+		return dlp.URL.Hostname()
+	}
+	return ""
+}
+
 const (
 	// DNSLookupFlagNS modifies the DNSLookupPlan to request resolving
 	// the target domain's nameservers using NS.

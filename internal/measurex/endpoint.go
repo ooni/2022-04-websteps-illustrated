@@ -62,6 +62,22 @@ type EndpointPlan struct {
 	Cookies []*http.Cookie
 }
 
+// Summary returns a string representing the endpoint's plan. Two
+// plans are ~same if they have the same summary.
+//
+// The summary of an endpoint consists of these fields:
+//
+// - URL
+// - Network
+// - Address
+// - cookies names (sorted)
+//
+// If the endpoint URL is nil, we return the empty string and
+// false; otherwise, a valid string and true.
+func (e *EndpointPlan) Summary() (string, bool) {
+	return endpointSummary(e.URL, e.Network, e.Address, e.Cookies)
+}
+
 func (e *EndpointPlan) tlsConfig() *tls.Config {
 	return &tls.Config{
 		ServerName: e.Options.sniForEndpointPlan(e),
@@ -95,6 +111,9 @@ type EndpointMeasurement struct {
 
 	// Address is the address of this endpoint.
 	Address string
+
+	// Options contains the options used for the measurement.
+	Options *Options
 
 	// OrigCookies contains the cookies we originally used.
 	OrigCookies []*http.Cookie `json:",omitempty"`
@@ -259,29 +278,31 @@ func (em *EndpointMeasurement) Describe() string {
 // Summary returns a string representing the endpoint's summary. Two
 // endpoints are ~same if they have the same summary.
 //
-// The summary of an HTTPS/HTTP3 endpoint consists of these fields:
+// The summary of an endpoint consists of these fields:
 //
 // - URL
 // - Network
 // - Address
-//
-// The summary of an HTTP endpoint also includes:
-//
-// - original cookies (sorted)
+// - original cookies names (sorted)
 //
 // If the endpoint URL is nil, we return the empty string and
 // false; otherwise, a valid string and true.
 func (em *EndpointMeasurement) Summary() (string, bool) {
+	return endpointSummary(em.URL, em.Network, em.Address, em.OrigCookies)
+}
+
+// endpointSummary implements the EndpointMeasurement.Summary
+// and EndpointPlan.Summary functions.
+func endpointSummary(URL *SimpleURL, network archival.NetworkType,
+	address string, cookies []*http.Cookie) (string, bool) {
 	var digest []string
-	if em.URL == nil {
+	if URL == nil {
 		return "", false
 	}
-	digest = append(digest, CanonicalURLString(em.URL))
-	digest = append(digest, string(em.Network))
-	digest = append(digest, em.Address)
-	if em.URL.Scheme == "http" {
-		digest = append(digest, SortedSerializedCookies(em.OrigCookies)...)
-	}
+	digest = append(digest, CanonicalURLString(URL))
+	digest = append(digest, string(network))
+	digest = append(digest, address)
+	digest = append(digest, SortedSerializedCookiesNames(cookies)...)
 	return strings.Join(digest, " "), true
 }
 
@@ -292,14 +313,12 @@ func (em *EndpointMeasurement) Summary() (string, bool) {
 // Two redirects are ~same if they have the same redirect summary.
 //
 // There is a redirect if the code is 301, 302, 303, 307, or 308 and there
-// is a non-nil redirect location. If the scheme is HTTPS, we use these
-// fields for computing the RedirectSummary:
+// is a non-nil redirect location.
+//
+// We use these fields for computing the summary:
 //
 // - redirect location
-//
-// If the scheme is HTTP, we also include:
-//
-// - new cookies (sorted)
+// - new cookies names (sorted)
 func (em *EndpointMeasurement) RedirectSummary() (string, bool) {
 	if !isHTTPRedirect(em.StatusCode()) {
 		return "", false // skip this entry if it's not a redirect
@@ -309,9 +328,7 @@ func (em *EndpointMeasurement) RedirectSummary() (string, bool) {
 	}
 	var digest []string
 	digest = append(digest, CanonicalURLString(NewSimpleURL(em.Location)))
-	if em.Location.Scheme == "http" {
-		digest = append(digest, SortedSerializedCookies(em.NewCookies)...)
-	}
+	digest = append(digest, SortedSerializedCookiesNames(em.NewCookies)...)
 	return strings.Join(digest, " "), true
 }
 
@@ -459,17 +476,20 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 	operation string, err error, responseCookies []*http.Cookie,
 	location *url.URL, trace *archival.Trace) *EndpointMeasurement {
 	out := &EndpointMeasurement{
+		ID:               id,
 		URLMeasurementID: epnt.URLMeasurementID,
 		URL:              epnt.URL,
 		Network:          epnt.Network,
 		Address:          epnt.Address,
-		ID:               id,
+		Options:          epnt.Options,
+		OrigCookies:      epnt.Cookies,
 		Failure:          archival.NewFlatFailure(err),
 		FailedOperation:  FlatFailedOperation(operation),
-		OrigCookies:      epnt.Cookies,
 		NewCookies:       responseCookies,
 		Location:         location,
+		HTTPTitle:        "",
 		NetworkEvent:     nil,
+		TCPConnect:       nil,
 		QUICTLSHandshake: nil,
 		HTTPRoundTrip:    nil,
 	}

@@ -22,7 +22,7 @@ type Crawler struct {
 	Logger model.Logger
 
 	// Measurer is the measurer to use.
-	Measurer *Measurer
+	Measurer AbstractMeasurer
 
 	// Options contains options. If this field is nil, we will
 	// end up using the default option values.
@@ -33,11 +33,11 @@ type Crawler struct {
 }
 
 // NewCrawler creates a new instance of Crawler.
-func NewCrawler(logger model.Logger, measurer *Measurer) *Crawler {
+func NewCrawler(logger model.Logger, mx AbstractMeasurer) *Crawler {
 	return &Crawler{
 		Logger:   logger,
-		Measurer: measurer,
-		Options:  measurer.Options,
+		Measurer: mx,
+		Options:  mx.FlattenOptions(),
 		Resolvers: []*DNSResolverInfo{{
 			Network: "system",
 			Address: "",
@@ -75,7 +75,7 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 }
 
 // do visits the URL described by um using mx.
-func (c *Crawler) do(ctx context.Context, mx *Measurer, um *URLMeasurement) {
+func (c *Crawler) do(ctx context.Context, mx AbstractMeasurer, um *URLMeasurement) {
 	c.Logger.Info("📡 resolving the domain name using all resolvers")
 	dnsPlan := um.NewDNSLookupPlan(c.Resolvers)
 	for m := range mx.DNSLookups(ctx, dnsPlan) {

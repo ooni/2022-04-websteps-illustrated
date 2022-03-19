@@ -77,6 +77,16 @@ func (su *SimpleURL) ToURL() *url.URL {
 	}
 }
 
+// Clone creates a copy of this SimpleURL.
+func (su *SimpleURL) Clone() *SimpleURL {
+	return &SimpleURL{
+		Scheme:   su.Scheme,
+		Host:     su.Host,
+		Path:     su.Path,
+		RawQuery: su.RawQuery,
+	}
+}
+
 // ParseSimpleURL parses a simple URL and returns it.
 func ParseSimpleURL(URL string) (*SimpleURL, error) {
 	parsed, err := url.Parse(URL)
@@ -183,7 +193,7 @@ func (um *URLMeasurement) NewDNSLookupPlan(ri []*DNSResolverInfo) *DNSLookupPlan
 // ALPN, pass nil as the alpns argument; we will convert it to an empty list for you.
 //
 // If there are duplicate entries, they will be collapsed by this function.
-func (um *URLMeasurement) AddFromExternalDNSLookup(mx *Measurer,
+func (um *URLMeasurement) AddFromExternalDNSLookup(mx AbstractMeasurer,
 	resolverNetwork, resolverAddress string, alpns []string, addrs ...string) {
 	now := time.Now()
 	if alpns == nil {

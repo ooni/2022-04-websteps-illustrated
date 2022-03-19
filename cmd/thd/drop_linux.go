@@ -50,11 +50,11 @@ func dropuid(newUid int) {
 	runtimex.PanicOnError(err, "syscall.Setresuid failed")
 }
 
-func dropprivileges(logger model.Logger) {
+func dropprivileges(logger model.Logger, user string) {
 	if !isroot() {
 		return
 	}
-	pwent := getpwent("nobody")
+	pwent := getpwent(user)
 	dropgid(getgid(pwent))
 	dropuid(getuid(pwent))
 	logger.Infof("dropped privileges to %+v", pwent)

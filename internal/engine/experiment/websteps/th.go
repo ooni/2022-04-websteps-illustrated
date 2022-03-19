@@ -243,10 +243,21 @@ type THHandlerSaver interface {
 	Save(um *measurex.URLMeasurement)
 }
 
+// THMeasurerFactory is the type of the factory the THHandler
+// uses to create a new Measurer instance.
+type THMeasurerFactory func(logger model.Logger,
+	options *measurex.Options) (measurex.AbstractMeasurer, error)
+
 // THHandlerOptions contains options for the THHandler.
 type THHandlerOptions struct {
-	// Logger is the logger to use.
+	// Logger is the OPTIONAL logger to use.
 	Logger model.Logger
+
+	// MeasurerFactory is the OPTIONAL factory used
+	// to construct a measurer. By changing this
+	// factory, you can force the THHandler to use
+	// a different measurer (e.g., a caching measurer).
+	MeasurerFactory THMeasurerFactory
 
 	// Resolvers contains the resolvers to use.
 	Resolvers []*measurex.DNSResolverInfo
@@ -476,13 +487,26 @@ func (thr *THRequestHandler) resolvers() []*measurex.DNSResolverInfo {
 	return thhResolvers
 }
 
+// measurerFactory constructs a new measurer either using the
+// thr.Option's MeasurerFactory or a default factory.
+func (thr *THRequestHandler) measurerFactory(logger model.Logger,
+	options *measurex.Options) (measurex.AbstractMeasurer, error) {
+	if thr.Options != nil && thr.Options.MeasurerFactory != nil {
+		return thr.Options.MeasurerFactory(logger, options)
+	}
+	lib := measurex.NewDefaultLibrary(thr.logger())
+	mx := measurex.NewMeasurerWithOptions(thr.logger(), lib, options)
+	return mx, nil
+}
+
 // step executes the TH step.
 func (thr *THRequestHandler) step(
 	ctx context.Context, req *THRequest) (*THResponse, error) {
-	var err error
-	library := measurex.NewDefaultLibrary(thr.logger())
-	mx := measurex.NewMeasurer(thr.logger(), library)
-	mx.Options, err = thr.fillOrRejectOptions(req.Options)
+	options, err := thr.fillOrRejectOptions(req.Options)
+	if err != nil {
+		return nil, err
+	}
+	mx, err := thr.measurerFactory(thr.logger(), options)
 	if err != nil {
 		return nil, err
 	}
@@ -683,7 +707,7 @@ func (thr *THRequestHandler) fillOrRejectOptions(
 
 // addProbeDNS extends a DNS measurement with fake measurements
 // generated from the client-supplied endpoints plan.
-func (thr *THRequestHandler) addProbeDNS(mx *measurex.Measurer,
+func (thr *THRequestHandler) addProbeDNS(mx measurex.AbstractMeasurer,
 	um *measurex.URLMeasurement, plan []THRequestEndpointPlan) {
 	var addrs []string
 	for _, e := range plan {
