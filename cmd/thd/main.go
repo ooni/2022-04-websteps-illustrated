@@ -17,7 +17,7 @@ import (
 
 type CLI struct {
 	Address  string `doc:"address where to listen (default: \":9876\")" short:"A"`
-	CacheDir string `doc:"directory where to store cache" short:"C"`
+	CacheDir string `doc:"directory where to store cache (default: \"./cache\")" short:"C"`
 	Help     bool   `doc:"prints this help message" short:"h"`
 	User     string `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
 	Verbose  bool   `doc:"enable verbose mode" short:"v"`
@@ -26,7 +26,7 @@ type CLI struct {
 func main() {
 	opts := &CLI{
 		Address:  ":9876",
-		CacheDir: "",
+		CacheDir: "cache",
 		Help:     false,
 		User:     "nobody",
 		Verbose:  false,
