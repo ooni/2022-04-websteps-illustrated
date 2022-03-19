@@ -40,11 +40,11 @@ func main() {
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
+	dropprivileges(log.Log, opts.User) // must drop before touch the disk
 	cache, err := cachex.Open(opts.CacheDir)
 	if err != nil {
 		log.WithError(err).Fatal("cannot open cache dir")
 	}
-	dropprivileges(log.Log, opts.User) // must drop before touch the disk
 	olog := measurex.NewOperationLogger(log.Log, "trimming the cache")
 	cache.Trim()
 	olog.Stop(nil)
