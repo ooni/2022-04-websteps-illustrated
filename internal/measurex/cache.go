@@ -144,21 +144,12 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 	// 1. find the cached measurements and return them
 	var todo []*DNSLookupPlan
 	for _, plan := range dnsLookups {
-		var resolvers []*DNSResolverInfo
-		for _, reso := range plan.Resolvers {
-			meas, found := mx.findDNSLookupMeasurement(plan, reso)
-			if !found {
-				resolvers = append(resolvers, reso)
-				continue
-			}
-			out <- meas
-		}
-		if len(resolvers) <= 0 {
+		meas, found := mx.findDNSLookupMeasurement(plan)
+		if !found {
 			continue
 		}
-		copy := plan.Clone()
-		copy.Resolvers = resolvers
-		todo = append(todo, copy)
+		out <- meas
+		todo = append(todo, plan)
 	}
 	// 2. perform non-cached measurements and store them in cache
 	for meas := range mx.measurer.DNSLookups(ctx, todo...) {
@@ -173,18 +164,18 @@ type CachedDNSLookupMeasurement struct {
 	M *DNSLookupMeasurement
 }
 
-func (mx *CachingMeasurer) dnsPlanCacheKey(dlp *DNSLookupPlan, reso *DNSResolverInfo) string {
-	return strings.Join([]string{dlp.Domain(), string(reso.Network), reso.Address}, " ")
+func (mx *CachingMeasurer) dnsPlanCacheKey(dlp *DNSLookupPlan) string {
+	return strings.Join([]string{dlp.Domain(), string(dlp.resolverNetwork()), dlp.resolverAddress()}, " ")
 }
 
 func (mx *CachingMeasurer) dnsMeasurementCacheKey(m *DNSLookupMeasurement) string {
 	return strings.Join([]string{m.Domain(), string(m.ResolverNetwork()), m.ResolverAddress()}, " ")
 }
 
-func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan, reso *DNSResolverInfo) (
+func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 	*DNSLookupMeasurement, bool) {
 	begin := time.Now()
-	pk := mx.dnsPlanCacheKey(plan, reso)
+	pk := mx.dnsPlanCacheKey(plan)
 	elist, _, _ := mx.readDNSLookupEntry(pk)
 	for _, entry := range elist {
 		if entry.M == nil {

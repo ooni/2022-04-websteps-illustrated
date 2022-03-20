@@ -360,8 +360,8 @@ func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 	}
 	c.logger.Infof("📡 [initial] resolving %s name using all resolvers", cur.Domain())
 	const flags = 0 // no extra queries
-	dnsPlan := cur.NewDNSLookupPlan(c.resolvers, flags)
-	for m := range mx.DNSLookups(ctx, dnsPlan) {
+	dnsPlans := cur.NewDNSLookupPlans(c.resolvers, flags)
+	for m := range mx.DNSLookups(ctx, dnsPlans...) {
 		cur.DNS = append(cur.DNS, m)
 	}
 }

@@ -54,10 +54,10 @@ func main() {
 					Host: domain,
 				},
 				Options: &measurex.Options{},
-				Resolvers: []*measurex.DNSResolverInfo{{
+				Resolver: &measurex.DNSResolverInfo{
 					Network: "udp",
 					Address: reso,
-				}},
+				},
 				Flags: 0,
 			}
 			if opts.NS {

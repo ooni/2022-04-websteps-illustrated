@@ -57,8 +57,8 @@ type DNSLookupPlan struct {
 	// Options contains the options. If nil we'll use default values.
 	Options *Options
 
-	// Resolvers describes the resolvers to use.
-	Resolvers []*DNSResolverInfo
+	// Resolver is the resolver to use.
+	Resolver *DNSResolverInfo
 
 	// Flags contains optional flags to perform extra queries.
 	Flags int64
@@ -70,14 +70,11 @@ func (dlp *DNSLookupPlan) Clone() *DNSLookupPlan {
 		URLMeasurementID: dlp.URLMeasurementID,
 		URL:              dlp.URL.Clone(),
 		Options:          dlp.Options.Flatten(),
-		Resolvers:        []*DNSResolverInfo{},
-		Flags:            dlp.Flags,
-	}
-	for _, ri := range dlp.Resolvers {
-		out.Resolvers = append(out.Resolvers, &DNSResolverInfo{
-			Network: ri.Network,
-			Address: ri.Address,
-		})
+		Resolver: &DNSResolverInfo{
+			Network: dlp.Resolver.Network,
+			Address: dlp.Resolver.Address,
+		},
+		Flags: dlp.Flags,
 	}
 	return out
 }
@@ -233,28 +230,28 @@ func (dlm *DNSLookupMeasurement) SupportsHTTP3() bool {
 	return false
 }
 
-// dnsLookupTarget uniquely identifies a given DNS lookup.
-type dnsLookupTarget struct {
-	// info uniquely identifies the resolver.
-	info *DNSResolverInfo
-
-	// plan is the overall plan.
-	plan *DNSLookupPlan
-}
-
 // targetDomain returns the domain we want to query.
-func (p *dnsLookupTarget) targetDomain() string {
-	return p.plan.URL.Hostname()
+func (dlp *DNSLookupPlan) targetDomain() string {
+	if dlp.URL != nil {
+		return dlp.URL.Hostname()
+	}
+	return ""
 }
 
 // resolverNetwork returns the resolver network.
-func (p *dnsLookupTarget) resolverNetwork() DNSResolverNetwork {
-	return p.info.Network
+func (dlp *DNSLookupPlan) resolverNetwork() DNSResolverNetwork {
+	if dlp.Resolver != nil {
+		return dlp.Resolver.Network
+	}
+	return ""
 }
 
 // resolverAddress returns the resolver address.
-func (p *dnsLookupTarget) resolverAddress() string {
-	return p.info.Address
+func (dlp *DNSLookupPlan) resolverAddress() string {
+	if dlp.Resolver != nil {
+		return dlp.Resolver.Address
+	}
+	return ""
 }
 
 // DNSLookups performs DNS lookups in parallel.
@@ -266,19 +263,14 @@ func (p *dnsLookupTarget) resolverAddress() string {
 // measurements from. The channel is closed when done.
 func (mx *Measurer) DNSLookups(ctx context.Context, dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
 	var (
-		targets = make(chan *dnsLookupTarget)
+		targets = make(chan *DNSLookupPlan)
 		output  = make(chan *DNSLookupMeasurement)
 		done    = make(chan interface{})
 	)
 	go func() {
 		defer close(targets)
 		for _, lookup := range dnsLookups {
-			for _, r := range lookup.Resolvers {
-				targets <- &dnsLookupTarget{
-					info: r,
-					plan: lookup,
-				}
-			}
+			targets <- lookup
 		}
 	}()
 	parallelism := mx.Options.dnsParallelism()
@@ -300,7 +292,7 @@ func (mx *Measurer) DNSLookups(ctx context.Context, dnsLookups ...*DNSLookupPlan
 }
 
 func (mx *Measurer) dnsLookup(ctx context.Context,
-	t *dnsLookupTarget, output chan<- *DNSLookupMeasurement) {
+	t *DNSLookupPlan, output chan<- *DNSLookupMeasurement) {
 	wg := &sync.WaitGroup{}
 	switch t.resolverNetwork() {
 	case DNSResolverSystem:
@@ -311,14 +303,14 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			output <- mx.lookupHostUDP(ctx, t)
 			wg.Done()
 		}()
-		if (t.plan.Flags & DNSLookupFlagHTTPS) != 0 {
+		if (t.Flags & DNSLookupFlagHTTPS) != 0 {
 			wg.Add(1)
 			go func() {
 				output <- mx.lookupHTTPSSvcUDP(ctx, t)
 				wg.Done()
 			}()
 		}
-		if (t.plan.Flags & DNSLookupFlagNS) != 0 {
+		if (t.Flags & DNSLookupFlagNS) != 0 {
 			wg.Add(1)
 			go func() {
 				output <- mx.lookupNSUDP(ctx, t)
@@ -331,14 +323,14 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			output <- mx.lookupHostDoH(ctx, t)
 			wg.Done()
 		}()
-		if (t.plan.Flags & DNSLookupFlagHTTPS) != 0 {
+		if (t.Flags & DNSLookupFlagHTTPS) != 0 {
 			wg.Add(1)
 			go func() {
 				output <- mx.lookupHTTPSSvcDoH(ctx, t)
 				wg.Done()
 			}()
 		}
-		if (t.plan.Flags & DNSLookupFlagNS) != 0 {
+		if (t.Flags & DNSLookupFlagNS) != 0 {
 			wg.Add(1)
 			go func() {
 				output <- mx.lookupNSDoH(ctx, t)
@@ -350,7 +342,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 }
 
 func (mx *Measurer) lookupHostSystem(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverSystem(saver)
 	defer r.CloseIdleConnections()
@@ -360,7 +352,7 @@ func (mx *Measurer) lookupHostSystem(
 }
 
 func (mx *Measurer) lookupHostUDP(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
@@ -370,7 +362,7 @@ func (mx *Measurer) lookupHostUDP(
 }
 
 func (mx *Measurer) lookupHostDoH(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	hc := mx.httpClientForDNSLookupTarget(t)
 	r := mx.Library.NewResolverDoH(
@@ -382,7 +374,7 @@ func (mx *Measurer) lookupHostDoH(
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
-func (mx *Measurer) httpClientForDNSLookupTarget(t *dnsLookupTarget) model.HTTPClient {
+func (mx *Measurer) httpClientForDNSLookupTarget(t *DNSLookupPlan) model.HTTPClient {
 	switch t.resolverNetwork() {
 	case DNSResolverDoH3:
 		return mx.HTTP3ClientForDoH
@@ -392,7 +384,7 @@ func (mx *Measurer) httpClientForDNSLookupTarget(t *dnsLookupTarget) model.HTTPC
 }
 
 func (mx *Measurer) lookupHTTPSSvcUDP(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
@@ -402,7 +394,7 @@ func (mx *Measurer) lookupHTTPSSvcUDP(
 }
 
 func (mx *Measurer) lookupHTTPSSvcDoH(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	hc := mx.httpClientForDNSLookupTarget(t)
 	r := mx.Library.NewResolverDoH(
@@ -415,7 +407,7 @@ func (mx *Measurer) lookupHTTPSSvcDoH(
 }
 
 func (mx *Measurer) lookupNSUDP(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
 	defer r.CloseIdleConnections()
@@ -425,7 +417,7 @@ func (mx *Measurer) lookupNSUDP(
 }
 
 func (mx *Measurer) lookupNSDoH(
-	ctx context.Context, t *dnsLookupTarget) *DNSLookupMeasurement {
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	hc := mx.httpClientForDNSLookupTarget(t)
 	r := mx.Library.NewResolverDoH(
@@ -438,10 +430,10 @@ func (mx *Measurer) lookupNSDoH(
 }
 
 func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
-	r model.Resolver, t *dnsLookupTarget, id int64) ([]string, error) {
+	r model.Resolver, t *DNSLookupPlan, id int64) ([]string, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHost %s with %s resolver %s",
 		id, domain, r.Network(), r.Address())
-	timeout := t.plan.Options.dnsLookupTimeout()
+	timeout := t.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	addrs, err := r.LookupHost(ctx, domain)
@@ -450,10 +442,10 @@ func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
 }
 
 func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
-	r model.Resolver, t *dnsLookupTarget, id int64) (*model.HTTPSSvc, error) {
+	r model.Resolver, t *DNSLookupPlan, id int64) (*model.HTTPSSvc, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHTTPSvc %s with %s resolver %s",
 		id, domain, r.Network(), r.Address())
-	timeout := t.plan.Options.dnsLookupTimeout()
+	timeout := t.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	https, err := r.LookupHTTPS(ctx, domain)
@@ -462,10 +454,10 @@ func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
 }
 
 func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
-	r model.Resolver, t *dnsLookupTarget, id int64) ([]*net.NS, error) {
+	r model.Resolver, t *DNSLookupPlan, id int64) ([]*net.NS, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupNS %s with %s resolver %s",
 		id, domain, r.Network(), r.Address())
-	timeout := t.plan.Options.dnsLookupTimeout()
+	timeout := t.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	ns, err := r.LookupNS(ctx, domain)
@@ -474,10 +466,10 @@ func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
 }
 
 func (mx *Measurer) newDNSLookupMeasurement(id int64,
-	t *dnsLookupTarget, trace *archival.Trace) *DNSLookupMeasurement {
+	t *DNSLookupPlan, trace *archival.Trace) *DNSLookupMeasurement {
 	out := &DNSLookupMeasurement{
 		ID:               id,
-		URLMeasurementID: t.plan.URLMeasurementID,
+		URLMeasurementID: t.URLMeasurementID,
 	}
 	if len(trace.DNSLookup) > 1 {
 		log.Printf("warning: more than one DNSLookup entry: %+v", trace.DNSLookup)
