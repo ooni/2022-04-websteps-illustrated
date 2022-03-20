@@ -387,8 +387,8 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 		if domain != epnt.URLDomain() {
 			continue // we're not including unrelated domains
 		}
-		ipAddr, err := epnt.IPAddress()
-		if err != nil {
+		ipAddr := epnt.IPAddress()
+		if ipAddr == "" {
 			// This may actually be an IPv6 address with explicit scope
 			log.Printf("cannot parse %+v inside epnt.Address as IP address", epnt.Address)
 			continue

@@ -380,8 +380,8 @@ func (ssm *SingleStepMeasurement) dnsAnyIPAddrWorksWithHTTPS(
 	var count int64
 	for _, prAddr := range pq.Addresses() {
 		for _, epnt := range ssm.TH.Endpoint {
-			thAddr, err := epnt.IPAddress()
-			if err != nil {
+			thAddr := epnt.IPAddress()
+			if thAddr == "" {
 				// This also seems a bug or an edge case
 				continue
 			}
@@ -526,7 +526,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 	}
 
 	// If we find a bogon address, flag this but continue processing
-	if addr, err := pe.IPAddress(); err == nil && netxlite.IsBogon(addr) {
+	if addr := pe.IPAddress(); addr != "" && netxlite.IsBogon(addr) {
 		score.Flags |= AnalysisBogon
 		// fallthrough
 	}
@@ -760,7 +760,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 	return score
 }
 
-// endpointFindMatchingMeasurement takes in input a probe's endpoin and
+// endpointFindMatchingMeasurement takes in input a probe's endpoint and
 // returns in output the corresponding TH endpoint measurement.
 func (ssm *SingleStepMeasurement) endpointFindMatchingMeasurement(
 	pe *measurex.EndpointMeasurement) (*measurex.EndpointMeasurement, bool) {
@@ -768,12 +768,9 @@ func (ssm *SingleStepMeasurement) endpointFindMatchingMeasurement(
 		return nil, false
 	}
 	for _, the := range ssm.TH.Endpoint {
-		p, _ := pe.Summary()
-		t, _ := the.Summary()
-		if p != t {
-			continue
+		if pe.IsAnotherInstanceOf(the) {
+			return the, true
 		}
-		return the, true
 	}
 	return nil, false
 }

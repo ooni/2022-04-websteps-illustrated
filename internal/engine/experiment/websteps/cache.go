@@ -59,13 +59,13 @@ func (sc *stepsCache) update(ssm *SingleStepMeasurement) {
 func (sc *stepsCache) updateUsedAddrsLocked(ssm *SingleStepMeasurement) {
 	if ssm.ProbeInitial != nil {
 		for _, epnt := range ssm.ProbeInitial.Endpoint {
-			if ipAddr, err := epnt.IPAddress(); err == nil {
+			if ipAddr := epnt.IPAddress(); ipAddr != "" {
 				sc.pa[ipAddr] = true
 			}
 		}
 	}
 	for _, epnt := range ssm.ProbeAdditional {
-		if ipAddr, err := epnt.IPAddress(); err == nil {
+		if ipAddr := epnt.IPAddress(); ipAddr != "" {
 			sc.pa[ipAddr] = true
 		}
 	}

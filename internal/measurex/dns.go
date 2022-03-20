@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -87,19 +88,41 @@ type DNSLookupPlan struct {
 	Resolver *DNSResolverInfo
 }
 
-// Equals returns wheter a plan equals another plan.
+// Summary returns a string representing the DNS lookup's plan. Two
+// plans are ~same if they have the same summary.
 //
-// Two plans are equal if they are both nil or if they are both non nil and:
+// The summary of a DNS lookup consists of these fields:
 //
-// 1. the domain is the same;
+// - domain
+// - lookupType
+// - resolver network
+// - resolver address
 //
-// 2. the lookup type is the same;
-//
-// 3. the resolver is the same.
+// If the plan is nil, we return the empty string.
+func (dlp *DNSLookupPlan) Summary() string {
+	if dlp == nil || dlp.Resolver == nil {
+		return ""
+	}
+	return dnsLookupPlanOrMeasurementSummary(dlp.Domain, string(dlp.LookupType),
+		string(dlp.ResolverNetwork()), dlp.ResolverAddress())
+}
+
+// dnsLookupPlanOrMeasurementSummary is the common function to
+// implement the summary of a DNSLookup{Plan,Measurement}.
+func dnsLookupPlanOrMeasurementSummary(
+	domain, lookupType, resolverNetwork, resolverAddress string) string {
+	var out []string
+	out = append(out, domain)
+	out = append(out, lookupType)
+	out = append(out, resolverNetwork)
+	out = append(out, resolverAddress)
+	return strings.Join(out, " ")
+}
+
+// Equals returns wheter a plan equals another plan. Two plans are
+// equal if they have the same summary.
 func (dlp *DNSLookupPlan) Equals(other *DNSLookupPlan) bool {
-	return (dlp == nil && other == nil) || (dlp != nil && other != nil &&
-		dlp.Domain == other.Domain && dlp.LookupType == other.LookupType &&
-		dlp.Resolver.Equals(other.Resolver))
+	return dlp.Summary() == other.Summary()
 }
 
 // NewDNSLookupPlans creates a plan for measuring the given domain with the given
@@ -207,6 +230,25 @@ type DNSLookupMeasurement struct {
 	RoundTrip []*archival.FlatDNSRoundTripEvent
 }
 
+// Summary returns a string representing the DNS measurement's plan. Two
+// measurements are ~same if they have the same summary.
+//
+// The summary of a DNS lookup consists of these fields:
+//
+// - domain
+// - lookupType
+// - resolver network
+// - resolver address
+//
+// If the measurement is nil, we return the empty string.
+func (dlm *DNSLookupMeasurement) Summary() string {
+	if dlm == nil {
+		return ""
+	}
+	return dnsLookupPlanOrMeasurementSummary(dlm.Domain(), string(dlm.LookupType()),
+		string(dlm.ResolverNetwork()), dlm.ResolverAddress())
+}
+
 // IsWeaklyCompatibleWith returns whether the current DNSLookupMeasurement can
 // safely be compared with another DNSLookupMeasurement regardless of which
 // specific DNS resolver has been used to perform the two measurements.
@@ -259,52 +301,17 @@ func (dlm *DNSLookupMeasurement) IsCompatibleWith(other *DNSLookupMeasurement) b
 	return dlm.Domain() == other.Domain() && dlm.LookupType() == other.LookupType()
 }
 
-// CouldDeriveFromPlan returns true if this measurement could have been
-// the result of the plan provided as argument. This is true when:
-//
-// 1. the domain matches the plan domain;
-//
-// 2. the lookup type matches the plan lookup type;
-//
-// 3. the resolver is the same.
-func (dlm *DNSLookupMeasurement) CouldDeriveFromPlan(p *DNSLookupPlan) bool {
-	if dlm.Domain() != p.Domain {
-		return false
-	}
-	if dlm.LookupType() != p.LookupType {
-		return false
-	}
-	if dlm.ResolverNetwork() != p.ResolverNetwork() {
-		return false
-	}
-	if dlm.ResolverAddress() != p.ResolverAddress() {
-		return false
-	}
-	return true
+// CouldDeriveFrom returns true if this measurement could have been
+// the result of the plan provided as argument. This is true when the
+// summary of the measurement is equal to the plan's summary.
+func (dlm *DNSLookupMeasurement) CouldDeriveFrom(p *DNSLookupPlan) bool {
+	return dlm.Summary() == p.Summary()
 }
 
 // IsAnotherInstanceOf returns whether the current measurement is another instance
-// of the other measurement provided as arguemnt. This is true when:
-//
-// 1. the domain is the same;
-//
-// 2. the lookup type is the same;
-//
-// 3. the resolver is the same.
+// of the other measurement, `o`. This is true when they have equal summary.
 func (dlm *DNSLookupMeasurement) IsAnotherInstanceOf(o *DNSLookupMeasurement) bool {
-	if dlm.Domain() != o.Domain() {
-		return false
-	}
-	if dlm.LookupType() != o.LookupType() {
-		return false
-	}
-	if dlm.ResolverNetwork() != o.ResolverNetwork() {
-		return false
-	}
-	if dlm.ResolverAddress() != o.ResolverAddress() {
-		return false
-	}
-	return true
+	return dlm.Summary() == o.Summary()
 }
 
 // UsingResolverIPv6 returns whether this DNS lookups used an IPv6 resolver.

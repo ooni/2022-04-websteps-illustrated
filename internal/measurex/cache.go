@@ -16,7 +16,6 @@ package measurex
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"log"
 	"time"
 
@@ -62,12 +61,10 @@ func (*cachingForeverPolicy) StaleEndpointMeasurement(
 // the domain but also the lookup type to distinguish between
 // similar DNS lookups for the same domain.
 //
-// 2. it caches EndpointMeasurement based on the endpoint summary.
-//
-// In case some endpoints or DNS lookups cannot be cached, this
-// code will emit warning messages. (Caching is a complex business
-// and the current code does not attempt to cache endpoints that
-// use options such as the SNI or the Host header.)
+// 2. it stores all the endpoint measurements using the same
+// IP address into the same bucket and checks for equality
+// using their summary to distinguish between endpoint measurements
+// targeting the same IP address.
 type CachingMeasurer struct {
 	// cache is the underlying cache.
 	cache *cachex.Cache
@@ -174,13 +171,13 @@ func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 		if entry.M == nil {
 			continue
 		}
-		if !entry.M.CouldDeriveFromPlan(plan) {
+		if !entry.M.CouldDeriveFrom(plan) {
 			continue // this entry has been generated from another plan
 		}
 		if mx.policy.StaleDNSLookupMeasurement(&entry) {
 			return nil, false
 		}
-		mx.logger.Infof("👛 DNS lookup entry '%s' in %v", plan.Domain, time.Since(begin))
+		mx.logger.Infof("👛 DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
@@ -281,41 +278,31 @@ type CachedEndpointMeasurement struct {
 func (mx *CachingMeasurer) findEndpointMeasurement(
 	plan *EndpointPlan) (*EndpointMeasurement, bool) {
 	begin := time.Now()
-	summary, good := plan.Summary()
-	if !good {
-		return nil, false
-	}
-	elist, _, _ := mx.readEndpointEntry(summary)
+	elist, _, _ := mx.readEndpointEntry(plan.IPAddress())
 	for _, entry := range elist {
 		if entry.M == nil {
 			continue
 		}
-		realSummary, good := entry.M.Summary()
-		if !good || realSummary != summary {
+		if !entry.M.CouldDeriveFrom(plan) {
 			continue
 		}
 		if mx.policy.StaleEndpointMeasurement(&entry) {
 			return nil, false
 		}
-		mx.logger.Infof("👛 endpoint entry '%s' in %v", summary, time.Since(begin))
+		mx.logger.Infof("👛 endpoint entry '%s' in %v", entry.M.Summary(), time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
 }
 
 func (mx *CachingMeasurer) storeEndpointMeasurement(em *EndpointMeasurement) error {
-	summary, good := em.Summary()
-	if !good {
-		return errors.New("cannot compute summary")
-	}
-	elist, key, _ := mx.readEndpointEntry(summary)
+	elist, key, _ := mx.readEndpointEntry(em.IPAddress())
 	var out []CachedEndpointMeasurement
 	for _, entry := range elist {
 		if entry.M == nil {
 			continue
 		}
-		realSummary, good := entry.M.Summary()
-		if !good || realSummary == summary {
+		if !em.IsAnotherInstanceOf(entry.M) {
 			continue
 		}
 		out = append(out, entry)

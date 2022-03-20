@@ -62,6 +62,11 @@ type EndpointPlan struct {
 	Cookies []*http.Cookie
 }
 
+// IPAddress returns the IP address used in this EndpointMeasurement.
+func (em *EndpointPlan) IPAddress() string {
+	return endpointPlanOrMeasurementIPAddress(em.Address)
+}
+
 // Summary returns a string representing the endpoint's plan. Two
 // plans are ~same if they have the same summary.
 //
@@ -72,9 +77,8 @@ type EndpointPlan struct {
 // - Address
 // - cookies names (sorted)
 //
-// If the endpoint URL is nil, we return the empty string and
-// false; otherwise, a valid string and true.
-func (e *EndpointPlan) Summary() (string, bool) {
+// If the endpoint URL is nil, we return the empty string.
+func (e *EndpointPlan) Summary() string {
 	return endpointSummary(e.URL, e.Network, e.Address, e.Cookies)
 }
 
@@ -285,25 +289,38 @@ func (em *EndpointMeasurement) Describe() string {
 // - Address
 // - original cookies names (sorted)
 //
-// If the endpoint URL is nil, we return the empty string and
-// false; otherwise, a valid string and true.
-func (em *EndpointMeasurement) Summary() (string, bool) {
+// If the endpoint URL is nil, we return the empty string.
+func (em *EndpointMeasurement) Summary() string {
 	return endpointSummary(em.URL, em.Network, em.Address, em.OrigCookies)
 }
 
 // endpointSummary implements the EndpointMeasurement.Summary
 // and EndpointPlan.Summary functions.
 func endpointSummary(URL *SimpleURL, network archival.NetworkType,
-	address string, cookies []*http.Cookie) (string, bool) {
+	address string, cookies []*http.Cookie) string {
 	var digest []string
 	if URL == nil {
-		return "", false
+		return ""
 	}
 	digest = append(digest, CanonicalURLString(URL))
 	digest = append(digest, string(network))
 	digest = append(digest, address)
 	digest = append(digest, SortedSerializedCookiesNames(cookies)...)
-	return strings.Join(digest, " "), true
+	return strings.Join(digest, " ")
+}
+
+// IsAnotherInstanceOf returns whether this EndpointMeasurement
+// is another instance of the other EndpointMeasurement.
+//
+// This happens when the two measurements have the same summary.
+func (em *EndpointMeasurement) IsAnotherInstanceOf(other *EndpointMeasurement) bool {
+	return em.Summary() == other.Summary()
+}
+
+// CouldDeriveFrom returns whether this endpoint could derive from the
+// given plan. This happens when they have the same summary.
+func (em *EndpointMeasurement) CouldDeriveFrom(plan *EndpointPlan) bool {
+	return em.Summary() == plan.Summary()
 }
 
 // RedirectSummary is a summary of the endpoint's redirect. If there's no
@@ -337,19 +354,22 @@ func (em *EndpointMeasurement) EndpointAddress() string {
 	return fmt.Sprintf("%s/%s", em.Address, em.Network)
 }
 
-// ErrInvalidIPAddress means that we cannot parse an IP address.
-var ErrInvalidIPAddress = errors.New("invalid IP address")
-
 // IPAddress returns the IP address used in this EndpointMeasurement.
-func (em *EndpointMeasurement) IPAddress() (string, error) {
-	addr, _, err := net.SplitHostPort(em.Address)
+func (em *EndpointMeasurement) IPAddress() string {
+	return endpointPlanOrMeasurementIPAddress(em.Address)
+}
+
+// endpointPlanOrMeasurementIPAddress implements the IPAddress method
+// of both EndpointPlan and EndpointMeasurement.
+func endpointPlanOrMeasurementIPAddress(address string) string {
+	addr, _, err := net.SplitHostPort(address)
 	if err != nil {
-		return "", err
+		return ""
 	}
 	if net.ParseIP(addr) == nil {
-		return "", ErrInvalidIPAddress
+		return ""
 	}
-	return addr, nil
+	return addr
 }
 
 // ResponseHeaders returns the response headers. If there's no response
