@@ -26,11 +26,17 @@ var (
 	// NetworkTypeQUIC indicates we're using QUIC.
 	NetworkTypeQUIC = NetworkType("quic")
 
-	// NetworkTypeDoT indicates we're using DoT.
+	// NetworkTypeDoT indicates we're using DNS-over-TLS.
 	NetworkTypeDoT = NetworkType("dot")
 
-	// NetworkTypeDoH indicates we're using DoH.
+	// NetworkTypeDoH indicates we're using DNS-over-HTTPS.
 	NetworkTypeDoH = NetworkType("doh")
+
+	// NetworkTypeDoH3 indicates we're using DNS-over-HTTP3.
+	NetworkTypeDoH3 = NetworkType("doh")
+
+	// NetworkTypeSystem identifies the system resolver.
+	NetworkTypeSystem = NetworkType("system")
 )
 
 // WrapDialer wraps a dialer to use the saver.

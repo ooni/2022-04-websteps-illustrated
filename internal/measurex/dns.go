@@ -19,27 +19,10 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
-// DNSResolverNetwork identifies the network of a resolver.
-type DNSResolverNetwork string
-
-var (
-	// DNSResolverSystem is the system resolver (i.e., getaddrinfo)
-	DNSResolverSystem = DNSResolverNetwork("system")
-
-	// DNSResolverUDP is a resolver using DNS-over-UDP
-	DNSResolverUDP = DNSResolverNetwork("udp")
-
-	// DNSResolverDoH is a resolver using DNS-over-HTTPS
-	DNSResolverDoH = DNSResolverNetwork("doh")
-
-	// DNSResolverDoH3 is a resolver using DNS-over-HTTP3
-	DNSResolverDoH3 = DNSResolverNetwork("doh3")
-)
-
 // DNSResolverInfo contains info about a DNS resolver.
 type DNSResolverInfo struct {
 	// Network is the resolver's network (e.g., "doh", "udp")
-	Network DNSResolverNetwork
+	Network archival.NetworkType
 
 	// Address is the address (e.g., "1.1.1.1:53", "https://1.1.1.1/dns-query")
 	Address string
@@ -50,7 +33,7 @@ func NewResolversHTTPS(urls ...string) []*DNSResolverInfo {
 	out := []*DNSResolverInfo{}
 	for _, url := range urls {
 		out = append(out, &DNSResolverInfo{
-			Network: DNSResolverDoH,
+			Network: archival.NetworkTypeDoH,
 			Address: url,
 		})
 	}
@@ -79,7 +62,7 @@ func NewResolversUDP(endpoints ...string) []*DNSResolverInfo {
 	out := []*DNSResolverInfo{}
 	for _, epnt := range endpoints {
 		out = append(out, &DNSResolverInfo{
-			Network: DNSResolverUDP,
+			Network: archival.NetworkTypeUDP,
 			Address: epnt,
 		})
 	}
@@ -105,6 +88,14 @@ type DNSLookupPlan struct {
 }
 
 // Equals returns wheter a plan equals another plan.
+//
+// Two plans are equal if they are both nil or if they are both non nil and:
+//
+// 1. the domain is the same;
+//
+// 2. the lookup type is the same;
+//
+// 3. the resolver is the same.
 func (dlp *DNSLookupPlan) Equals(other *DNSLookupPlan) bool {
 	return (dlp == nil && other == nil) || (dlp != nil && other != nil &&
 		dlp.Domain == other.Domain && dlp.LookupType == other.LookupType &&
@@ -169,7 +160,7 @@ func (dlp *DNSLookupPlan) CloneWithLookupType(lt archival.DNSLookupType) (out *D
 }
 
 // ResolverNetwork returns the resolver network.
-func (dlp *DNSLookupPlan) ResolverNetwork() DNSResolverNetwork {
+func (dlp *DNSLookupPlan) ResolverNetwork() archival.NetworkType {
 	if dlp.Resolver != nil {
 		return dlp.Resolver.Network
 	}
@@ -216,16 +207,17 @@ type DNSLookupMeasurement struct {
 	RoundTrip []*archival.FlatDNSRoundTripEvent
 }
 
-// IsCompatibleWith returns whether the current DNSLookupMeasurement can safely
-// be compared with another DNSLookupMeasurement.
+// IsWeaklyCompatibleWith returns whether the current DNSLookupMeasurement can
+// safely be compared with another DNSLookupMeasurement regardless of which
+// specific DNS resolver has been used to perform the two measurements.
 //
-// We say that two DNSLookupMeasurements are compatible if:
+// We say that two DNSLookupMeasurements are weakly compatible if:
 //
 // 1. they are relative to the same domain;
 //
 // 2. the lookup type is compatible.
 //
-// The following table shows when two lookup types are compatible:
+// The following table shows when two lookup types are weakly compatible:
 //
 //     +-------------+-------------+-------+--------+
 //     |             | getaddrinfo | https |   ns   |
@@ -237,9 +229,11 @@ type DNSLookupMeasurement struct {
 //     |      ns     |      no     |   no  |  yes   |
 //     +-------------+-------------+-------+--------+
 //
-// In addition, two lookup types are _always_ compatible when they're the
+// In addition, two lookup types are _always_ weakly compatible when they're the
 // same, even if they are not listed in the above table.
-func (dlm *DNSLookupMeasurement) IsCompatibleWith(other *DNSLookupMeasurement) bool {
+//
+// A stronger definition of compatibility is provided by IsCompatibleWith.
+func (dlm *DNSLookupMeasurement) IsWeaklyCompatibleWith(other *DNSLookupMeasurement) bool {
 	if dlm.Domain() != other.Domain() {
 		return false // different domain means incompatible
 	}
@@ -252,16 +246,65 @@ func (dlm *DNSLookupMeasurement) IsCompatibleWith(other *DNSLookupMeasurement) b
 		(left == archival.DNSLookupTypeHTTPS && right == archival.DNSLookupTypeGetaddrinfo)
 }
 
-// SameAs returns whether two DNSLookupMeasurements are equal. Two such
-// measurements are equal when:
+// IsCompatibleWith returns whether the current DNSLookupMeasurement can
+// safely be compared with another DNSLookupMeasurement regardless of which
+// specific DNS resolver has been used to perform the two measurements.
 //
 // 1. they are resolving the same domain;
 //
 // 2. they use the same lookup type.
 //
-// A weaker definition of equality is provided by IsCompatibleWith.
-func (dlm *DNSLookupMeasurement) SameAs(other *DNSLookupMeasurement) bool {
+// A weaker definition of compatibility is provided by IsWeaklyCompatibleWith.
+func (dlm *DNSLookupMeasurement) IsCompatibleWith(other *DNSLookupMeasurement) bool {
 	return dlm.Domain() == other.Domain() && dlm.LookupType() == other.LookupType()
+}
+
+// CouldDeriveFromPlan returns true if this measurement could have been
+// the result of the plan provided as argument. This is true when:
+//
+// 1. the domain matches the plan domain;
+//
+// 2. the lookup type matches the plan lookup type;
+//
+// 3. the resolver is the same.
+func (dlm *DNSLookupMeasurement) CouldDeriveFromPlan(p *DNSLookupPlan) bool {
+	if dlm.Domain() != p.Domain {
+		return false
+	}
+	if dlm.LookupType() != p.LookupType {
+		return false
+	}
+	if dlm.ResolverNetwork() != p.ResolverNetwork() {
+		return false
+	}
+	if dlm.ResolverAddress() != p.ResolverAddress() {
+		return false
+	}
+	return true
+}
+
+// IsAnotherInstanceOf returns whether the current measurement is another instance
+// of the other measurement provided as arguemnt. This is true when:
+//
+// 1. the domain is the same;
+//
+// 2. the lookup type is the same;
+//
+// 3. the resolver is the same.
+func (dlm *DNSLookupMeasurement) IsAnotherInstanceOf(o *DNSLookupMeasurement) bool {
+	if dlm.Domain() != o.Domain() {
+		return false
+	}
+	if dlm.LookupType() != o.LookupType() {
+		return false
+	}
+	if dlm.ResolverNetwork() != o.ResolverNetwork() {
+		return false
+	}
+	if dlm.ResolverAddress() != o.ResolverAddress() {
+		return false
+	}
+	return true
 }
 
 // UsingResolverIPv6 returns whether this DNS lookups used an IPv6 resolver.
@@ -420,14 +463,14 @@ func (mx *Measurer) DNSLookups(ctx context.Context,
 func (mx *Measurer) dnsLookup(ctx context.Context,
 	t *DNSLookupPlan, output chan<- *DNSLookupMeasurement) {
 	switch t.ResolverNetwork() {
-	case DNSResolverSystem:
+	case archival.NetworkTypeSystem:
 		switch t.LookupType {
 		case archival.DNSLookupTypeGetaddrinfo:
 			output <- mx.lookupHostSystem(ctx, t)
 		default:
 			log.Printf("[BUG] asked the system resolver for %s lookup type", t.LookupType)
 		}
-	case DNSResolverUDP:
+	case archival.NetworkTypeUDP:
 		switch t.LookupType {
 		case archival.DNSLookupTypeGetaddrinfo:
 			output <- mx.lookupHostUDP(ctx, t)
@@ -436,7 +479,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 		case archival.DNSLookupTypeNS:
 			output <- mx.lookupNSUDP(ctx, t)
 		}
-	case DNSResolverDoH, DNSResolverDoH3:
+	case archival.NetworkTypeDoH, archival.NetworkTypeDoH3:
 		switch t.LookupType {
 		case archival.DNSLookupTypeGetaddrinfo:
 			output <- mx.lookupHostDoH(ctx, t)
@@ -488,7 +531,7 @@ func (mx *Measurer) lookupHostDoH(
 // on whether the resolver network implies using HTTP3.
 func (mx *Measurer) httpClientForDNSLookupTarget(t *DNSLookupPlan) model.HTTPClient {
 	switch t.ResolverNetwork() {
-	case DNSResolverDoH3:
+	case archival.NetworkTypeDoH3:
 		return mx.HTTP3ClientForDoH
 	default:
 		return mx.HTTPClientForDoH

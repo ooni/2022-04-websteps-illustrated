@@ -404,8 +404,8 @@ func (ssm *SingleStepMeasurement) dnsAnyIPAddrWorksWithHTTPS(
 // returns the corresponding TH query.
 //
 // This algorithm runs two passes: in the first pass it tries
-// to find a "same as" measurement and in the second one it
-// tries to identify a "compatible" measurement.
+// to find a compatible measurement and the second pass relaxes
+// the compatibility definition to be weaker.
 //
 // This function _expects_ the TH to pass us only lookups using
 // the "https" resolver network and warns otherwise.
@@ -423,22 +423,22 @@ func (ssm *SingleStepMeasurement) dnsFindMatchingQuery(
 		log.Printf("[BUG] dnsFindMatchingQuery passed unexpected lookup type: %s", pq.LookupType())
 		return nil, false
 	}
-	// first attempt: try to find an equal measurement
-	for _, thq := range ssm.TH.DNS {
-		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
-			log.Printf("[BUG] unexpected resolver network in TH: %s", v)
-		}
-		if !pq.SameAs(thq) {
-			continue
-		}
-		return thq, true
-	}
-	// second attempt: try to find a compatible measurement
+	// first attempt: try to find a compatible measurement
 	for _, thq := range ssm.TH.DNS {
 		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
 			log.Printf("[BUG] unexpected resolver network in TH: %s", v)
 		}
 		if !pq.IsCompatibleWith(thq) {
+			continue
+		}
+		return thq, true
+	}
+	// second attempt: try to find a weakly compatible measurement
+	for _, thq := range ssm.TH.DNS {
+		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
+			log.Printf("[BUG] unexpected resolver network in TH: %s", v)
+		}
+		if !pq.IsWeaklyCompatibleWith(thq) {
 			continue
 		}
 		return thq, true

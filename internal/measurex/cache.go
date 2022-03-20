@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/cachex"
@@ -57,8 +56,11 @@ func (*cachingForeverPolicy) StaleEndpointMeasurement(
 //
 // The cache works as follows:
 //
-// 1. it caches DNSLookupMeasurement based on the domain
-// and the resolver's network and address.
+// 1. it stores all the DNS lookup measurements using the same
+// target domain into the same bucket and checks for equality
+// using a strict definition of equality that includes not only
+// the domain but also the lookup type to distinguish between
+// similar DNS lookups for the same domain.
 //
 // 2. it caches EndpointMeasurement based on the endpoint summary.
 //
@@ -164,46 +166,34 @@ type CachedDNSLookupMeasurement struct {
 	M *DNSLookupMeasurement
 }
 
-func (mx *CachingMeasurer) dnsPlanCacheKey(dlp *DNSLookupPlan) string {
-	return strings.Join([]string{dlp.Domain, string(dlp.ResolverNetwork()), dlp.ResolverAddress()}, " ")
-}
-
-func (mx *CachingMeasurer) dnsMeasurementCacheKey(m *DNSLookupMeasurement) string {
-	return strings.Join([]string{m.Domain(), string(m.ResolverNetwork()), m.ResolverAddress()}, " ")
-}
-
 func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 	*DNSLookupMeasurement, bool) {
 	begin := time.Now()
-	pk := mx.dnsPlanCacheKey(plan)
-	elist, _, _ := mx.readDNSLookupEntry(pk)
+	elist, _, _ := mx.readDNSLookupEntry(plan.Domain)
 	for _, entry := range elist {
 		if entry.M == nil {
 			continue
 		}
-		ek := mx.dnsMeasurementCacheKey(entry.M)
-		if pk != ek {
-			continue
+		if !entry.M.CouldDeriveFromPlan(plan) {
+			continue // this entry has been generated from another plan
 		}
 		if mx.policy.StaleDNSLookupMeasurement(&entry) {
 			return nil, false
 		}
-		mx.logger.Infof("👛 DNS lookup entry '%s' in %v", pk, time.Since(begin))
+		mx.logger.Infof("👛 DNS lookup entry '%s' in %v", plan.Domain, time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
 }
 
 func (mx *CachingMeasurer) storeDNSLookupMeasurement(dlm *DNSLookupMeasurement) error {
-	dk := mx.dnsMeasurementCacheKey(dlm)
-	elist, key, _ := mx.readDNSLookupEntry(dk)
+	elist, key, _ := mx.readDNSLookupEntry(dlm.Domain())
 	var out []CachedDNSLookupMeasurement
 	for _, entry := range elist {
 		if entry.M == nil {
 			continue
 		}
-		ek := mx.dnsMeasurementCacheKey(entry.M)
-		if dk == ek {
+		if !entry.M.IsAnotherInstanceOf(dlm) {
 			continue
 		}
 		out = append(out, entry)
