@@ -134,11 +134,11 @@ type ArchivalDNSLookupResult struct {
 	Failure          *string             `json:"failure"`
 	Hostname         string              `json:"hostname"`
 	QueryType        string              `json:"query_type"`
-	RawQuery         *ArchivalBinaryData `json:"raw_query"`
-	RawReply         *ArchivalBinaryData `json:"raw_reply"`
-	ResolverHostname *string             `json:"resolver_hostname"`
-	ResolverPort     *string             `json:"resolver_port"`
-	ResolverAddress  string              `json:"resolver_address"`
+	RawQuery         *ArchivalBinaryData `json:"raw_query,omitempty"`
+	RawReply         *ArchivalBinaryData `json:"raw_reply,omitempty"`
+	ResolverHostname *string             `json:"resolver_hostname,omitempty"`
+	ResolverPort     *string             `json:"resolver_port,omitempty"`
+	ResolverAddress  string              `json:"resolver_address,omitempty"`
 	Started          float64             `json:"started"`
 	T                float64             `json:"t"`
 }
@@ -153,7 +153,7 @@ type ArchivalDNSAnswer struct {
 	IPv4       string  `json:"ipv4,omitempty"`
 	IPv6       string  `json:"ipv6,omitempty"`
 	NS         string  `json:"ns,omitempty"`
-	TTL        *uint32 `json:"ttl"`
+	TTL        *uint32 `json:"ttl,omitempty"`
 }
 
 //

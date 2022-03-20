@@ -18,20 +18,11 @@ type ArchivalDNSLookupMeasurement struct {
 	// ID is the unique ID of this measurement.
 	ID int64 `json:"id"`
 
-	// URLMeasurementID is the ID of the parent URLMeasurement.
-	URLMeasurementID int64 `json:"url_measurement_id"`
-
 	// Domain is the domain this lookup refers to.
 	Domain string `json:"domain"`
 
 	// Failure is the failure that occurred.
 	Failure *string `json:"failure"`
-
-	// Addresses contains the resolved addresses.
-	Addresses []string `json:"addresses"`
-
-	// ALPNs contains the ALPNs obtained using this lookup (if any).
-	ALPNs []string `json:"alpns"`
 
 	// Queries contains the DNS lookup events.
 	Queries []model.ArchivalDNSLookupResult `json:"queries"`
@@ -40,16 +31,14 @@ type ArchivalDNSLookupMeasurement struct {
 // ToArchival converts a DNSLookupMeasurement to ArchivalDNSLookupMeasurement.
 func (m *DNSLookupMeasurement) ToArchival(begin time.Time) ArchivalDNSLookupMeasurement {
 	return ArchivalDNSLookupMeasurement{
-		ID:               m.ID,
-		URLMeasurementID: m.URLMeasurementID,
-		Domain:           m.Domain(),
-		Failure:          m.Failure().ToArchivalFailure(),
-		Addresses:        m.Addresses(),
-		ALPNs:            m.ALPNs(),
-		Queries:          m.queries(begin),
+		ID:      m.ID,
+		Domain:  m.Domain(),
+		Failure: m.Failure().ToArchivalFailure(),
+		Queries: m.queries(begin),
 	}
 }
 
+// queries is an helper function to construct an ArchivalDNSLookupMeasurement.
 func (m *DNSLookupMeasurement) queries(begin time.Time) (out []model.ArchivalDNSLookupResult) {
 	for _, rt := range m.RoundTrip {
 		out = append(out, *rt.ToArchival(begin))

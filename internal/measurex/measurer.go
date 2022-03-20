@@ -16,6 +16,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/apex/log"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/lucas-clemente/quic-go/http3"
 )
@@ -52,6 +53,12 @@ type Measurer struct {
 
 // DefaultHTTP3Transport is the default HTTP3 transport used by this library.
 var DefaultHTTP3Transport = &http3.RoundTripper{}
+
+// NewMeasurerWithDefaultSettings creates a new measurer using apex/log's
+// singleton as the logger and netxlite as the underlying library.
+func NewMeasurerWithDefaultSettings() *Measurer {
+	return NewMeasurer(log.Log, NewDefaultLibrary(log.Log))
+}
 
 // NewMeasurer creates a new Measurer instance using the default settings.
 func NewMeasurer(logger model.Logger, library *Library) *Measurer {

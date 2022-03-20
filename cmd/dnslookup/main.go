@@ -14,21 +14,29 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
+// CLI contains command line flags.
 type CLI struct {
-	HTTPS    bool     `doc:"also queries for HTTPSSvc"`
-	Help     bool     `doc:"prints this help message" short:"h"`
-	NS       bool     `doc:"also queries for NS" short:"N"`
-	Resolver []string `doc:"resolver to use (default: 8.8.4.4:53)" short:"r"`
-	Verbose  bool     `doc:"enable verbose mode" short:"v"`
+	EnableHTTPS    bool     `doc:"also query for HTTPSSvc records"`
+	EnableNS       bool     `doc:"also query for NS records"`
+	HTTPSResolver  []string `doc:"add HTTPS resolver URL"`
+	Help           bool     `doc:"prints this help message" short:"h"`
+	Raw            bool     `doc:"emits measurements in the internal data format"`
+	SystemResolver bool     `doc:"use the system resolver"`
+	UDPResolver    []string `doc:"add UDP resolver endpoint"`
+	Verbose        bool     `doc:"enable verbose mode" short:"v"`
 }
 
-func main() {
+// getopt parses command line options.
+func getopt() (*CLI, []string) {
 	opts := &CLI{
-		HTTPS:    false,
-		Help:     false,
-		NS:       false,
-		Resolver: []string{},
-		Verbose:  false,
+		EnableHTTPS:    false,
+		EnableNS:       false,
+		HTTPSResolver:  []string{},
+		Help:           false,
+		Raw:            false,
+		SystemResolver: false,
+		UDPResolver:    []string{},
+		Verbose:        false,
 	}
 	parser := getoptx.MustNewParser(
 		opts, getoptx.AtLeastOnePositionalArgument(),
@@ -42,40 +50,57 @@ func main() {
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-	if len(opts.Resolver) < 1 {
-		opts.Resolver = append(opts.Resolver, "8.8.4.4:53")
+	return opts, parser.Args()
+}
+
+// makeplans creates the lookup plans.
+func makeplans(opts *CLI, args []string) []*measurex.DNSLookupPlan {
+	var (
+		plans []*measurex.DNSLookupPlan
+		flags int64
+	)
+	if opts.EnableHTTPS {
+		flags |= measurex.DNSLookupFlagHTTPS
 	}
-	var plans []*measurex.DNSLookupPlan
-	for _, reso := range opts.Resolver {
-		for _, domain := range parser.Args() {
-			plan := &measurex.DNSLookupPlan{
-				URLMeasurementID: 0,
-				URL: &measurex.SimpleURL{
-					Host: domain,
-				},
-				Options: &measurex.Options{},
-				Resolver: &measurex.DNSResolverInfo{
-					Network: "udp",
-					Address: reso,
-				},
-				Flags: 0,
-			}
-			if opts.NS {
-				plan.Flags |= measurex.DNSLookupFlagNS
-			}
-			if opts.HTTPS {
-				plan.Flags |= measurex.DNSLookupFlagHTTPS
-			}
-			plans = append(plans, plan)
+	if opts.EnableNS {
+		flags |= measurex.DNSLookupFlagNS
+	}
+	resolvers := measurex.NewResolversUDP(opts.UDPResolver...)
+	resolvers = append(resolvers, measurex.NewResolversHTTPS(opts.HTTPSResolver...)...)
+	if opts.SystemResolver || len(resolvers) <= 0 {
+		if len(resolvers) <= 0 {
+			log.Info("no resolver specified; using the system resolver")
 		}
+		resolvers = append(resolvers, &measurex.DNSResolverInfo{
+			Network: "system",
+			Address: "",
+		})
 	}
+	for _, domain := range args {
+		dlps := measurex.NewDNSLookupPlans(
+			domain, &measurex.Options{}, flags, resolvers...)
+		plans = append(plans, dlps...)
+	}
+	return plans
+}
+
+// dump dumps a measurement in JSON format to the stdout.
+func dump(m interface{}) {
+	data, err := json.Marshal(m)
+	runtimex.PanicOnError(err, "json.Marshal failed")
+	fmt.Printf("%s\n", string(data))
+}
+
+func main() {
+	opts, args := getopt()
+	plans := makeplans(opts, args)
+	mx := measurex.NewMeasurerWithDefaultSettings()
 	begin := time.Now()
-	library := measurex.NewDefaultLibrary(log.Log)
-	mx := measurex.NewMeasurer(log.Log, library)
-	ctx := context.Background()
-	for m := range mx.DNSLookups(ctx, plans...) {
-		data, err := json.Marshal(m.ToArchival(begin))
-		runtimex.PanicOnError(err, "json.Marshal failed")
-		fmt.Printf("%s\n", string(data))
+	for m := range mx.DNSLookups(context.Background(), plans...) {
+		if opts.Raw {
+			dump(m)
+			continue
+		}
+		dump(m.ToArchival(begin))
 	}
 }

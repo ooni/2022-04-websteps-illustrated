@@ -78,7 +78,7 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 func (c *Crawler) do(ctx context.Context, mx AbstractMeasurer, um *URLMeasurement) {
 	c.Logger.Info("📡 resolving the domain name using all resolvers")
 	const flags = 0 // no extra queries
-	dnsPlan := um.NewDNSLookupPlans(c.Resolvers, flags)
+	dnsPlan := um.NewDNSLookupPlans(flags, c.Resolvers...)
 	for m := range mx.DNSLookups(ctx, dnsPlan...) {
 		um.DNS = append(um.DNS, m)
 	}

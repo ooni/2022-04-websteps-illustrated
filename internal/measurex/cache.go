@@ -165,7 +165,7 @@ type CachedDNSLookupMeasurement struct {
 }
 
 func (mx *CachingMeasurer) dnsPlanCacheKey(dlp *DNSLookupPlan) string {
-	return strings.Join([]string{dlp.Domain(), string(dlp.resolverNetwork()), dlp.resolverAddress()}, " ")
+	return strings.Join([]string{dlp.Domain, string(dlp.ResolverNetwork()), dlp.ResolverAddress()}, " ")
 }
 
 func (mx *CachingMeasurer) dnsMeasurementCacheKey(m *DNSLookupMeasurement) string {

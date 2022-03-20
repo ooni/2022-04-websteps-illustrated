@@ -168,21 +168,11 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 	return out, nil
 }
 
-// NewDNSLookupPlans creates a []*NewDNSLookupPlan for this URLMeasurement. Each plan
-// calls for resolving the domain name inside um.URL with a resolver. The flags argument
-// specify extra queries to perform while following the plan (e.g., HTTPSSvc).
-func (um *URLMeasurement) NewDNSLookupPlans(ri []*DNSResolverInfo, flags int64) []*DNSLookupPlan {
-	var out []*DNSLookupPlan
-	for _, r := range ri {
-		out = append(out, &DNSLookupPlan{
-			URLMeasurementID: um.ID,
-			URL:              um.URL,
-			Options:          um.Options,
-			Resolver:         r,
-			Flags:            flags,
-		})
-	}
-	return out
+// NewDNSLookupPlans is a convenience function for calling the NewDNSLookupPlans
+// free function in the context of this URLMeasurement.
+func (um *URLMeasurement) NewDNSLookupPlans(
+	flags int64, ri ...*DNSResolverInfo) []*DNSLookupPlan {
+	return newDNSLookupPlans(um.ID, um.URL.Hostname(), um.Options, flags, ri...)
 }
 
 // AddFromExternalDNSLookup adds the result of an "external" DNS lookup (i.e., a lookup

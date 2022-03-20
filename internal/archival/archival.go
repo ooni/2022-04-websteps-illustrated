@@ -512,6 +512,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 		switch v := answer.(type) {
 		case *dns.HTTPS:
 			// TODO(bassosimone): properly decode HTTPS replies
+			log.Printf("[BUG] decoding of HTTPSSvc replies is not implemented")
 		case *dns.A:
 			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
 				ALPN:       "",
@@ -522,7 +523,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 				IPv4:       v.A.String(),
 				IPv6:       "",
 				NS:         "",
-				TTL:        &v.Hdr.Ttl,
+				TTL:        ev.ttl(v.Hdr.Ttl),
 			})
 		case *dns.AAAA:
 			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
@@ -534,7 +535,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 				IPv4:       v.AAAA.String(),
 				IPv6:       "",
 				NS:         "",
-				TTL:        &v.Hdr.Ttl,
+				TTL:        ev.ttl(v.Hdr.Ttl),
 			})
 		case *dns.NS:
 			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
@@ -546,7 +547,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 				IPv4:       "",
 				IPv6:       "",
 				NS:         v.Ns,
-				TTL:        &v.Hdr.Ttl,
+				TTL:        ev.ttl(v.Hdr.Ttl),
 			})
 		case *dns.CNAME:
 			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
@@ -558,7 +559,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 				IPv4:       "",
 				IPv6:       "",
 				NS:         "",
-				TTL:        &v.Hdr.Ttl,
+				TTL:        ev.ttl(v.Hdr.Ttl),
 			})
 		default:
 			// nothing
@@ -566,8 +567,15 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 	}
 }
 
+func (ev *FlatDNSRoundTripEvent) ttl(value uint32) (out *uint32) {
+	if ev.Network != "system" {
+		out = &value
+	}
+	return
+}
+
 func (ev *FlatDNSRoundTripEvent) bytesToBinaryData(in []byte) *model.ArchivalBinaryData {
-	if len(in) < 1 {
+	if len(in) < 1 || ev.Network == "system" {
 		return nil
 	}
 	return &model.ArchivalBinaryData{

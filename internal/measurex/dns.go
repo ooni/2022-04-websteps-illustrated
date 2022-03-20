@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -46,45 +45,127 @@ type DNSResolverInfo struct {
 	Address string
 }
 
+// NewResolversHTTPS creates a list of HTTPS resolvers from a list of URLs.
+func NewResolversHTTPS(urls ...string) []*DNSResolverInfo {
+	out := []*DNSResolverInfo{}
+	for _, url := range urls {
+		out = append(out, &DNSResolverInfo{
+			Network: DNSResolverDoH,
+			Address: url,
+		})
+	}
+	return out
+}
+
+// Equals returns whether a DNSResolverInfo equals another one.
+func (dri *DNSResolverInfo) Equals(other *DNSResolverInfo) bool {
+	return (dri == nil && other == nil) || (dri != nil && other != nil &&
+		dri.Network == other.Network && dri.Address == other.Address)
+}
+
+// Clone returns a clone of this resolver info.
+func (dri *DNSResolverInfo) Clone() (out *DNSResolverInfo) {
+	if dri != nil {
+		out = &DNSResolverInfo{
+			Network: dri.Network,
+			Address: dri.Address,
+		}
+	}
+	return
+}
+
+// NewResolversUDP creates a list of UDP resolvers from a list of endpoints.
+func NewResolversUDP(endpoints ...string) []*DNSResolverInfo {
+	out := []*DNSResolverInfo{}
+	for _, epnt := range endpoints {
+		out = append(out, &DNSResolverInfo{
+			Network: DNSResolverUDP,
+			Address: epnt,
+		})
+	}
+	return out
+}
+
 // DNSLookupPlan is a plan for performing a DNS lookup.
 type DNSLookupPlan struct {
 	// URLMeasurementID is the ID of the original URLMeasurement.
-	URLMeasurementID int64
+	URLMeasurementID int64 `json:",omitempty"`
 
-	// URL is the URL to resolve.
-	URL *SimpleURL
+	// Domain is the domain to measure.
+	Domain string
+
+	// LookupType is the type of lookup to perform.
+	LookupType archival.DNSLookupType
 
 	// Options contains the options. If nil we'll use default values.
 	Options *Options
 
 	// Resolver is the resolver to use.
 	Resolver *DNSResolverInfo
-
-	// Flags contains optional flags to perform extra queries.
-	Flags int64
 }
 
-// Clone creates a DNSLookupPlan deep copy.
-func (dlp *DNSLookupPlan) Clone() *DNSLookupPlan {
-	out := &DNSLookupPlan{
-		URLMeasurementID: dlp.URLMeasurementID,
-		URL:              dlp.URL.Clone(),
-		Options:          dlp.Options.Flatten(),
-		Resolver: &DNSResolverInfo{
-			Network: dlp.Resolver.Network,
-			Address: dlp.Resolver.Address,
-		},
-		Flags: dlp.Flags,
+// Equals returns wheter a plan equals another plan.
+func (dlp *DNSLookupPlan) Equals(other *DNSLookupPlan) bool {
+	return (dlp == nil && other == nil) || (dlp != nil && other != nil &&
+		dlp.Domain == other.Domain && dlp.LookupType == other.LookupType &&
+		dlp.Resolver.Equals(other.Resolver))
+}
+
+// NewDNSLookupPlans creates a plan for measuring the given domain with the given
+// options using the given list of resolvers. By default, we perform a getaddrinfo
+// like lookup (i.e., A and AAAA). Use flags to add additional lookup types. For
+// example, you can add a NS lookup using DNSLookupTypeNS.
+func NewDNSLookupPlans(domain string, options *Options,
+	flags int64, ri ...*DNSResolverInfo) []*DNSLookupPlan {
+	return newDNSLookupPlans(0, domain, options, flags, ri...)
+}
+
+// newDNSLookupPlans is NewDNSLookupPlans with explicit urlMeasurementID. Use
+// for constructing plans associated with an URLMeasurement.
+func newDNSLookupPlans(urlMeasurementID int64, domain string,
+	options *Options, flags int64, ri ...*DNSResolverInfo) []*DNSLookupPlan {
+	out := []*DNSLookupPlan{}
+	for _, r := range ri {
+		basePlan := &DNSLookupPlan{
+			URLMeasurementID: urlMeasurementID,
+			Domain:           domain,
+			LookupType:       archival.DNSLookupTypeGetaddrinfo,
+			Options:          options,
+			Resolver:         r,
+		}
+		out = append(out, basePlan)
+		if (flags&DNSLookupFlagHTTPS) != 0 && r.Network != "system" {
+			out = append(out, basePlan.CloneWithLookupType(archival.DNSLookupTypeHTTPS))
+		}
+		if (flags&DNSLookupFlagNS) != 0 && r.Network != "system" {
+			out = append(out, basePlan.CloneWithLookupType(archival.DNSLookupTypeNS))
+		}
 	}
 	return out
 }
 
-// Domain returns the domain used by the plan.
-func (dlp *DNSLookupPlan) Domain() string {
-	if dlp.URL != nil {
-		return dlp.URL.Hostname()
+// Clone creates a DNSLookupPlan deep copy.
+func (dlp *DNSLookupPlan) Clone() (out *DNSLookupPlan) {
+	if dlp != nil {
+		out = &DNSLookupPlan{
+			URLMeasurementID: dlp.URLMeasurementID,
+			Domain:           dlp.Domain,
+			LookupType:       dlp.LookupType,
+			Options:          dlp.Options.Flatten(),
+			Resolver:         dlp.Resolver.Clone(),
+		}
 	}
-	return ""
+	return
+}
+
+// CloneWithLookupType clones the original plan, configures the
+// required lookup type, and returns the modified clone.
+func (dlp *DNSLookupPlan) CloneWithLookupType(lt archival.DNSLookupType) (out *DNSLookupPlan) {
+	if dlp != nil {
+		out = dlp.Clone()
+		out.LookupType = lt
+	}
+	return
 }
 
 const (
@@ -102,18 +183,24 @@ type DNSLookupMeasurement struct {
 	// ID is the unique ID of this measurement.
 	ID int64
 
-	// URLMeasurementID is the ID of the parent URLMeasurement.
+	// URLMeasurementID is the ID of the parent URLMeasurement. We do not
+	// emit this information to JSON because it is redundant, but it's still
+	// handy to know it when we're processing measurements.
 	URLMeasurementID int64 `json:"-"`
 
-	// Lookup contains the DNS lookup event.
+	// Lookup contains the DNS lookup event. This field contains a summary
+	// of the information discovered during this lookup. We recommend using
+	// this structure for processing the results.
 	Lookup *archival.FlatDNSLookupEvent
 
-	// RoundTrip contains DNS round trips.
-	RoundTrip []*archival.FlatDNSRoundTripEvent `json:",omitempty"`
+	// RoundTrip contains DNS round trips. This field contains one or
+	// more round trips performed during the lookup. The system resolver
+	// fakes out a round trip with query type ANY and all the info
+	// that we could gather from calling getaddrinfo (or equivalent).
+	RoundTrip []*archival.FlatDNSRoundTripEvent
 }
 
-// UsingResolverIPv6 returns true whether this specific DNS lookup
-// has used an IPv6 resolver, false otherwise.
+// UsingResolverIPv6 returns whether this DNS lookups used an IPv6 resolver.
 func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 	if dlm.Lookup != nil {
 		switch dlm.Lookup.ResolverNetwork {
@@ -121,7 +208,7 @@ func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 			usingIPv6 = isEndpointIPv6(dlm.ResolverAddress())
 		case "doh":
 			// TODO(bassosimone): implement this case
-			log.Printf("UsingResolverIPv6: doh case is not implemented")
+			log.Printf("[BUG] UsingResolverIPv6: doh case is not implemented")
 		default:
 			// nothing
 		}
@@ -129,7 +216,7 @@ func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 	return
 }
 
-// Runtime is the runtime of this query.
+// Runtime returns the time elapsed waiting for the lookup to complete.
 func (dlm *DNSLookupMeasurement) Runtime() (out time.Duration) {
 	if dlm.Lookup != nil {
 		out = dlm.Lookup.Finished.Sub(dlm.Lookup.Started)
@@ -137,14 +224,13 @@ func (dlm *DNSLookupMeasurement) Runtime() (out time.Duration) {
 	return
 }
 
-// Describe describes this measurement.
+// Describe returns a compact human-readable description of this measurement.
 func (dlm *DNSLookupMeasurement) Describe() string {
 	return fmt.Sprintf("[#%d] DNS lookup #%d for %s using %s",
 		dlm.URLMeasurementID, dlm.ID, dlm.Domain(), dlm.ResolverURL())
 }
 
-// Addresses returns the list of addresses we looked up. If we didn't lookup
-// any address, we just return a nil list.
+// Addresses returns the list of addresses we discovered during the lookup.
 func (dlm *DNSLookupMeasurement) Addresses() []string {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.Addresses
@@ -152,8 +238,7 @@ func (dlm *DNSLookupMeasurement) Addresses() []string {
 	return nil
 }
 
-// ALPNs returns the list of ALPNs we looked up. If we didn't lookup
-// any ALPN, we just return a nil list.
+// ALPNs returns the list of ALPNs we discovered during the lookup.
 func (dlm *DNSLookupMeasurement) ALPNs() []string {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.ALPNs
@@ -161,7 +246,7 @@ func (dlm *DNSLookupMeasurement) ALPNs() []string {
 	return nil
 }
 
-// Domain returns the domain we looked up or an empty string.
+// Domain returns the domain for which we issued a DNS lookup.
 func (dlm *DNSLookupMeasurement) Domain() string {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.Domain
@@ -169,7 +254,7 @@ func (dlm *DNSLookupMeasurement) Domain() string {
 	return ""
 }
 
-// Failure returns the flat failure that occurred.
+// Failure returns the failure that occurred.
 func (dlm *DNSLookupMeasurement) Failure() archival.FlatFailure {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.Failure
@@ -177,7 +262,7 @@ func (dlm *DNSLookupMeasurement) Failure() archival.FlatFailure {
 	return ""
 }
 
-// LookupType returns the lookup type or empty string.
+// LookupType returns the lookup type (e.g., getaddrinfo, NS).
 func (dlm *DNSLookupMeasurement) LookupType() archival.DNSLookupType {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.LookupType
@@ -185,7 +270,7 @@ func (dlm *DNSLookupMeasurement) LookupType() archival.DNSLookupType {
 	return ""
 }
 
-// ResolverAddress returns the resolver address.
+// ResolverAddress returns the resolver address (e.g., 8.8.8.8:53).
 func (dlm *DNSLookupMeasurement) ResolverAddress() string {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.ResolverAddress
@@ -193,7 +278,7 @@ func (dlm *DNSLookupMeasurement) ResolverAddress() string {
 	return ""
 }
 
-// ResolverNetwork returns the resolver network.
+// ResolverNetwork returns the resolver network (e.g., udp, system).
 func (dlm *DNSLookupMeasurement) ResolverNetwork() archival.NetworkType {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.ResolverNetwork
@@ -201,7 +286,9 @@ func (dlm *DNSLookupMeasurement) ResolverNetwork() archival.NetworkType {
 	return ""
 }
 
-// ResolverURL returns the URL that identifies the resolver network and address.
+// ResolverURL returns a URL containing the resolver's network and address. For
+// DoH resolvers, we just return the URL. For all the other resolvers, we use the
+// network as the scheme and the address as the URL host.
 func (dlm *DNSLookupMeasurement) ResolverURL() string {
 	switch dlm.ResolverNetwork() {
 	case archival.NetworkTypeUDP:
@@ -230,24 +317,16 @@ func (dlm *DNSLookupMeasurement) SupportsHTTP3() bool {
 	return false
 }
 
-// targetDomain returns the domain we want to query.
-func (dlp *DNSLookupPlan) targetDomain() string {
-	if dlp.URL != nil {
-		return dlp.URL.Hostname()
-	}
-	return ""
-}
-
-// resolverNetwork returns the resolver network.
-func (dlp *DNSLookupPlan) resolverNetwork() DNSResolverNetwork {
+// ResolverNetwork returns the resolver network.
+func (dlp *DNSLookupPlan) ResolverNetwork() DNSResolverNetwork {
 	if dlp.Resolver != nil {
 		return dlp.Resolver.Network
 	}
 	return ""
 }
 
-// resolverAddress returns the resolver address.
-func (dlp *DNSLookupPlan) resolverAddress() string {
+// ResolverAddress returns the resolver address.
+func (dlp *DNSLookupPlan) ResolverAddress() string {
 	if dlp.Resolver != nil {
 		return dlp.Resolver.Address
 	}
@@ -256,126 +335,111 @@ func (dlp *DNSLookupPlan) resolverAddress() string {
 
 // DNSLookups performs DNS lookups in parallel.
 //
-// You can choose the parallelism with the parallelism argument. If this
-// argument is zero, or negative, we use a small default value.
-//
-// This function returns to the caller a channel where to read
-// measurements from. The channel is closed when done.
-func (mx *Measurer) DNSLookups(ctx context.Context, dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
+// This function returns a channel where to read/ measurements
+// from. The channel is closed when done.
+func (mx *Measurer) DNSLookups(ctx context.Context,
+	dnsLookups ...*DNSLookupPlan) <-chan *DNSLookupMeasurement {
 	var (
-		targets = make(chan *DNSLookupPlan)
-		output  = make(chan *DNSLookupMeasurement)
-		done    = make(chan interface{})
+		plans  = make(chan *DNSLookupPlan)
+		output = make(chan *DNSLookupMeasurement)
+		done   = make(chan interface{})
 	)
 	go func() {
-		defer close(targets)
-		for _, lookup := range dnsLookups {
-			targets <- lookup
+		defer close(plans)
+		for _, plan := range dnsLookups {
+			plans <- plan
 		}
 	}()
 	parallelism := mx.Options.dnsParallelism()
 	for i := int64(0); i < parallelism; i++ {
 		go func() {
-			for pair := range targets {
-				mx.dnsLookup(ctx, pair, output)
+			for t := range plans {
+				mx.dnsLookup(ctx, t, output)
 			}
 			done <- true
 		}()
 	}
 	go func() {
 		for i := int64(0); i < parallelism; i++ {
-			<-done
+			<-done // wait for background goroutine to join
 		}
-		close(output)
+		close(output) // synchronize with caller
 	}()
 	return output
 }
 
+// dnsLookup performs a dnsLookup in the background.
 func (mx *Measurer) dnsLookup(ctx context.Context,
 	t *DNSLookupPlan, output chan<- *DNSLookupMeasurement) {
-	wg := &sync.WaitGroup{}
-	switch t.resolverNetwork() {
+	switch t.ResolverNetwork() {
 	case DNSResolverSystem:
-		output <- mx.lookupHostSystem(ctx, t)
-	case DNSResolverUDP:
-		wg.Add(1)
-		go func() {
-			output <- mx.lookupHostUDP(ctx, t)
-			wg.Done()
-		}()
-		if (t.Flags & DNSLookupFlagHTTPS) != 0 {
-			wg.Add(1)
-			go func() {
-				output <- mx.lookupHTTPSSvcUDP(ctx, t)
-				wg.Done()
-			}()
+		switch t.LookupType {
+		case archival.DNSLookupTypeGetaddrinfo:
+			output <- mx.lookupHostSystem(ctx, t)
+		default:
+			log.Printf("[BUG] asked the system resolver for %s lookup type", t.LookupType)
 		}
-		if (t.Flags & DNSLookupFlagNS) != 0 {
-			wg.Add(1)
-			go func() {
-				output <- mx.lookupNSUDP(ctx, t)
-				wg.Done()
-			}()
+	case DNSResolverUDP:
+		switch t.LookupType {
+		case archival.DNSLookupTypeGetaddrinfo:
+			output <- mx.lookupHostUDP(ctx, t)
+		case archival.DNSLookupTypeHTTPS:
+			output <- mx.lookupHTTPSSvcUDP(ctx, t)
+		case archival.DNSLookupTypeNS:
+			output <- mx.lookupNSUDP(ctx, t)
 		}
 	case DNSResolverDoH, DNSResolverDoH3:
-		wg.Add(1)
-		go func() {
+		switch t.LookupType {
+		case archival.DNSLookupTypeGetaddrinfo:
 			output <- mx.lookupHostDoH(ctx, t)
-			wg.Done()
-		}()
-		if (t.Flags & DNSLookupFlagHTTPS) != 0 {
-			wg.Add(1)
-			go func() {
-				output <- mx.lookupHTTPSSvcDoH(ctx, t)
-				wg.Done()
-			}()
-		}
-		if (t.Flags & DNSLookupFlagNS) != 0 {
-			wg.Add(1)
-			go func() {
-				output <- mx.lookupNSDoH(ctx, t)
-				wg.Done()
-			}()
+		case archival.DNSLookupTypeHTTPS:
+			output <- mx.lookupHTTPSSvcDoH(ctx, t)
+		case archival.DNSLookupTypeNS:
+			output <- mx.lookupNSDoH(ctx, t)
 		}
 	}
-	wg.Wait()
 }
 
+// lookupHostSystem performs a getaddrinfo lookup using the system resolver.
 func (mx *Measurer) lookupHostSystem(
 	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	r := mx.Library.NewResolverSystem(saver)
 	defer r.CloseIdleConnections()
 	id := mx.NextID()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t, id)
+	_, _ = mx.doLookupHost(ctx, t.Domain, r, t, id)
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// lookupHostUDP queries for A and AAAA using an UDP resolver.
 func (mx *Measurer) lookupHostUDP(
 	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
-	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
+	r := mx.Library.NewResolverUDP(saver, t.ResolverAddress())
 	defer r.CloseIdleConnections()
 	id := mx.NextID()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t, id)
+	_, _ = mx.doLookupHost(ctx, t.Domain, r, t, id)
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// lookupHostDoH queries for A and AAAA using a DoH resolver.
 func (mx *Measurer) lookupHostDoH(
 	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	hc := mx.httpClientForDNSLookupTarget(t)
 	r := mx.Library.NewResolverDoH(
-		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
+		saver, hc, string(t.ResolverNetwork()), t.ResolverAddress())
 	// Note: no close idle connections because actually we'd like to keep
 	// open connections with the server.
 	id := mx.NextID()
-	_, _ = mx.doLookupHost(ctx, t.targetDomain(), r, t, id)
+	_, _ = mx.doLookupHost(ctx, t.Domain, r, t, id)
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// httpClientForDNSLookupTarget returns an HTTP or an HTTP3 client depending
+// on whether the resolver network implies using HTTP3.
 func (mx *Measurer) httpClientForDNSLookupTarget(t *DNSLookupPlan) model.HTTPClient {
-	switch t.resolverNetwork() {
+	switch t.ResolverNetwork() {
 	case DNSResolverDoH3:
 		return mx.HTTP3ClientForDoH
 	default:
@@ -383,52 +447,57 @@ func (mx *Measurer) httpClientForDNSLookupTarget(t *DNSLookupPlan) model.HTTPCli
 	}
 }
 
+// lookupHTTPSSvcUDP performs an HTTPSSvc lookup using an UDP resolver.
 func (mx *Measurer) lookupHTTPSSvcUDP(
 	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
-	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
+	r := mx.Library.NewResolverUDP(saver, t.ResolverAddress())
 	defer r.CloseIdleConnections()
 	id := mx.NextID()
-	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t, id)
+	_, _ = mx.doLookupHTTPSSvc(ctx, t.Domain, r, t, id)
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// lookupHTTPSvcDoH performs an HTTPSSvc lookup using a DoH resolver.
 func (mx *Measurer) lookupHTTPSSvcDoH(
 	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	hc := mx.httpClientForDNSLookupTarget(t)
 	r := mx.Library.NewResolverDoH(
-		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
+		saver, hc, string(t.ResolverNetwork()), t.ResolverAddress())
 	// Note: no close idle connections because actually we'd like to keep
 	// open connections with the server.
 	id := mx.NextID()
-	_, _ = mx.doLookupHTTPSSvc(ctx, t.targetDomain(), r, t, id)
+	_, _ = mx.doLookupHTTPSSvc(ctx, t.Domain, r, t, id)
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// lookupNSUDP uses an UDP resolver to send a NS query.
 func (mx *Measurer) lookupNSUDP(
 	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
-	r := mx.Library.NewResolverUDP(saver, t.resolverAddress())
+	r := mx.Library.NewResolverUDP(saver, t.ResolverAddress())
 	defer r.CloseIdleConnections()
 	id := mx.NextID()
-	_, _ = mx.doLookupNS(ctx, t.targetDomain(), r, t, id)
+	_, _ = mx.doLookupNS(ctx, t.Domain, r, t, id)
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// lookupNSDoH uses a DoH resolver to send a DoH query.
 func (mx *Measurer) lookupNSDoH(
 	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
 	saver := archival.NewSaver()
 	hc := mx.httpClientForDNSLookupTarget(t)
 	r := mx.Library.NewResolverDoH(
-		saver, hc, string(t.resolverNetwork()), t.resolverAddress())
+		saver, hc, string(t.ResolverNetwork()), t.ResolverAddress())
 	// Note: no close idle connections because actually we'd like to keep
 	// open connections with the server.
 	id := mx.NextID()
-	_, _ = mx.doLookupNS(ctx, t.targetDomain(), r, t, id)
+	_, _ = mx.doLookupNS(ctx, t.Domain, r, t, id)
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// doLookupHost is the worker function to perform an A and AAAA lookup.
 func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) ([]string, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHost %s with %s resolver %s",
@@ -441,6 +510,7 @@ func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
 	return addrs, err
 }
 
+// doLookupHTTPSSvc is the worker function to perform an HTTPSSvc lookup.
 func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) (*model.HTTPSSvc, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHTTPSvc %s with %s resolver %s",
@@ -453,6 +523,7 @@ func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
 	return https, err
 }
 
+// doLookupNS is the worker function to perform a NS lookup.
 func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) ([]*net.NS, error) {
 	ol := NewOperationLogger(mx.Logger, "[#%d] LookupNS %s with %s resolver %s",
@@ -465,14 +536,17 @@ func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
 	return ns, err
 }
 
+// newDNSLookupMeasurement is the internal factory for creating a DNSLookupMeasurement.
 func (mx *Measurer) newDNSLookupMeasurement(id int64,
 	t *DNSLookupPlan, trace *archival.Trace) *DNSLookupMeasurement {
 	out := &DNSLookupMeasurement{
 		ID:               id,
 		URLMeasurementID: t.URLMeasurementID,
+		Lookup:           nil,
+		RoundTrip:        nil,
 	}
-	if len(trace.DNSLookup) > 1 {
-		log.Printf("warning: more than one DNSLookup entry: %+v", trace.DNSLookup)
+	if len(trace.DNSLookup) != 1 {
+		log.Printf("[BUG] expected a single DNSLookup entry: %+v", trace.DNSLookup)
 	}
 	if len(trace.DNSLookup) == 1 {
 		out.Lookup = trace.DNSLookup[0]
