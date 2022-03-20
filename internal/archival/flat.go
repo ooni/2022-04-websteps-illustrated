@@ -31,6 +31,24 @@ type FlatDNSLookupEvent struct {
 	Started         time.Time
 }
 
+// NewFakeFlatDNSLookupEvent creates a fake FlatDNSLookupEvent using the given values.
+func NewFakeFlatDNSLookupEvent(resolverNetwork NetworkType, resolverAddress string,
+	lookupType DNSLookupType, domain string, alpns, addresses []string) *FlatDNSLookupEvent {
+	now := time.Now()
+	return &FlatDNSLookupEvent{
+		ALPNs:           alpns,
+		Addresses:       addresses,
+		Domain:          domain,
+		Failure:         "",
+		Finished:        now,
+		LookupType:      lookupType,
+		NS:              []string{},
+		ResolverAddress: resolverAddress,
+		ResolverNetwork: resolverNetwork,
+		Started:         now,
+	}
+}
+
 // FlatDNSRoundTripEvent contains the result of a DNS round trip.
 type FlatDNSRoundTripEvent struct {
 	Address  string      `json:",omitempty"`

@@ -554,3 +554,32 @@ func (mx *Measurer) newDNSLookupMeasurement(id int64,
 	out.RoundTrip = trace.DNSRoundTrip
 	return out
 }
+
+// NewFakeHTTPSSvcDNSLookupMeasurement creates a fake DNSLookupMeasurement
+// from IP addresses obtained from an external source.
+//
+// This factory is the best solution to fake a DNS lookup that can be
+// compared with other DNS lookups. Because the returned lookup may also
+// include ALPN information, we're faking an HTTPSSvc lookup result.
+func NewFakeHTTPSSvcDNSLookupMeasurement(mx AbstractMeasurer,
+	resolverNetwork archival.NetworkType, resolverAddress string,
+	domain string, alpns []string, addresses []string) *DNSLookupMeasurement {
+	return newFakeHTTPSSvcDNSLookupMeasurement(
+		0, mx, resolverNetwork, resolverAddress, domain, alpns, addresses)
+}
+
+// newFakeHTTPSvcDNSLookupMeasurement is the internal version of NewHTTPSSvcDNSLookupMeasurement
+// that also allows us to configure a specific URL measurement ID.
+func newFakeHTTPSSvcDNSLookupMeasurement(urlMeasurementID int64, mx AbstractMeasurer,
+	resolverNetwork archival.NetworkType, resolverAddress string,
+	domain string, alpns []string, addresses []string) *DNSLookupMeasurement {
+	return &DNSLookupMeasurement{
+		ID:               mx.NextID(),
+		URLMeasurementID: urlMeasurementID,
+		Lookup: archival.NewFakeFlatDNSLookupEvent(
+			resolverNetwork, resolverAddress, archival.DNSLookupTypeHTTPS,
+			domain, alpns, addresses,
+		),
+		RoundTrip: []*archival.FlatDNSRoundTripEvent{},
+	}
+}

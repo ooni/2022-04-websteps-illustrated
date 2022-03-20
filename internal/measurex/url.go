@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"sort"
 	"sync"
-	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -190,7 +189,6 @@ func (um *URLMeasurement) NewDNSLookupPlans(
 // If there are duplicate entries, they will be collapsed by this function.
 func (um *URLMeasurement) AddFromExternalDNSLookup(mx AbstractMeasurer,
 	resolverNetwork, resolverAddress string, alpns []string, addrs ...string) {
-	now := time.Now()
 	if alpns == nil {
 		alpns = []string{}
 	}
@@ -206,22 +204,10 @@ func (um *URLMeasurement) AddFromExternalDNSLookup(mx AbstractMeasurer,
 		// Handle the case where there are no good addresses
 		return
 	}
-	um.DNS = append(um.DNS, &DNSLookupMeasurement{
-		ID:               mx.NextID(),
-		URLMeasurementID: um.ID,
-		Lookup: &archival.FlatDNSLookupEvent{
-			ALPNs:           alpns,
-			Addresses:       goodAddrs,
-			Domain:          um.Domain(),
-			Failure:         "",
-			Finished:        now,
-			LookupType:      archival.DNSLookupTypeHTTPS,
-			ResolverAddress: resolverAddress,
-			ResolverNetwork: archival.NetworkType(resolverNetwork),
-			Started:         now,
-		},
-		RoundTrip: []*archival.FlatDNSRoundTripEvent{},
-	})
+	um.DNS = append(um.DNS, newFakeHTTPSSvcDNSLookupMeasurement(
+		um.ID, mx, archival.NetworkType(resolverNetwork), resolverAddress,
+		um.Domain(), alpns, goodAddrs,
+	))
 }
 
 // URLAddress is an address associated with a given URL.
