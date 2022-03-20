@@ -168,6 +168,22 @@ func (dlp *DNSLookupPlan) CloneWithLookupType(lt archival.DNSLookupType) (out *D
 	return
 }
 
+// ResolverNetwork returns the resolver network.
+func (dlp *DNSLookupPlan) ResolverNetwork() DNSResolverNetwork {
+	if dlp.Resolver != nil {
+		return dlp.Resolver.Network
+	}
+	return ""
+}
+
+// ResolverAddress returns the resolver address.
+func (dlp *DNSLookupPlan) ResolverAddress() string {
+	if dlp.Resolver != nil {
+		return dlp.Resolver.Address
+	}
+	return ""
+}
+
 const (
 	// DNSLookupFlagNS modifies the DNSLookupPlan to request resolving
 	// the target domain's nameservers using NS.
@@ -315,22 +331,6 @@ func (dlm *DNSLookupMeasurement) SupportsHTTP3() bool {
 		}
 	}
 	return false
-}
-
-// ResolverNetwork returns the resolver network.
-func (dlp *DNSLookupPlan) ResolverNetwork() DNSResolverNetwork {
-	if dlp.Resolver != nil {
-		return dlp.Resolver.Network
-	}
-	return ""
-}
-
-// ResolverAddress returns the resolver address.
-func (dlp *DNSLookupPlan) ResolverAddress() string {
-	if dlp.Resolver != nil {
-		return dlp.Resolver.Address
-	}
-	return ""
 }
 
 // DNSLookups performs DNS lookups in parallel.
