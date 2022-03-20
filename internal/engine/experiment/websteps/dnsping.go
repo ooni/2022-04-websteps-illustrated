@@ -68,7 +68,7 @@ func (c *Client) dnsPingSelectQueries(in []*measurex.DNSLookupMeasurement) (
 			continue // we can only retry UDP
 		}
 		if entry.ResolverAddress() == "" {
-			log.Printf("BUG: UDP query w/o resolver address")
+			log.Printf("[BUG] UDP query w/o resolver address")
 			continue // should not happen but #safetyNet
 		}
 		switch entry.Failure() {

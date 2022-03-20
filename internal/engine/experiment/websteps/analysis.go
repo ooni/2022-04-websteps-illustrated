@@ -8,6 +8,7 @@ package websteps
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"strings"
 
@@ -180,9 +181,14 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(
 		flags |= AnalysisTHFailure
 	}
 	for _, pq := range ssm.ProbeInitial.DNS {
-		score := ssm.dnsSingleLookupAnalysis(mx, logger, pq)
-		score.Flags |= flags
-		out = append(out, score)
+		switch pq.LookupType() {
+		case archival.DNSLookupTypeGetaddrinfo, archival.DNSLookupTypeHTTPS:
+			score := ssm.dnsSingleLookupAnalysis(mx, logger, pq)
+			score.Flags |= flags
+			out = append(out, score)
+		default:
+			// Ignore this specific lookup type
+		}
 	}
 	return out
 }
@@ -396,16 +402,29 @@ func (ssm *SingleStepMeasurement) dnsAnyIPAddrWorksWithHTTPS(
 
 // dnsFindMatchingQuery takes in input a probe's query and
 // returns in output the corresponding TH query.
+//
+// This function _expects_ the TH to pass us only lookups using
+// the "https" resolver network and warns otherwise.
+//
+// This function _assumes_ to be passed a lookup type for
+// either "https" or "getaddrinfo" and warns otherwise.
 func (ssm *SingleStepMeasurement) dnsFindMatchingQuery(
 	pq *measurex.DNSLookupMeasurement) (*measurex.DNSLookupMeasurement, bool) {
 	if ssm.TH == nil {
 		return nil, false
 	}
+	switch pq.LookupType() {
+	case archival.DNSLookupTypeGetaddrinfo, archival.DNSLookupTypeHTTPS:
+	default:
+		log.Printf("[BUG] dnsFindMatchingQuery passed unexpected lookup type: %s", pq.LookupType())
+		return nil, false
+	}
 	for _, thq := range ssm.TH.DNS {
-		if pq.Domain() != thq.Domain() {
+		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
+			log.Printf("[BUG] unexpected resolver network in TH: %s", v)
 			continue
 		}
-		if pq.LookupType() != thq.LookupType() {
+		if !pq.IsCompatibleWith(thq) {
 			continue
 		}
 		return thq, true

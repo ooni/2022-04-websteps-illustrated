@@ -216,6 +216,42 @@ type DNSLookupMeasurement struct {
 	RoundTrip []*archival.FlatDNSRoundTripEvent
 }
 
+// IsCompatibleWith returns whether the current DNSLookupMeasurement can safely
+// be compared with another DNSLookupMeasurement.
+//
+// We say that two DNSLookupMeasurements are compatible if:
+//
+// 1. they are relative to the same domain;
+//
+// 2. the lookup type is compatible.
+//
+// The following table shows when two lookup types are compatible:
+//
+//     +-------------+-------------+-------+--------+
+//     |             | getaddrinfo | https |   ns   |
+//     +-------------+-------------+-------+--------+
+//     | getaddrinfo |     yes     |  yes  |   no   |
+//     +-------------+-------------+-------+--------+
+//     |    https    |     yes     |  yes  |   no   |
+//     +-------------+-------------+-------+--------+
+//     |      ns     |      no     |   no  |  yes   |
+//     +-------------+-------------+-------+--------+
+//
+// In addition, two lookup types are _always_ compatible when they're the
+// same, even if they are not listed in the above table.
+func (dlm *DNSLookupMeasurement) IsCompatibleWith(other *DNSLookupMeasurement) bool {
+	if dlm.Domain() != other.Domain() {
+		return false // different domain means incompatible
+	}
+	left, right := dlm.LookupType(), other.LookupType()
+	if left == right {
+		return true // same lookup type means compatible
+	}
+	// check for cross compatibility between getaddrinfo and https
+	return (left == archival.DNSLookupTypeGetaddrinfo && right == archival.DNSLookupTypeHTTPS) ||
+		(left == archival.DNSLookupTypeHTTPS && right == archival.DNSLookupTypeGetaddrinfo)
+}
+
 // UsingResolverIPv6 returns whether this DNS lookups used an IPv6 resolver.
 func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 	if dlm.Lookup != nil {

@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"time"
@@ -567,6 +568,16 @@ var thhResponseTime = time.Date(2022, time.March, 05, 22, 44, 00, 0, time.UTC)
 func (thr *THRequestHandler) simplifyDNS(
 	in []*measurex.DNSLookupMeasurement) (out []*measurex.DNSLookupMeasurement) {
 	for _, entry := range in {
+		// Do not include into the response all the lookups imported from the probe and
+		// warn if any lookup different from "probe" figures inside the list.
+		//
+		// Exclude any entry different from DoH because we should be using DoH here.
+		if entry.ResolverNetwork() != archival.NetworkTypeDoH {
+			if v := entry.ResolverNetwork(); v != "probe" {
+				log.Printf("[BUG] unexpected resolver network: %s", v)
+			}
+			continue
+		}
 		out = append(out, &measurex.DNSLookupMeasurement{
 			ID:               0,
 			URLMeasurementID: 0,
