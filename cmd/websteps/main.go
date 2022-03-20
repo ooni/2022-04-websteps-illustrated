@@ -13,13 +13,16 @@ import (
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
+	"github.com/bassosimone/websteps-illustrated/internal/cachex"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
 type CLI struct {
 	Backend   string   `doc:"backend URL (default: use OONI backend)" short:"b"`
+	CacheDir  string   `doc:"optional directory where to store cache (default: none)" short:"C"`
 	Deep      bool     `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
 	Fast      bool     `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
 	Help      bool     `doc:"prints this help message" short:"h"`
@@ -35,6 +38,7 @@ type CLI struct {
 func getopt() *CLI {
 	opts := &CLI{
 		Backend:   "wss://0.th.ooni.org/websteps/v1/th",
+		CacheDir:  "",
 		Deep:      false,
 		Fast:      false,
 		Help:      false,
@@ -122,6 +126,22 @@ func measurexOptions(opts *CLI) *measurex.Options {
 	return clientOptions
 }
 
+func maybeSetCache(opts *CLI, clnt *websteps.Client) {
+	if opts.CacheDir != "" {
+		cache, err := cachex.Open(opts.CacheDir)
+		if err != nil {
+			log.WithError(err).Fatal("cannot open cache")
+		}
+		clnt.MeasurerFactory = func(logger model.Logger, options *measurex.Options) (
+			measurex.AbstractMeasurer, error) {
+			library := measurex.NewDefaultLibrary(log.Log)
+			var mx measurex.AbstractMeasurer = measurex.NewMeasurer(log.Log, library)
+			mx = measurex.NewCachingMeasurer(mx, logger, cache, measurex.CachingForeverPolicy())
+			return mx, nil
+		}
+	}
+}
+
 func main() {
 	opts := getopt()
 	filep, err := os.OpenFile(opts.Output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -131,7 +151,9 @@ func main() {
 	begin := time.Now()
 	ctx := context.Background()
 	clientOptions := measurexOptions(opts)
-	clnt := websteps.StartClient(ctx, log.Log, nil, nil, opts.Backend, clientOptions)
+	clnt := websteps.NewClient(log.Log, nil, nil, opts.Backend, clientOptions)
+	maybeSetCache(opts, clnt)
+	go clnt.Loop(ctx)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go submitInput(ctx, wg, clnt, opts)

@@ -243,9 +243,8 @@ type THHandlerSaver interface {
 	Save(um *measurex.URLMeasurement)
 }
 
-// THMeasurerFactory is the type of the factory the THHandler
-// uses to create a new Measurer instance.
-type THMeasurerFactory func(logger model.Logger,
+// MeasurerFactory is a factory for creating a measurer.
+type MeasurerFactory func(logger model.Logger,
 	options *measurex.Options) (measurex.AbstractMeasurer, error)
 
 // THHandlerOptions contains options for the THHandler.
@@ -257,7 +256,7 @@ type THHandlerOptions struct {
 	// to construct a measurer. By changing this
 	// factory, you can force the THHandler to use
 	// a different measurer (e.g., a caching measurer).
-	MeasurerFactory THMeasurerFactory
+	MeasurerFactory MeasurerFactory
 
 	// Resolvers contains the resolvers to use.
 	Resolvers []*measurex.DNSResolverInfo

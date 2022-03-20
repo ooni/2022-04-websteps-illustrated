@@ -69,6 +69,11 @@ type Client struct {
 	// Input is the channel for receiving Input.
 	Input chan string
 
+	// MeasurerFactory is the OPTIONAL factory for creating
+	// new measurer instances. If you set this field, you MUST
+	// set it before starting any background worker.
+	MeasurerFactory MeasurerFactory
+
 	// Output is the channel for emitting measurements.
 	Output chan *TestKeysOrError
 
@@ -97,27 +102,18 @@ type THClient interface {
 	THRequestAsync(ctx context.Context, thReq *THRequest, out chan<- *THResponseOrError)
 }
 
-// NewTHClient creates a new client that does not perform measurements
-// and is only suitable for speaking with the TH.
+// NewTHClient creates a new client for communicating with the TH.
 func NewTHClient(logger model.Logger, dialer model.Dialer,
 	tlsDialer model.TLSDialer, thURL string) THClient {
-	return newClient(context.Background(), logger, dialer,
-		tlsDialer, thURL, false, &measurex.Options{})
+	return NewClient(logger, dialer, tlsDialer, thURL, &measurex.Options{})
 }
 
-// StartClient starts a new websteps client instance in a background goroutine
-// and returns the client instance to submit and collect measurements.
-func StartClient(ctx context.Context, logger model.Logger, dialer model.Dialer,
+// NewClient creates a new Client instance.
+func NewClient(logger model.Logger, dialer model.Dialer,
 	tlsDialer model.TLSDialer, thURL string, clientOptions *measurex.Options) *Client {
-	return newClient(ctx, logger, dialer, tlsDialer, thURL, true, clientOptions)
-}
-
-// newClient implements NewTHClient and StartClient.
-func newClient(ctx context.Context, logger model.Logger, dialer model.Dialer,
-	tlsDialer model.TLSDialer, thURL string, startBackgroundWorker bool,
-	clientOptions *measurex.Options) *Client {
-	clnt := &Client{
+	return &Client{
 		Input:           make(chan string),
+		MeasurerFactory: nil, // meaning that we'll use a default factory
 		Output:          make(chan *TestKeysOrError),
 		dialerCleartext: dialer,
 		dialerTLS:       tlsDialer,
@@ -126,14 +122,10 @@ func newClient(ctx context.Context, logger model.Logger, dialer model.Dialer,
 		resolvers:       defaultResolvers(),
 		thURL:           thURL,
 	}
-	if startBackgroundWorker {
-		go clnt.loop(ctx)
-	}
-	return clnt
 }
 
-// loop is the client loop.
-func (c *Client) loop(ctx context.Context) {
+// Loop is the client Loop.
+func (c *Client) Loop(ctx context.Context) {
 	for input := range c.Input {
 		// Implementation note: with a cancelled context, continue to
 		// loop and drain the input channel. The client will eventually
@@ -145,10 +137,26 @@ func (c *Client) loop(ctx context.Context) {
 	close(c.Output)
 }
 
+func (c *Client) newMeasurer(logger model.Logger,
+	options *measurex.Options) (measurex.AbstractMeasurer, error) {
+	if c.MeasurerFactory != nil {
+		return c.MeasurerFactory(logger, options)
+	}
+	library := measurex.NewDefaultLibrary(c.logger)
+	return measurex.NewMeasurerWithOptions(c.logger, library, c.options), nil
+}
+
 // steps performs all the steps.
 func (c *Client) steps(ctx context.Context, input string) {
-	library := measurex.NewDefaultLibrary(c.logger)
-	mx := measurex.NewMeasurerWithOptions(c.logger, library, c.options)
+	mx, err := c.newMeasurer(c.logger, c.options)
+	if err != nil {
+		c.logger.Warnf("❌ cannot create a new measurer: %s", err.Error())
+		c.Output <- &TestKeysOrError{
+			Err:      fmt.Errorf("cannot create measurer %s: %w", input, err),
+			TestKeys: nil,
+		}
+		return
+	}
 	initial, err := mx.NewURLMeasurement(input)
 	if err != nil {
 		c.logger.Warnf("❌ cannot parse input as URL: %s", err.Error())
