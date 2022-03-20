@@ -128,7 +128,7 @@ type EndpointMeasurement struct {
 	NewCookies []*http.Cookie `json:",omitempty"`
 
 	// Location is the URL we're redirected to (if any).
-	Location *url.URL `json:",omitempty"`
+	Location *SimpleURL `json:",omitempty"`
 
 	// HTTPTitle is the webpage title (if any).
 	HTTPTitle string `json:",omitempty"`
@@ -327,7 +327,7 @@ func (em *EndpointMeasurement) RedirectSummary() (string, bool) {
 		return "", false // skip this entry if we don't have a valid location
 	}
 	var digest []string
-	digest = append(digest, CanonicalURLString(NewSimpleURL(em.Location)))
+	digest = append(digest, CanonicalURLString(em.Location))
 	digest = append(digest, SortedSerializedCookiesNames(em.NewCookies)...)
 	return strings.Join(digest, " "), true
 }
@@ -486,7 +486,7 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 		Failure:          archival.NewFlatFailure(err),
 		FailedOperation:  FlatFailedOperation(operation),
 		NewCookies:       responseCookies,
-		Location:         location,
+		Location:         NewSimpleURL(location),
 		HTTPTitle:        "",
 		NetworkEvent:     nil,
 		TCPConnect:       nil,

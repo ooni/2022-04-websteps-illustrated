@@ -31,13 +31,16 @@ type SimpleURL struct {
 }
 
 // NewSimpleURL creates a simple URL from an URL.
-func NewSimpleURL(URL *url.URL) *SimpleURL {
-	return &SimpleURL{
-		Scheme:   URL.Scheme,
-		Host:     URL.Host,
-		Path:     URL.Path,
-		RawQuery: URL.RawQuery,
+func NewSimpleURL(URL *url.URL) (out *SimpleURL) {
+	if URL != nil {
+		out = &SimpleURL{
+			Scheme:   URL.Scheme,
+			Host:     URL.Host,
+			Path:     URL.Path,
+			RawQuery: URL.RawQuery,
+		}
 	}
+	return
 }
 
 // Hostname is like url.URL.Hostname.
@@ -581,7 +584,7 @@ func (mx *Measurer) Redirects(
 			next = &URLMeasurement{
 				ID:          mx.NextID(),
 				EndpointIDs: []int64{},
-				URL:         NewSimpleURL(epnt.Location),
+				URL:         epnt.Location,
 				Cookies:     epnt.NewCookies,
 				Options: opts.Chain(&Options{
 					// Note: all other fields intentionally left empty. We do not
@@ -605,7 +608,7 @@ func (mx *Measurer) Redirects(
 }
 
 // newHeadersForRedirect builds new headers for a redirect.
-func (mx *Measurer) newHeadersForRedirect(location *url.URL, orig http.Header) http.Header {
+func (mx *Measurer) newHeadersForRedirect(location *SimpleURL, orig http.Header) http.Header {
 	out := http.Header{}
 	for key, values := range orig {
 		out[key] = values
