@@ -252,6 +252,18 @@ func (dlm *DNSLookupMeasurement) IsCompatibleWith(other *DNSLookupMeasurement) b
 		(left == archival.DNSLookupTypeHTTPS && right == archival.DNSLookupTypeGetaddrinfo)
 }
 
+// SameAs returns whether two DNSLookupMeasurements are equal. Two such
+// measurements are equal when:
+//
+// 1. they are resolving the same domain;
+//
+// 2. they use the same lookup type.
+//
+// A weaker definition of equality is provided by IsCompatibleWith.
+func (dlm *DNSLookupMeasurement) SameAs(other *DNSLookupMeasurement) bool {
+	return dlm.Domain() == other.Domain() && dlm.LookupType() == other.LookupType()
+}
+
 // UsingResolverIPv6 returns whether this DNS lookups used an IPv6 resolver.
 func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 	if dlm.Lookup != nil {
