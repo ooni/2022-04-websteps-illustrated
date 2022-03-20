@@ -15,6 +15,7 @@ import (
 )
 
 type CLI struct {
+	HTTPS    bool     `doc:"also queries for HTTPSSvc"`
 	Help     bool     `doc:"prints this help message" short:"h"`
 	NS       bool     `doc:"also queries for NS" short:"N"`
 	Resolver []string `doc:"resolver to use (default: 8.8.4.4:53)" short:"r"`
@@ -23,7 +24,9 @@ type CLI struct {
 
 func main() {
 	opts := &CLI{
+		HTTPS:    false,
 		Help:     false,
+		NS:       false,
 		Resolver: []string{},
 		Verbose:  false,
 	}
@@ -59,6 +62,9 @@ func main() {
 			}
 			if opts.NS {
 				plan.Flags |= measurex.DNSLookupFlagNS
+			}
+			if opts.HTTPS {
+				plan.Flags |= measurex.DNSLookupFlagHTTPS
 			}
 			plans = append(plans, plan)
 		}

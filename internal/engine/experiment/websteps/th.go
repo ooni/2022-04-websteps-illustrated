@@ -513,7 +513,8 @@ func (thr *THRequestHandler) step(
 	if err != nil {
 		return nil, err
 	}
-	dnsplan := um.NewDNSLookupPlan(thr.resolvers())
+	const flags = 0 // no extra lookups
+	dnsplan := um.NewDNSLookupPlan(thr.resolvers(), flags)
 	for m := range mx.DNSLookups(ctx, dnsplan) {
 		um.DNS = append(um.DNS, m)
 	}

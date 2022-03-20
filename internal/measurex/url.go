@@ -169,14 +169,15 @@ func (mx *Measurer) NewURLMeasurement(input string) (*URLMeasurement, error) {
 }
 
 // NewDNSLookupPlan creates a NewDNSLookupPlan for this URLMeasurement. The plan calls
-// for resolving the domain name inside um.URL using all the given resolvers.
-func (um *URLMeasurement) NewDNSLookupPlan(ri []*DNSResolverInfo) *DNSLookupPlan {
+// for resolving the domain name inside um.URL using all the given resolvers. The flags
+// argument allows for optionally running extra kind of queries.
+func (um *URLMeasurement) NewDNSLookupPlan(ri []*DNSResolverInfo, flags int64) *DNSLookupPlan {
 	return &DNSLookupPlan{
 		URLMeasurementID: um.ID,
 		URL:              um.URL,
 		Options:          um.Options,
 		Resolvers:        ri,
-		Flags:            0, // by default no extras
+		Flags:            flags,
 	}
 }
 

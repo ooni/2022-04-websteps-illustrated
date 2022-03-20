@@ -96,7 +96,7 @@ const (
 	DNSLookupFlagNS = 1 << iota
 
 	// DNSLookupFlagHTTPS modifies the DNSLookupPlan to request resolving
-	// the target domain using HTTPS.
+	// the target domain using HTTPSSvc.
 	DNSLookupFlagHTTPS
 )
 
