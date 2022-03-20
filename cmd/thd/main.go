@@ -16,20 +16,22 @@ import (
 )
 
 type CLI struct {
-	Address  string `doc:"address where to listen (default: \":9876\")" short:"A"`
-	CacheDir string `doc:"directory where to store cache (default: \"./cache\")" short:"C"`
-	Help     bool   `doc:"prints this help message" short:"h"`
-	User     string `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
-	Verbose  bool   `doc:"enable verbose mode" short:"v"`
+	Address     string `doc:"address where to listen (default: \":9876\")" short:"A"`
+	CacheDir    string `doc:"directory where to store cache (default: \"./cache\")" short:"C"`
+	Help        bool   `doc:"prints this help message" short:"h"`
+	MostlyCache bool   `doc:"never expire cache entries and keep adding to the cache"`
+	User        string `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
+	Verbose     bool   `doc:"enable verbose mode" short:"v"`
 }
 
 func main() {
 	opts := &CLI{
-		Address:  ":9876",
-		CacheDir: "cache",
-		Help:     false,
-		User:     "nobody",
-		Verbose:  false,
+		Address:     ":9876",
+		CacheDir:    "cache",
+		Help:        false,
+		MostlyCache: false,
+		User:        "nobody",
+		Verbose:     false,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -57,7 +59,14 @@ func main() {
 			options *measurex.Options) (measurex.AbstractMeasurer, error) {
 			lib := measurex.NewDefaultLibrary(logger)
 			mx := measurex.NewMeasurerWithOptions(logger, lib, options)
-			cmx := measurex.NewCachingMeasurer(mx, logger, cache, &cachePruningPolicy{})
+			var cpp measurex.CachingPolicy
+			switch opts.MostlyCache {
+			case true:
+				cpp = measurex.CachingForeverPolicy()
+			case false:
+				cpp = &cachePruningPolicy{}
+			}
+			cmx := measurex.NewCachingMeasurer(mx, logger, cache, cpp)
 			return cmx, nil
 		},
 		Resolvers: nil,

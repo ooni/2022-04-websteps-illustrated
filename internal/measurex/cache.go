@@ -183,6 +183,7 @@ func (mx *CachingMeasurer) dnsMeasurementCacheKey(m *DNSLookupMeasurement) strin
 
 func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan, reso *DNSResolverInfo) (
 	*DNSLookupMeasurement, bool) {
+	begin := time.Now()
 	pk := mx.dnsPlanCacheKey(plan, reso)
 	elist, _, _ := mx.readDNSLookupEntry(pk)
 	for _, entry := range elist {
@@ -196,7 +197,7 @@ func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan, reso *D
 		if mx.policy.StaleDNSLookupMeasurement(&entry) {
 			return nil, false
 		}
-		mx.logger.Infof("👛 DNS lookup entry '%s'", pk)
+		mx.logger.Infof("👛 DNS lookup entry '%s' in %v", pk, time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
@@ -298,6 +299,7 @@ type CachedEndpointMeasurement struct {
 
 func (mx *CachingMeasurer) findEndpointMeasurement(
 	plan *EndpointPlan) (*EndpointMeasurement, bool) {
+	begin := time.Now()
 	summary, good := plan.Summary()
 	if !good {
 		return nil, false
@@ -314,7 +316,7 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 		if mx.policy.StaleEndpointMeasurement(&entry) {
 			return nil, false
 		}
-		mx.logger.Infof("👛 endpoint entry '%s'", summary)
+		mx.logger.Infof("👛 endpoint entry '%s' in %v", summary, time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
