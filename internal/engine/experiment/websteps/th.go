@@ -608,6 +608,7 @@ func (thr *THRequestHandler) simplifyEndpoints(
 			URL:              entry.URL,
 			Network:          entry.Network,
 			Address:          entry.Address,
+			Options:          entry.Options,
 			OrigCookies:      entry.OrigCookies,
 			Failure:          entry.Failure,
 			FailedOperation:  entry.FailedOperation,

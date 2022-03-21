@@ -427,6 +427,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			URL:              e.URL,
 			Network:          e.Network,
 			Address:          e.Address,
+			Options:          e.Options,
 			OrigCookies:      e.OrigCookies,
 			Failure:          e.Failure,
 			FailedOperation:  e.FailedOperation,
