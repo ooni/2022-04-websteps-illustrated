@@ -588,6 +588,7 @@ func (thr *THRequestHandler) simplifyDNS(
 				Failure:         entry.Failure(),
 				Finished:        thhResponseTime,
 				LookupType:      entry.LookupType(),
+				NS:              entry.NS(),
 				ResolverAddress: entry.ResolverAddress(),
 				ResolverNetwork: entry.ResolverNetwork(),
 				Started:         thhResponseTime,

@@ -412,6 +412,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 				Failure:         e.Failure(),
 				Finished:        now,
 				LookupType:      e.LookupType(),
+				NS:              e.NS(),
 				ResolverAddress: e.ResolverAddress(),
 				ResolverNetwork: e.ResolverNetwork(),
 				Started:         now,
