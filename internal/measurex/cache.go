@@ -145,10 +145,10 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 	for _, plan := range dnsLookups {
 		meas, found := mx.findDNSLookupMeasurement(plan)
 		if !found {
+			todo = append(todo, plan)
 			continue
 		}
 		out <- meas
-		todo = append(todo, plan)
 	}
 	// 2. perform non-cached measurements and store them in cache
 	for meas := range mx.measurer.DNSLookups(ctx, todo...) {
