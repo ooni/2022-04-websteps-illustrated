@@ -14,46 +14,76 @@ package measurex
 //
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/cachex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/rogpeppe/go-internal/lockedfile"
 )
+
+// simpleCache provides a simple cache-on-filesystem functionality.
+type simpleCache struct {
+	dirpath string
+}
+
+// newSimpleCache creates a new simpleCache instance.
+func newSimpleCache(dirpath string) *simpleCache {
+	return &simpleCache{dirpath: dirpath}
+}
+
+var _ model.KeyValueStore = &simpleCache{}
+
+// Get implements KeyValueStore.Get.
+func (sc *simpleCache) Get(key string) ([]byte, error) {
+	_, fpath := sc.fsmap(key)
+	return lockedfile.Read(fpath)
+}
+
+// Set implements KeyValueStore.Set.
+func (sc *simpleCache) Set(key string, value []byte) error {
+	dpath, fpath := sc.fsmap(key)
+	const dperms = 0700
+	if err := os.MkdirAll(dpath, dperms); err != nil {
+		return err
+	}
+	const fperms = 0600
+	return lockedfile.Write(fpath, bytes.NewReader(value), fperms)
+}
+
+// fsmap maps a given key to a directory and a file paths.
+func (sc *simpleCache) fsmap(key string) (dpath, fpath string) {
+	hs := sha256.Sum256([]byte(key))
+	dpath = filepath.Join(sc.dirpath, fmt.Sprintf("%02x", hs[0]))
+	fpath = filepath.Join(dpath, fmt.Sprintf("%02x-d", hs))
+	return
+}
+
+func (sc *simpleCache) Trim() error {
+	// TODO(bassosimone): implement this functionality.
+	return nil
+}
 
 // Cache is a cache for measurex DNS and endpoint measurements.
 type Cache struct {
-	dns  *cachex.Cache
-	epnt *cachex.Cache
+	dns  *simpleCache
+	epnt *simpleCache
 }
 
-// OpenCache creates a new cache inside the given directory.
-func OpenCache(dirpath string) (*Cache, error) {
-	ddp := path.Join(dirpath, "dns")
-	const permissions = 0755
-	if err := os.MkdirAll(ddp, permissions); err != nil {
-		return nil, err
-	}
-	edp := path.Join(dirpath, "endpoint")
-	if err := os.MkdirAll(edp, permissions); err != nil {
-		return nil, err
-	}
-	dc, err := cachex.Open(ddp)
-	if err != nil {
-		return nil, err
-	}
-	ec, err := cachex.Open(edp)
-	if err != nil {
-		return nil, err
-	}
-	c := &Cache{dns: dc, epnt: ec}
-	return c, nil
+// NewCache creates a new cache inside the given directory.
+func NewCache(dirpath string) *Cache {
+	ddp := path.Join(dirpath, "d") // dns
+	edp := path.Join(dirpath, "e") // endpoint
+	return &Cache{dns: newSimpleCache(ddp), epnt: newSimpleCache(edp)}
 }
 
-// Trim trims the cache.
+// Trim removes old entries from the cache.
 func (c *Cache) Trim() {
 	c.dns.Trim()
 	c.epnt.Trim()
@@ -206,16 +236,16 @@ type CachedDNSLookupMeasurement struct {
 func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 	*DNSLookupMeasurement, bool) {
 	begin := time.Now()
-	elist, _, _ := mx.readDNSLookupEntry(plan.Domain)
+	elist, _ := mx.readDNSLookupEntry(plan.Domain)
 	for _, entry := range elist {
 		if entry.M == nil {
-			continue
+			continue // probably a corrupted entry
 		}
 		if !entry.M.CouldDeriveFrom(plan) {
 			continue // this entry has been generated from another plan
 		}
 		if mx.policy.StaleDNSLookupMeasurement(&entry) {
-			return nil, false
+			continue // stale entry we should eventually remove
 		}
 		mx.logger.Infof("👛 DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
 		return entry.M, true
@@ -224,48 +254,42 @@ func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 }
 
 func (mx *CachingMeasurer) storeDNSLookupMeasurement(dlm *DNSLookupMeasurement) error {
-	elist, key, _ := mx.readDNSLookupEntry(dlm.Domain())
+	elist, _ := mx.readDNSLookupEntry(dlm.Domain())
 	var out []CachedDNSLookupMeasurement
-	for _, entry := range elist {
-		if entry.M == nil {
-			continue
-		}
-		if !entry.M.IsAnotherInstanceOf(dlm) {
-			continue
-		}
-		out = append(out, entry)
-	}
-	out = append(out, CachedDNSLookupMeasurement{
+	out = append(out, CachedDNSLookupMeasurement{ // fast search: new entry at the beginning
 		T: time.Now(),
 		M: dlm,
 	})
-	return mx.writeDNSLookupEntry(key, out)
+	for _, entry := range elist {
+		if entry.M == nil {
+			continue // remove this corrupted entry
+		}
+		if entry.M.IsAnotherInstanceOf(dlm) {
+			continue // duplicate of the entry we've addeed
+		}
+		out = append(out, entry) // not a duplicate and not corrupted: keep
+	}
+	return mx.writeDNSLookupEntry(dlm.Domain(), out)
 }
 
-func (mx *CachingMeasurer) readDNSLookupEntry(
-	summary string) ([]CachedDNSLookupMeasurement, cachex.ActionID, bool) {
-	key, good := mx.summaryToActionID(summary)
-	if !good {
-		return nil, cachex.ActionID{}, false
-	}
-	data, err := cacheReadEntry(mx.cache.dns, key)
+func (mx *CachingMeasurer) readDNSLookupEntry(k string) ([]CachedDNSLookupMeasurement, bool) {
+	data, err := mx.cache.dns.Get(k)
 	if err != nil {
-		return nil, key, false
+		return nil, false
 	}
 	var elist []CachedDNSLookupMeasurement
 	if err := json.Unmarshal(data, &elist); err != nil {
-		return nil, key, false
+		return nil, false
 	}
-	return elist, key, true
+	return elist, true
 }
 
-func (mx *CachingMeasurer) writeDNSLookupEntry(
-	key cachex.ActionID, elist []CachedDNSLookupMeasurement) error {
-	data, err := json.Marshal(elist)
+func (mx *CachingMeasurer) writeDNSLookupEntry(k string, o []CachedDNSLookupMeasurement) error {
+	data, err := json.Marshal(o)
 	if err != nil {
 		return err
 	}
-	return cacheWriteEntry(mx.cache.dns, key, data)
+	return mx.cache.dns.Set(k, data)
 }
 
 func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
@@ -306,16 +330,16 @@ func cacheCutLongString(s string) string {
 func (mx *CachingMeasurer) findEndpointMeasurement(
 	plan *EndpointPlan) (*EndpointMeasurement, bool) {
 	begin := time.Now()
-	elist, _, _ := mx.readEndpointEntry(plan.Summary())
+	elist, _ := mx.readEndpointEntry(plan.Summary())
 	for _, entry := range elist {
 		if entry.M == nil {
-			continue
+			continue // probably a corrupted entry
 		}
 		if !entry.M.CouldDeriveFrom(plan) {
-			continue
+			continue // this entry has been generated from another plan
 		}
 		if mx.policy.StaleEndpointMeasurement(&entry) {
-			return nil, false
+			continue // stale entry we should eventually remove
 		}
 		mx.logger.Infof("👛 endpoint entry '%s' in %v",
 			cacheCutLongString(entry.M.Summary()), time.Since(begin))
@@ -325,66 +349,40 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 }
 
 func (mx *CachingMeasurer) storeEndpointMeasurement(em *EndpointMeasurement) error {
-	elist, key, _ := mx.readEndpointEntry(em.Summary())
+	elist, _ := mx.readEndpointEntry(em.Summary())
 	var out []CachedEndpointMeasurement
-	for _, entry := range elist {
-		if entry.M == nil {
-			continue
-		}
-		if !em.IsAnotherInstanceOf(entry.M) {
-			continue
-		}
-		out = append(out, entry)
-	}
-	out = append(out, CachedEndpointMeasurement{
+	out = append(out, CachedEndpointMeasurement{ // fast search: new entry at the beginning
 		T: time.Now(),
 		M: em,
 	})
-	return mx.writeEndpointEntry(key, out)
+	for _, entry := range elist {
+		if entry.M == nil {
+			continue // remove this corrupted entry
+		}
+		if em.IsAnotherInstanceOf(entry.M) {
+			continue // duplicate of the entry we've added
+		}
+		out = append(out, entry) // not a duplicate and not corrupted: keep
+	}
+	return mx.writeEndpointEntry(em.Summary(), out)
 }
 
-func (mx *CachingMeasurer) readEndpointEntry(
-	summary string) ([]CachedEndpointMeasurement, cachex.ActionID, bool) {
-	key, good := mx.summaryToActionID(summary)
-	if !good {
-		return nil, cachex.ActionID{}, false
-	}
-	data, err := cacheReadEntry(mx.cache.epnt, key)
+func (mx *CachingMeasurer) readEndpointEntry(k string) ([]CachedEndpointMeasurement, bool) {
+	data, err := mx.cache.epnt.Get(k)
 	if err != nil {
-		return nil, key, false
+		return nil, false
 	}
 	var elist []CachedEndpointMeasurement
 	if err := json.Unmarshal(data, &elist); err != nil {
-		return nil, key, false
+		return nil, false
 	}
-	return elist, key, true
+	return elist, true
 }
 
-func (mx *CachingMeasurer) writeEndpointEntry(
-	key cachex.ActionID, elist []CachedEndpointMeasurement) error {
-	data, err := json.Marshal(elist)
+func (mx *CachingMeasurer) writeEndpointEntry(k string, o []CachedEndpointMeasurement) error {
+	data, err := json.Marshal(o)
 	if err != nil {
 		return err
 	}
-	return cacheWriteEntry(mx.cache.epnt, key, data)
-}
-
-func cacheWriteEntry(cache *cachex.Cache, actionID cachex.ActionID, data []byte) error {
-	return cache.PutBytes(actionID, data)
-}
-
-func cacheReadEntry(cache *cachex.Cache, actionID cachex.ActionID) ([]byte, error) {
-	data, _, err := cache.GetBytes(actionID)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-func (mx *CachingMeasurer) summaryToActionID(summary string) (cachex.ActionID, bool) {
-	h := cachex.NewHash("keyHash")
-	if _, err := h.Write([]byte(summary)); err != nil {
-		return cachex.ActionID{}, false
-	}
-	return h.Sum(), true
+	return mx.cache.epnt.Set(k, data)
 }

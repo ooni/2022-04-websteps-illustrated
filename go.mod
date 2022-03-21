@@ -36,6 +36,7 @@ require (
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/ooni/probe-assets v0.7.0
 	github.com/oschwald/geoip2-golang v1.6.1
+	github.com/rogpeppe/go-internal v1.8.1
 	gitlab.com/yawning/bsaes.git v0.0.0-20190805113838-0a714cd429ec // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/mod v0.4.2 // indirect

@@ -8,7 +8,6 @@ import (
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
-	"github.com/bassosimone/websteps-illustrated/internal/cachex"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 )
 
@@ -96,10 +95,7 @@ func newMeasurer(opts *CLI) measurex.AbstractMeasurer {
 	}
 	var amx measurex.AbstractMeasurer = mx
 	if opts.CacheDir != "" {
-		cache, err := cachex.Open(opts.CacheDir)
-		if err != nil {
-			log.WithError(err).Fatal("cannot open cache dir")
-		}
+		cache := measurex.NewCache(opts.CacheDir)
 		amx = measurex.NewCachingMeasurer(amx, log.Log,
 			cache, measurex.CachingForeverPolicy())
 	}

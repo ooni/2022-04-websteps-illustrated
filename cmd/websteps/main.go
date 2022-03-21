@@ -127,10 +127,7 @@ func measurexOptions(opts *CLI) *measurex.Options {
 
 func maybeSetCache(opts *CLI, clnt *websteps.Client) {
 	if opts.CacheDir != "" {
-		cache, err := measurex.OpenCache(opts.CacheDir)
-		if err != nil {
-			log.WithError(err).Fatal("cannot open cache")
-		}
+		cache := measurex.NewCache(opts.CacheDir)
 		clnt.MeasurerFactory = func(logger model.Logger, options *measurex.Options) (
 			measurex.AbstractMeasurer, error) {
 			library := measurex.NewDefaultLibrary(log.Log)

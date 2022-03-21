@@ -572,7 +572,7 @@ func (mx *Measurer) Redirects(
 	epnts []*EndpointMeasurement, opts *Options) ([]*URLMeasurement, bool) {
 	uniq := make(map[string]*URLMeasurement)
 	for _, epnt := range epnts {
-		summary, good := epnt.RedirectSummary()
+		summary, good := epnt.RedirectSummary() // Note: this includes cookie names
 		if !good {
 			// We should skip this endpoint
 			continue
@@ -585,7 +585,7 @@ func (mx *Measurer) Redirects(
 				ID:          mx.NextID(),
 				EndpointIDs: []int64{},
 				URL:         epnt.Location,
-				Cookies:     epnt.NewCookies,
+				Cookies:     epnt.NewCookies, // first set of equally-named cookies wins
 				Options: opts.Chain(&Options{
 					// Note: all other fields intentionally left empty. We do not
 					// want to continue following HTTP and HTTPS after we have done

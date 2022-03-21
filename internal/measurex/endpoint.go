@@ -74,9 +74,13 @@ func (em *EndpointPlan) IPAddress() string {
 // The summary of an endpoint consists of these fields:
 //
 // - URL
+//
 // - Network
+//
 // - Address
+//
 // - relevant endpoint options
+//
 // - cookies names (sorted)
 //
 // If the endpoint URL is nil, we return the empty string.
@@ -286,9 +290,13 @@ func (em *EndpointMeasurement) Describe() string {
 // The summary of an endpoint consists of these fields:
 //
 // - URL
+//
 // - Network
+//
 // - Address
+//
 // - relevant endpoint options
+//
 // - original cookies names (sorted)
 //
 // If the endpoint URL is nil, we return the empty string.
@@ -363,6 +371,7 @@ func (em *EndpointMeasurement) CouldDeriveFrom(plan *EndpointPlan) bool {
 // We use these fields for computing the summary:
 //
 // - redirect location
+//
 // - new cookies names (sorted)
 func (em *EndpointMeasurement) RedirectSummary() (string, bool) {
 	if !isHTTPRedirect(em.StatusCode()) {

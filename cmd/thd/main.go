@@ -52,10 +52,7 @@ func maybeOpenCache(ctx context.Context, opts *CLI) (*measurex.Cache, context.Ca
 	if opts.CacheDir == "" {
 		return nil, cancel
 	}
-	cache, err := measurex.OpenCache(opts.CacheDir)
-	if err != nil {
-		log.WithError(err).Fatal("cannot open cache dir")
-	}
+	cache := measurex.NewCache(opts.CacheDir)
 	olog := measurex.NewOperationLogger(log.Log, "trimming the cache")
 	cache.Trim()
 	olog.Stop(nil)
