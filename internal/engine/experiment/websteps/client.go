@@ -432,6 +432,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			FailedOperation:  e.FailedOperation,
 			NewCookies:       e.NewCookies,
 			Location:         e.Location,
+			HTTPTitle:        e.HTTPTitle,
 			NetworkEvent:     []*archival.FlatNetworkEvent{},
 			TCPConnect:       nil,
 			QUICTLSHandshake: nil,

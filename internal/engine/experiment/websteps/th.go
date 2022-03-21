@@ -613,6 +613,7 @@ func (thr *THRequestHandler) simplifyEndpoints(
 			FailedOperation:  entry.FailedOperation,
 			NewCookies:       entry.NewCookies,
 			Location:         entry.Location,
+			HTTPTitle:        entry.HTTPTitle,
 			NetworkEvent:     []*archival.FlatNetworkEvent{},
 			TCPConnect:       nil,
 			QUICTLSHandshake: nil,
