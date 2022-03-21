@@ -548,11 +548,11 @@ func (thr *THRequestHandler) step(
 		thr.maybeGatherCNAME(m)
 		um.DNS = append(um.DNS, m)
 	}
-	thr.addProbeDNS(mx, um, req.Plan)
+	probeAddrs := thr.addProbeDNS(mx, um, req.Plan)
 	// Implementation note: of course it doesn't make sense here for the
 	// test helper to follow bogons discovered by the client :^)
 	epplan, _ := um.NewEndpointPlan(thr.logger(), measurex.EndpointPlanningExcludeBogons)
-	epplan = thr.addProbeCookies(epplan, req.Cookies)
+	epplan = thr.patchEndpointPlan(epplan, req, probeAddrs)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
@@ -566,29 +566,71 @@ func (thr *THRequestHandler) step(
 	return thr.serialize(um), nil
 }
 
-// addProbeCookies behavior depends on whether there are rawCookies to include
-// into the endpoint plan. If there are no cookies, this function will just
-// return the original endpoint plan. Otherwise, it returns a clone of the original
-// plan where each entry is modified to add the required cookies.
-func (thr *THRequestHandler) addProbeCookies(input []*measurex.EndpointPlan,
-	rawCookies []string) (out []*measurex.EndpointPlan) {
-	cookies := measurex.ParseCookies(rawCookies...)
-	if len(cookies) < 1 {
-		return input
+// patchEndpointPlan returns a modified endpoint plan where:
+//
+// 1. we include cookies from the probe (if any);
+//
+// 2. we ensure we're testing a few extra IP addresses than the
+// addresses discovered by the probe (so that, in turn, the probe
+// will always have some extra addresses to measure).
+//
+// The returned plan is a new list with cloned and modified entries.
+func (thr *THRequestHandler) patchEndpointPlan(input []*measurex.EndpointPlan,
+	r *THRequest, probeAddrs []string) (out []*measurex.EndpointPlan) {
+
+	// 1. prepare the list of cookies to include
+	cookies := measurex.ParseCookies(r.Cookies...)
+
+	// 2. track non-bogon IP addresses discovered by the probe
+	inprobe := map[string]bool{}
+	for _, addr := range probeAddrs {
+		if netxlite.IsBogon(addr) {
+			continue // no point in following bogons here
+		}
+		inprobe[addr] = true
 	}
+
+	// 3. exclude entries from the plan. We ensure that all non-bogon IP
+	// addresses discovered by the probe are included, plus at most a small
+	// number of other IP addresses that the probe didn't know about.
+	extra4, extra6 := map[string]bool{}, map[string]bool{}
 	out = []*measurex.EndpointPlan{}
-	for _, p := range input {
+	for _, e := range input {
+		ipaddr := e.IPAddress()
+		if ipaddr == "" {
+			continue // something wrong with this entry
+		}
+		if !inprobe[ipaddr] {
+			const threshold = 1 // we don't want to test too many addrs
+			isipv6, _ := netxlite.IsIPv6(ipaddr)
+			switch isipv6 {
+			case true:
+				if !extra6[ipaddr] && len(extra6) >= threshold {
+					thr.logger().Infof("🧐 too many extra AAAA addrs already; skipping %s", ipaddr)
+					continue // already too many extra IPv6 addresses
+				}
+				extra6[ipaddr] = true
+			case false:
+				if !extra4[ipaddr] && len(extra4) >= threshold {
+					thr.logger().Infof("🧐 too many extra A addrs already; skipping %s", ipaddr)
+					continue // already too many IPv4 addresses
+				}
+				extra4[ipaddr] = true
+			}
+			// fallthrough
+		}
 		out = append(out, &measurex.EndpointPlan{
-			URLMeasurementID: p.URLMeasurementID,
-			Domain:           p.Domain,
-			Network:          p.Network,
-			Address:          p.Address,
-			URL:              p.URL.Clone(),
-			Options:          p.Options.Flatten(),
+			URLMeasurementID: e.URLMeasurementID,
+			Domain:           e.Domain,
+			Network:          e.Network,
+			Address:          e.Address,
+			URL:              e.URL.Clone(),
+			Options:          e.Options.Flatten(),
 			Cookies:          cookies,
 		})
 	}
-	return out
+
+	return
 }
 
 // maybeGatherCNAME attempts to gather a CNAME for the given DNSLookupMeasurement.
@@ -799,9 +841,10 @@ func (thr *THRequestHandler) fillOrRejectOptions(
 }
 
 // addProbeDNS extends a DNS measurement with fake measurements
-// generated from the client-supplied endpoints plan.
+// generated from the client-supplied endpoints plan. This function
+// returns the IP addresses discovered by the probe.
 func (thr *THRequestHandler) addProbeDNS(mx measurex.AbstractMeasurer,
-	um *measurex.URLMeasurement, plan []THRequestEndpointPlan) {
+	um *measurex.URLMeasurement, plan []THRequestEndpointPlan) []string {
 	var addrs []string
 	for _, e := range plan {
 		addr, _, err := net.SplitHostPort(e.Address)
@@ -812,6 +855,7 @@ func (thr *THRequestHandler) addProbeDNS(mx measurex.AbstractMeasurer,
 		addrs = append(addrs, addr)
 	}
 	um.AddFromExternalDNSLookup(mx, "external", "probe", nil, addrs...)
+	return addrs
 }
 
 // NewTHHandler creates a new TH handler with default settings.
