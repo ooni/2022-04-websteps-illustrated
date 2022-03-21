@@ -16,11 +16,48 @@ package measurex
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"path"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/cachex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
+
+// Cache is a cache for measurex DNS and endpoint measurements.
+type Cache struct {
+	dns  *cachex.Cache
+	epnt *cachex.Cache
+}
+
+// OpenCache creates a new cache inside the given directory.
+func OpenCache(dirpath string) (*Cache, error) {
+	ddp := path.Join(dirpath, "dns")
+	const permissions = 0755
+	if err := os.MkdirAll(ddp, permissions); err != nil {
+		return nil, err
+	}
+	edp := path.Join(dirpath, "endpoint")
+	if err := os.MkdirAll(edp, permissions); err != nil {
+		return nil, err
+	}
+	dc, err := cachex.Open(ddp)
+	if err != nil {
+		return nil, err
+	}
+	ec, err := cachex.Open(edp)
+	if err != nil {
+		return nil, err
+	}
+	c := &Cache{dns: dc, epnt: ec}
+	return c, nil
+}
+
+// Trim trims the cache.
+func (c *Cache) Trim() {
+	c.dns.Trim()
+	c.epnt.Trim()
+}
 
 // CachingPolicy allows to customize che CachingMeasurer policy.
 type CachingPolicy interface {
@@ -70,7 +107,7 @@ func (*cachingForeverPolicy) StaleEndpointMeasurement(
 // there's going to be any hash collision.
 type CachingMeasurer struct {
 	// cache is the underlying cache.
-	cache *cachex.Cache
+	cache *Cache
 
 	// logger is the logger to use.
 	logger model.Logger
@@ -85,7 +122,7 @@ type CachingMeasurer struct {
 // NewCachingMeasurer takes in input an existing measurer and the
 // cache and returns a new instance of CachingMeasurer.
 func NewCachingMeasurer(mx AbstractMeasurer, logger model.Logger,
-	cache *cachex.Cache, policy CachingPolicy) *CachingMeasurer {
+	cache *Cache, policy CachingPolicy) *CachingMeasurer {
 	cmx := &CachingMeasurer{
 		cache:    cache,
 		logger:   logger,
@@ -211,7 +248,7 @@ func (mx *CachingMeasurer) readDNSLookupEntry(
 	if !good {
 		return nil, cachex.ActionID{}, false
 	}
-	data, err := mx.readEntry(key)
+	data, err := cacheReadEntry(mx.cache.dns, key)
 	if err != nil {
 		return nil, key, false
 	}
@@ -228,7 +265,7 @@ func (mx *CachingMeasurer) writeDNSLookupEntry(
 	if err != nil {
 		return err
 	}
-	return mx.writeEntry(key, data)
+	return cacheWriteEntry(mx.cache.dns, key, data)
 }
 
 func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
@@ -258,6 +295,14 @@ type CachedEndpointMeasurement struct {
 	M *EndpointMeasurement
 }
 
+func cacheCutLongString(s string) string {
+	const toolong = 64
+	if len(s) > toolong {
+		s = s[:toolong] + " [...]"
+	}
+	return s
+}
+
 func (mx *CachingMeasurer) findEndpointMeasurement(
 	plan *EndpointPlan) (*EndpointMeasurement, bool) {
 	begin := time.Now()
@@ -272,7 +317,8 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 		if mx.policy.StaleEndpointMeasurement(&entry) {
 			return nil, false
 		}
-		mx.logger.Infof("👛 endpoint entry '%s' in %v", entry.M.Summary(), time.Since(begin))
+		mx.logger.Infof("👛 endpoint entry '%s' in %v",
+			cacheCutLongString(entry.M.Summary()), time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
@@ -303,7 +349,7 @@ func (mx *CachingMeasurer) readEndpointEntry(
 	if !good {
 		return nil, cachex.ActionID{}, false
 	}
-	data, err := mx.readEntry(key)
+	data, err := cacheReadEntry(mx.cache.epnt, key)
 	if err != nil {
 		return nil, key, false
 	}
@@ -320,15 +366,15 @@ func (mx *CachingMeasurer) writeEndpointEntry(
 	if err != nil {
 		return err
 	}
-	return mx.writeEntry(key, data)
+	return cacheWriteEntry(mx.cache.epnt, key, data)
 }
 
-func (mx *CachingMeasurer) writeEntry(actionID cachex.ActionID, data []byte) error {
-	return mx.cache.PutBytes(actionID, data)
+func cacheWriteEntry(cache *cachex.Cache, actionID cachex.ActionID, data []byte) error {
+	return cache.PutBytes(actionID, data)
 }
 
-func (mx *CachingMeasurer) readEntry(actionID cachex.ActionID) ([]byte, error) {
-	data, _, err := mx.cache.GetBytes(actionID)
+func cacheReadEntry(cache *cachex.Cache, actionID cachex.ActionID) ([]byte, error) {
+	data, _, err := cache.GetBytes(actionID)
 	if err != nil {
 		return nil, err
 	}

@@ -9,7 +9,6 @@ import (
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
-	"github.com/bassosimone/websteps-illustrated/internal/cachex"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -48,12 +47,12 @@ func getopt() *CLI {
 
 // maybeOpenCache opens the cache if we configured a cache. Otherwise
 // this function returns a nil pointer indicating there's no cache.
-func maybeOpenCache(ctx context.Context, opts *CLI) (*cachex.Cache, context.CancelFunc) {
+func maybeOpenCache(ctx context.Context, opts *CLI) (*measurex.Cache, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(ctx)
 	if opts.CacheDir == "" {
 		return nil, cancel
 	}
-	cache, err := cachex.Open(opts.CacheDir)
+	cache, err := measurex.OpenCache(opts.CacheDir)
 	if err != nil {
 		log.WithError(err).Fatal("cannot open cache dir")
 	}
@@ -98,7 +97,7 @@ func main() {
 }
 
 // trimCache periodically attempts to trim the cache.
-func trimCache(ctx context.Context, cache *cachex.Cache) {
+func trimCache(ctx context.Context, cache *measurex.Cache) {
 	ticker := time.NewTicker(15 * time.Minute)
 	defer ticker.Stop()
 	for {

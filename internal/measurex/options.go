@@ -157,6 +157,9 @@ func (opt *Options) alpn() (v []string) {
 	if len(v) <= 0 && opt != nil && opt.Parent != nil {
 		v = opt.Parent.alpn()
 	}
+	if len(v) <= 0 {
+		v = []string{} // consistent representation (needed by caching)
+	}
 	return
 }
 

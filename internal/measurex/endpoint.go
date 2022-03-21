@@ -277,7 +277,7 @@ func (em *EndpointMeasurement) UsingAddressIPv6() (usingIPv6 bool) {
 
 // Describe describes this measurement.
 func (em *EndpointMeasurement) Describe() string {
-	return fmt.Sprintf("#%d for %s using %s", em.ID, em.URLAsString(), em.EndpointAddress())
+	return fmt.Sprintf("#%d URL %s endpoint %s", em.ID, em.URLAsString(), em.EndpointAddress())
 }
 
 // Summary returns a string representing the endpoint's summary. Two

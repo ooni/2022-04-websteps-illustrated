@@ -13,7 +13,6 @@ import (
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
-	"github.com/bassosimone/websteps-illustrated/internal/cachex"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -128,7 +127,7 @@ func measurexOptions(opts *CLI) *measurex.Options {
 
 func maybeSetCache(opts *CLI, clnt *websteps.Client) {
 	if opts.CacheDir != "" {
-		cache, err := cachex.Open(opts.CacheDir)
+		cache, err := measurex.OpenCache(opts.CacheDir)
 		if err != nil {
 			log.WithError(err).Fatal("cannot open cache")
 		}
