@@ -12,6 +12,7 @@ package measurex
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -75,11 +76,12 @@ func (em *EndpointPlan) IPAddress() string {
 // - URL
 // - Network
 // - Address
+// - relevant endpoint options
 // - cookies names (sorted)
 //
 // If the endpoint URL is nil, we return the empty string.
 func (e *EndpointPlan) Summary() string {
-	return endpointSummary(e.URL, e.Network, e.Address, e.Cookies)
+	return endpointSummary(e.URL, e.Network, e.Address, e.Options, e.Cookies)
 }
 
 func (e *EndpointPlan) tlsConfig() *tls.Config {
@@ -275,8 +277,7 @@ func (em *EndpointMeasurement) UsingAddressIPv6() (usingIPv6 bool) {
 
 // Describe describes this measurement.
 func (em *EndpointMeasurement) Describe() string {
-	return fmt.Sprintf("[#%d] endpoint measurement #%d for %s using %s",
-		em.URLMeasurementID, em.ID, em.URLAsString(), em.EndpointAddress())
+	return fmt.Sprintf("#%d for %s using %s", em.ID, em.URLAsString(), em.EndpointAddress())
 }
 
 // Summary returns a string representing the endpoint's summary. Two
@@ -287,26 +288,53 @@ func (em *EndpointMeasurement) Describe() string {
 // - URL
 // - Network
 // - Address
+// - relevant endpoint options
 // - original cookies names (sorted)
 //
 // If the endpoint URL is nil, we return the empty string.
 func (em *EndpointMeasurement) Summary() string {
-	return endpointSummary(em.URL, em.Network, em.Address, em.OrigCookies)
+	return endpointSummary(em.URL, em.Network, em.Address, em.Options, em.OrigCookies)
+}
+
+// endpointDumpJSON is used by endpointSummary to get a JSON representation
+// of specific options that modify an endpoint measurement. When there is no
+// possible JSON representation, this function returns an empty string.
+func endpointDumpJSON(v interface{}) string {
+	data, err := json.Marshal(v)
+	if err != nil {
+		log.Printf("[BUG] endpointDumpJSON: %s", err.Error())
+	}
+	return string(data)
+}
+
+// endpointDumpOption is used by endpointSummary to dump options values.
+func endpointDumpOption(key string, value interface{}) string {
+	return fmt.Sprintf("%s=%s", key, endpointDumpJSON(value))
 }
 
 // endpointSummary implements the EndpointMeasurement.Summary
 // and EndpointPlan.Summary functions.
 func endpointSummary(URL *SimpleURL, network archival.NetworkType,
-	address string, cookies []*http.Cookie) string {
-	var digest []string
+	address string, o *Options, cookies []*http.Cookie) string {
+	var d []string
 	if URL == nil {
+		log.Printf("[BUG] endpointSummary passed a nil URL")
 		return ""
 	}
-	digest = append(digest, CanonicalURLString(URL))
-	digest = append(digest, string(network))
-	digest = append(digest, address)
-	digest = append(digest, SortedSerializedCookiesNames(cookies)...)
-	return strings.Join(digest, " ")
+	d = append(d, CanonicalURLString(URL))
+	d = append(d, string(network))
+	d = append(d, address)
+	ao := endpointDumpOption
+	d = append(d, ao("alpn", o.alpn()))
+	d = append(d, ao("http_extract_title", o.httpExtractTitle()))
+	d = append(d, ao("http_host_header", o.httpHostHeader()))
+	d = append(d, ao("http_request_headers", o.httpClonedRequestHeaders()))
+	d = append(d, ao("max_http_response_body_snapshot_size", o.maxHTTPResponseBodySnapshotSize()))
+	d = append(d, ao("max_https_response_body_snapshot_size_connectivity", o.maxHTTPSResponseBodySnapshotSizeConnectivity()))
+	d = append(d, ao("max_https_response_body_snapshot_size_throttling", o.maxHTTPSResponseBodySnapshotSizeThrottling()))
+	d = append(d, ao("sni", o.sni()))
+	d = append(d, SortedSerializedCookiesNames(cookies)...)
+	return strings.Join(d, " ")
 }
 
 // IsAnotherInstanceOf returns whether this EndpointMeasurement

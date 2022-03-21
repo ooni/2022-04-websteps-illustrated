@@ -11,6 +11,9 @@ import (
 // This file contains all the options.
 //
 
+// Implementation note: if you modify Options double check whether
+// added options have an impact onto the endpointSummary.
+
 // Options contains options. Every field in this structure is optional
 // and all the methods works as intended when *Options is nil.
 type Options struct {

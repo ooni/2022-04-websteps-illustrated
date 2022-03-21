@@ -250,9 +250,11 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logger.Warnf("[dns] cannot find TH measurement matching #%d", pq.ID)
+		logger.Warnf("🐛 [dns] cannot find TH measurement matching #%d", pq.ID)
 		return score
 	}
+
+	logger.Infof("🙌 [dns] matched probe #%d with TH #%d", pq.ID, thq.ID)
 
 	score.Refs = append(score.Refs, thq.ID)
 
@@ -543,9 +545,11 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logger.Warnf("[endpoint] cannot find TH measurement #%d", pe.ID)
+		logger.Warnf("🐛 [endpoint] cannot find TH measurement #%d", pe.ID)
 		return score
 	}
+
+	logger.Infof("🙌 [endpoint] matched probe #%d with TH #%d", pe.ID, the.ID)
 
 	score.Refs = append(score.Refs, the.ID)
 

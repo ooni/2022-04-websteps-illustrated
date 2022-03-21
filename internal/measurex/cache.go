@@ -16,7 +16,6 @@ package measurex
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/cachex"
@@ -232,16 +231,6 @@ func (mx *CachingMeasurer) writeDNSLookupEntry(
 	return mx.writeEntry(key, data)
 }
 
-// canCacheEndpoint returns true if we can safely cache this endpoint plan or
-// measurement. We can't currently cache endpoints using options that modify
-// the measurement beyond what the summary captures. We will eventually remove
-// this technical limitation. Until then, here's a safety net.
-func canCacheEndpoint(opts *Options) bool {
-	// TODO(bassosimone): extend Summary to take options into account.
-	// Note: the following functions work as intended even if opts is nil.
-	return opts.sni() == "" && len(opts.alpn()) <= 0 && opts.httpHostHeader() == ""
-}
-
 func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 	out chan<- *EndpointMeasurement, epnts ...*EndpointPlan) {
 	// 0. synchronize with parent
@@ -249,11 +238,6 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 	// 1. find the cached measurements and return them
 	var todo []*EndpointPlan
 	for _, plan := range epnts {
-		if !canCacheEndpoint(plan.Options) {
-			// Safety net against endpoints with weird options. See above.
-			log.Printf("[BUG] cannot cache this endpoint: %+v", plan)
-			continue
-		}
 		meas, found := mx.findEndpointMeasurement(plan)
 		if !found {
 			todo = append(todo, plan)
@@ -263,12 +247,7 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 	}
 	// 2. perform non-cached measurements and store them in cache
 	for meas := range mx.measurer.MeasureEndpoints(ctx, todo...) {
-		if !canCacheEndpoint(meas.Options) {
-			// Safety net against endpoints with weird options. See above.
-			log.Printf("[BUG] cannot cache this endpoint: %+v", meas)
-		} else {
-			_ = mx.storeEndpointMeasurement(meas)
-		}
+		_ = mx.storeEndpointMeasurement(meas)
 		out <- meas
 	}
 }

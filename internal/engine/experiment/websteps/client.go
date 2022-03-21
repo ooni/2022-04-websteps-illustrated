@@ -333,8 +333,9 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 	if maybeTH.Err == nil {
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
-		c.logger.Info("🚧️ [th] importing TH measurements")
+		c.logger.Info("🚧️ [th] import TH results...")
 		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
+		c.logger.Info("🚧️ [th] import TH results... ok")
 	}
 	ssm.DNSPing = c.waitForDNSPing(dc)
 	c.measureAdditionalEndpoints(ctx, mx, ssm)
@@ -353,7 +354,8 @@ func (c *Client) waitForTHC(thc <-chan *THResponseOrError) *THResponseOrError {
 }
 
 func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result) *dnsping.Result {
-	ol := measurex.NewOperationLogger(c.logger, "wait on dnsping if it was started")
+	ol := measurex.NewOperationLogger(
+		c.logger, "check whether dnsping was started and wait for it if needed")
 	out := <-dc
 	ol.Stop(nil)
 	return out
@@ -411,7 +413,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 	}
 	now := time.Now()
 	for _, e := range in.DNS {
-		out.DNS = append(out.DNS, &measurex.DNSLookupMeasurement{
+		dns := &measurex.DNSLookupMeasurement{
 			ID:               mx.NextID(),
 			URLMeasurementID: cur.ID,
 			Lookup: &archival.FlatDNSLookupEvent{
@@ -428,10 +430,12 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 				Started:         now,
 			},
 			RoundTrip: c.importDNSRoundTripEvent(now, e.RoundTrip),
-		})
+		}
+		c.logger.Infof("import %s", dns.Describe())
+		out.DNS = append(out.DNS, dns)
 	}
 	for _, e := range in.Endpoint {
-		out.Endpoint = append(out.Endpoint, &measurex.EndpointMeasurement{
+		nem := &measurex.EndpointMeasurement{
 			ID:               mx.NextID(),
 			URLMeasurementID: cur.ID,
 			URL:              e.URL,
@@ -448,7 +452,9 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			TCPConnect:       nil,
 			QUICTLSHandshake: nil,
 			HTTPRoundTrip:    c.importHTTPRoundTripEvent(now, e.HTTPRoundTrip),
-		})
+		}
+		c.logger.Infof("import %s", nem.Describe())
+		out.Endpoint = append(out.Endpoint, nem)
 	}
 	return
 }
