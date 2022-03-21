@@ -92,6 +92,9 @@ type THRequest struct {
 	// Options contains the options. Nil means using defaults.
 	Options *measurex.Options `json:",omitempty"`
 
+	// Cookies is the list of cookies to use.
+	Cookies []string
+
 	// Plan is the endpoint measurement plan.
 	Plan []THRequestEndpointPlan `json:",omitempty"`
 }
@@ -106,9 +109,6 @@ type THRequestEndpointPlan struct {
 
 	// URL is the endpoint URL.
 	URL string
-
-	// Cookies is the list of cookies to use.
-	Cookies []string
 }
 
 // newTHRequest creates a new thRequest.
@@ -117,6 +117,7 @@ func (c *Client) newTHRequest(cur *measurex.URLMeasurement,
 	return &THRequest{
 		URL:     cur.URL.String(),
 		Options: cur.Options,
+		Cookies: measurex.SerializeCookies(cur.Cookies),
 		Plan:    c.newTHRequestEndpointPlan(plan),
 	}
 }
@@ -129,7 +130,6 @@ func (c *Client) newTHRequestEndpointPlan(
 			Network: string(e.Network),
 			Address: e.Address,
 			URL:     e.URL.String(),
-			Cookies: measurex.SerializeCookies(e.Cookies),
 		})
 	}
 	return
@@ -552,6 +552,7 @@ func (thr *THRequestHandler) step(
 	// Implementation note: of course it doesn't make sense here for the
 	// test helper to follow bogons discovered by the client :^)
 	epplan, _ := um.NewEndpointPlan(thr.logger(), measurex.EndpointPlanningExcludeBogons)
+	epplan = thr.addProbeCookies(epplan, req.Cookies)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
@@ -563,6 +564,31 @@ func (thr *THRequestHandler) step(
 	}
 	thr.saver().Save(um) // allows saving the measurement for analysis
 	return thr.serialize(um), nil
+}
+
+// addProbeCookies behavior depends on whether there are rawCookies to include
+// into the endpoint plan. If there are no cookies, this function will just
+// return the original endpoint plan. Otherwise, it returns a clone of the original
+// plan where each entry is modified to add the required cookies.
+func (thr *THRequestHandler) addProbeCookies(input []*measurex.EndpointPlan,
+	rawCookies []string) (out []*measurex.EndpointPlan) {
+	cookies := measurex.ParseCookies(rawCookies...)
+	if len(cookies) < 1 {
+		return input
+	}
+	out = []*measurex.EndpointPlan{}
+	for _, p := range input {
+		out = append(out, &measurex.EndpointPlan{
+			URLMeasurementID: p.URLMeasurementID,
+			Domain:           p.Domain,
+			Network:          p.Network,
+			Address:          p.Address,
+			URL:              p.URL.Clone(),
+			Options:          p.Options.Flatten(),
+			Cookies:          cookies,
+		})
+	}
+	return out
 }
 
 // maybeGatherCNAME attempts to gather a CNAME for the given DNSLookupMeasurement.

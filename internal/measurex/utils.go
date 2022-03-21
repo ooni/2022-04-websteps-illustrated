@@ -147,3 +147,14 @@ func isHTTPRedirect(statusCode int64) bool {
 		return false
 	}
 }
+
+// ParseCookies parses one or more serialized cookies into a list of *http.Cookie.
+func ParseCookies(cookie ...string) []*http.Cookie {
+	// See https://stackoverflow.com/a/33926065
+	header := http.Header{}
+	for _, c := range cookie {
+		header.Add("Set-Cookie", c)
+	}
+	r := &http.Response{Header: header}
+	return r.Cookies()
+}

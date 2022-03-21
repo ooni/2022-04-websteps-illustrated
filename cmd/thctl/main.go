@@ -65,7 +65,6 @@ func newRequest(opts *CLI) *websteps.THRequest {
 			Network: string(archival.NetworkTypeQUIC),
 			Address: epnt,
 			URL:     opts.Input,
-			Cookies: []string{},
 		})
 	}
 	for _, epnt := range opts.TCPEndpoint {
@@ -73,7 +72,6 @@ func newRequest(opts *CLI) *websteps.THRequest {
 			Network: string(archival.NetworkTypeTCP),
 			Address: epnt,
 			URL:     opts.Input,
-			Cookies: []string{},
 		})
 	}
 	return request
