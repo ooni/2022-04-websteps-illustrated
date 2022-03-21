@@ -352,6 +352,14 @@ func (dlm *DNSLookupMeasurement) Addresses() []string {
 	return nil
 }
 
+// CNAME returns the CNAME we discovered during the lookup.
+func (dlm *DNSLookupMeasurement) CNAME() string {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.CNAME
+	}
+	return ""
+}
+
 // ALPNs returns the list of ALPNs we discovered during the lookup.
 func (dlm *DNSLookupMeasurement) ALPNs() []string {
 	if dlm.Lookup != nil {

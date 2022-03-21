@@ -174,12 +174,18 @@ func (ev *FlatHTTPRoundTripEvent) newHTTPHeadersMap(source http.Header) (out map
 
 // NewArchivalDNSLookupResultList builds a DNS lookups list in the OONI
 // archival data format out of the results saved inside the trace.
+//
+// Deprecated: new code should obtain the archival data format from the
+// DNS round trip rather than from the DNS lookup result.
 func (t *Trace) NewArchivalDNSLookupResultList(begin time.Time) []model.ArchivalDNSLookupResult {
 	return NewArchivalDNSLookupResultList(begin, t.DNSLookup)
 }
 
 // NewArchivalDNSLookupResultList builds a DNS lookups list in the OONI
 // archival data format out of the results saved inside the trace.
+//
+// Deprecated: new code should obtain the archival data format from the
+// DNS round trip rather than from the DNS lookup result.
 func NewArchivalDNSLookupResultList(begin time.Time, in []*FlatDNSLookupEvent) (out []model.ArchivalDNSLookupResult) {
 	for _, ev := range in {
 		out = append(out, ev.ToArchival(begin)...)
@@ -188,6 +194,9 @@ func NewArchivalDNSLookupResultList(begin time.Time, in []*FlatDNSLookupEvent) (
 }
 
 // ToArchival converts a FlatDNSLookupEvent to []ArchivalDNSLookupResult.
+//
+// Deprecated: new code should obtain the archival data format from the
+// DNS round trip rather than from the DNS lookup result.
 func (ev *FlatDNSLookupEvent) ToArchival(begin time.Time) []model.ArchivalDNSLookupResult {
 	switch ev.LookupType {
 	case DNSLookupTypeHTTPS:

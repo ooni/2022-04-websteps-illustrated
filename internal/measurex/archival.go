@@ -16,7 +16,7 @@ import (
 // ArchivalDNSLookupMeasurement is an archival DNS lookup measurement.
 type ArchivalDNSLookupMeasurement struct {
 	// ID is the unique ID of this measurement.
-	ID int64 `json:"id"`
+	ID int64 `json:"id,omitempty"`
 
 	// Domain is the domain this lookup refers to.
 	Domain string `json:"domain"`
@@ -49,7 +49,7 @@ func (m *DNSLookupMeasurement) queries(begin time.Time) (out []model.ArchivalDNS
 // ArchivalEndpointMeasurement is the archival format of an endpoint measurement.
 type ArchivalEndpointMeasurement struct {
 	// ID is the unique ID of this measurement.
-	ID int64 `json:"id"`
+	ID int64 `json:"id,omitempty"`
 
 	// URLMeasurementID is the ID of the URLMeasurement that created us.
 	URLMeasurementID int64 `json:"url_measurement_id"`

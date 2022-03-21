@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
@@ -16,6 +17,7 @@ import (
 )
 
 type CLI struct {
+	Archival     bool     `doc:"show results in the OONI archival data format"`
 	Both         bool     `doc:"ask the test helper to test both HTTP and HTTPS"`
 	Help         bool     `doc:"prints this help message" short:"h"`
 	Input        string   `doc:"URL to submit to the test helper" short:"i" required:"true"`
@@ -25,8 +27,10 @@ type CLI struct {
 	URL          string   `doc:"test helper server URL (default: \"ws://127.0.0.1:9876\")" short:"U"`
 }
 
-func main() {
+// getopt gets command line options.
+func getopt() *CLI {
 	opts := &CLI{
+		Archival:     false,
 		Both:         false,
 		Help:         false,
 		Input:        "",
@@ -44,6 +48,11 @@ func main() {
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
+	return opts
+}
+
+// newRequest creates a new THRequest.
+func newRequest(opts *CLI) *websteps.THRequest {
 	request := &websteps.THRequest{
 		URL: opts.Input,
 		Options: &measurex.Options{
@@ -67,17 +76,27 @@ func main() {
 			Cookies: []string{},
 		})
 	}
-	clnt := websteps.NewTHClient(log.Log, nil, nil, opts.URL)
-	out := make(chan *websteps.THResponseOrError)
-	dump(request)
-	go clnt.THRequestAsync(context.Background(), request, out)
-	maybeResp := <-out
-	if maybeResp.Err != nil {
-		log.WithError(maybeResp.Err).Fatal("TH failed")
-	}
-	dump(maybeResp.Resp)
+	return request
 }
 
+func main() {
+	opts := getopt()
+	request := newRequest(opts)
+	clnt := websteps.NewTHClientWithDefaultSettings(opts.URL)
+	dump(request)
+	begin := time.Now()
+	resp, err := clnt.THRequest(context.Background(), request)
+	if err != nil {
+		log.WithError(err).Fatal("TH failed")
+	}
+	if opts.Archival {
+		dump(resp.ToArchival(begin))
+		return
+	}
+	dump(resp)
+}
+
+// dump emits a JSON result to the stdout.
 func dump(v interface{}) {
 	data, err := json.Marshal(v)
 	runtimex.PanicOnError(err, "json.Marshal failed")

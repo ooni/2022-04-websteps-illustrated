@@ -95,16 +95,19 @@ func (sc *stepsCache) dnsLookup(mx measurex.AbstractMeasurer,
 		alpns = append(alpns, "h3")
 	}
 	now := time.Now()
+	// TODO(bassosimone): here we can probably use a factory.
 	o := &measurex.DNSLookupMeasurement{
 		ID:               mx.NextID(),
 		URLMeasurementID: urlMeasurementID,
 		Lookup: &archival.FlatDNSLookupEvent{
 			ALPNs:           alpns,
 			Addresses:       addrs,
+			CNAME:           "",
 			Domain:          domain,
 			Failure:         "",
 			Finished:        now,
 			LookupType:      archival.DNSLookupTypeHTTPS,
+			NS:              []string{},
 			ResolverAddress: "dnscache",
 			ResolverNetwork: "",
 			Started:         now,

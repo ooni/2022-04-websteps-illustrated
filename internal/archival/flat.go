@@ -21,6 +21,7 @@ import (
 type FlatDNSLookupEvent struct {
 	ALPNs           []string `json:",omitempty"`
 	Addresses       []string `json:",omitempty"`
+	CNAME           string   `json:",omitempty"`
 	Domain          string
 	Failure         FlatFailure `json:",omitempty"`
 	Finished        time.Time
@@ -38,6 +39,7 @@ func NewFakeFlatDNSLookupEvent(resolverNetwork NetworkType, resolverAddress stri
 	return &FlatDNSLookupEvent{
 		ALPNs:           alpns,
 		Addresses:       addresses,
+		CNAME:           "",
 		Domain:          domain,
 		Failure:         "",
 		Finished:        now,

@@ -44,16 +44,19 @@ func (spr *SinglePingResult) DNSLookupMeasurementList(
 		if entry.Error != "" {
 			continue // ensure we skip any ping attempt that failed
 		}
+		// TODO(bassosimone): here we could probably use a factory
 		out = append(out, &measurex.DNSLookupMeasurement{
 			ID:               entry.ID,
 			URLMeasurementID: urlMeasurementID,
 			Lookup: &archival.FlatDNSLookupEvent{
 				ALPNs:           entry.ALPNs,
 				Addresses:       entry.Addresses,
+				CNAME:           "",
 				Domain:          spr.Domain,
 				Failure:         entry.Error,
 				Finished:        entry.Finished,
 				LookupType:      spr.lookupType(),
+				NS:              []string{},
 				ResolverAddress: "dnsping",
 				ResolverNetwork: "",
 				Started:         spr.Started,

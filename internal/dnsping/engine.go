@@ -333,7 +333,7 @@ func (e *Engine) received(sourceAddress string,
 		})
 		return
 	}
-	reply, err := e.Decoder.ParseReply(rr.RawReply, result.QueryID)
+	reply, err := e.Decoder.ParseReplyForQueryID(rr.RawReply, result.QueryID)
 	if err != nil {
 		result.Replies = append(result.Replies, &SinglePingReply{
 			ID:            e.IDGenerator.NextID(),

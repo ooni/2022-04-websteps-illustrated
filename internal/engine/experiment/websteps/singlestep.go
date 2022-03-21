@@ -20,7 +20,7 @@ type SingleStepMeasurement struct {
 	ProbeInitial *measurex.URLMeasurement
 
 	// TH contains the response from the test helper.
-	TH *THResponseWithID `json:",omitempty"`
+	TH *THResponse `json:",omitempty"`
 
 	// DNSPing contains the optional result of
 	// the dnsping follow-up experiment.
@@ -62,18 +62,6 @@ type Analysis struct {
 	Endpoint []*AnalysisEndpoint `json:"endpoint"`
 }
 
-// THResponseWithID is a TH response with a ID assigned by the probe.
-type THResponseWithID struct {
-	// id is the unique ID of the original URLMeasurement.
-	id int64
-
-	// DNS contains DNS measurements.
-	DNS []*measurex.DNSLookupMeasurement
-
-	// Endpoint contains the endpoints.
-	Endpoint []*measurex.EndpointMeasurement
-}
-
 // ArchivalSingleStepMeasurement is the archival data format
 // for SingleStepMeasurement.
 type ArchivalSingleStepMeasurement struct {
@@ -89,18 +77,6 @@ type ArchivalSingleStepMeasurement struct {
 type ArchivalTHResponse struct {
 	DNS      []measurex.ArchivalDNSLookupMeasurement `json:"dns"`
 	Endpoint []measurex.ArchivalEndpointMeasurement  `json:"endpoint"`
-}
-
-// ToArchival converts a THResponse to its archival format.
-func (r *THResponseWithID) ToArchival(begin time.Time) ArchivalTHResponse {
-	// Here it's fine to pass empty flags because we're serializing
-	// the TH response which does not contain the body
-	const bodyFlags = 0
-	return ArchivalTHResponse{
-		DNS: measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
-		Endpoint: measurex.NewArchivalEndpointMeasurementList(
-			begin, r.Endpoint, bodyFlags),
-	}
 }
 
 // ToArchival converts test keys to the OONI archival data format.
@@ -137,7 +113,7 @@ func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleSte
 func newSingleStepMeasurement(discover *measurex.URLMeasurement) *SingleStepMeasurement {
 	return &SingleStepMeasurement{
 		ProbeInitial:    discover,
-		TH:              &THResponseWithID{},
+		TH:              &THResponse{},
 		ProbeAdditional: []*measurex.EndpointMeasurement{},
 		Analysis:        &Analysis{},
 	}

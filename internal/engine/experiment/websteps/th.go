@@ -41,6 +41,10 @@ type THResponse struct {
 	// the test helper is still alive and running.
 	StillRunning bool `json:",omitempty"`
 
+	// URLMeasurementID is the URL measurement ID. We do not
+	// serialize this field to JSON since that would be redundant.
+	URLMeasurementID int64 `json:"-"`
+
 	// DNS contains DNS measurements.
 	DNS []*measurex.DNSLookupMeasurement
 
@@ -48,13 +52,36 @@ type THResponse struct {
 	Endpoint []*measurex.EndpointMeasurement
 }
 
+// ToArchival converts THResponse to its archival data format.
+func (r *THResponse) ToArchival(begin time.Time) ArchivalTHResponse {
+	// Here it's fine to pass empty flags because we're serializing
+	// the TH response which does not contain the body
+	const bodyFlags = 0
+	return ArchivalTHResponse{
+		DNS: measurex.NewArchivalDNSLookupMeasurementList(begin, r.DNS),
+		Endpoint: measurex.NewArchivalEndpointMeasurementList(
+			begin, r.Endpoint, bodyFlags),
+	}
+}
+
 // th runs the test helper client in a background goroutine.
 func (c *Client) th(ctx context.Context, cur *measurex.URLMeasurement) <-chan *THResponseOrError {
 	plan, _ := cur.NewEndpointPlan(c.logger, measurex.EndpointPlanningIncludeAll)
-	out := make(chan *THResponseOrError)
+	out := make(chan *THResponseOrError, 1)
 	thReq := c.newTHRequest(cur, plan)
 	go c.THRequestAsync(ctx, thReq, out)
 	return out
+}
+
+// THRequest sends a THRequest to the TH and waits for a response.
+func (c *Client) THRequest(ctx context.Context, req *THRequest) (*THResponse, error) {
+	out := make(chan *THResponseOrError, 1)
+	go c.THRequestAsync(ctx, req, out)
+	resp := <-out // context cancellaton handled in THRequestAsync
+	if resp.Err != nil {
+		return nil, resp.Err
+	}
+	return resp.Resp, nil
 }
 
 // THRequest is a request for the TH service.
@@ -108,7 +135,8 @@ func (c *Client) newTHRequestEndpointPlan(
 	return
 }
 
-// THRequestAsync performs an async TH request posting the result on the out channel.
+// THRequestAsync performs an async TH request posting the result on the out channel. The
+// output channel MUST be buffered with one place in the buffer.
 func (c *Client) THRequestAsync(
 	ctx context.Context, thReq *THRequest, out chan<- *THResponseOrError) {
 	// TODO(bassosimone): research keeping a persistent conn with
@@ -517,6 +545,7 @@ func (thr *THRequestHandler) step(
 	const flags = 0 // no extra lookups
 	dnsplan := um.NewDNSLookupPlans(flags, thr.resolvers()...)
 	for m := range mx.DNSLookups(ctx, dnsplan...) {
+		thr.maybeGatherCNAME(m)
 		um.DNS = append(um.DNS, m)
 	}
 	thr.addProbeDNS(mx, um, req.Plan)
@@ -534,6 +563,13 @@ func (thr *THRequestHandler) step(
 	}
 	thr.saver().Save(um) // allows saving the measurement for analysis
 	return thr.serialize(um), nil
+}
+
+// maybeGatherCNAME attempts to gather a CNAME for the given DNSLookupMeasurement.
+func (thr *THRequestHandler) maybeGatherCNAME(m *measurex.DNSLookupMeasurement) {
+	if m != nil && m.Lookup != nil {
+		m.Lookup.CNAME = archival.MaybeGatherCNAME(m.RoundTrip)
+	}
 }
 
 // saver returns the saver or the default.
@@ -583,6 +619,7 @@ func (thr *THRequestHandler) simplifyDNS(
 			Lookup: &archival.FlatDNSLookupEvent{
 				ALPNs:           entry.ALPNs(),
 				Addresses:       entry.Addresses(),
+				CNAME:           entry.CNAME(),
 				Domain:          entry.Domain(),
 				Failure:         entry.Failure(),
 				Finished:        thhResponseTime,
@@ -592,7 +629,24 @@ func (thr *THRequestHandler) simplifyDNS(
 				ResolverNetwork: entry.ResolverNetwork(),
 				Started:         thhResponseTime,
 			},
-			RoundTrip: []*archival.FlatDNSRoundTripEvent{},
+			RoundTrip: thr.simplifyDNSRoundTrip(entry.RoundTrip),
+		})
+	}
+	return
+}
+
+// simplifyDNSRoundTrip only keeps the records we want to send to clients.
+func (thr *THRequestHandler) simplifyDNSRoundTrip(
+	in []*archival.FlatDNSRoundTripEvent) (out []*archival.FlatDNSRoundTripEvent) {
+	for _, e := range in {
+		out = append(out, &archival.FlatDNSRoundTripEvent{
+			Address:  e.Address,
+			Failure:  e.Failure,
+			Finished: thhResponseTime,
+			Network:  e.Network,
+			Query:    e.Query,
+			Reply:    e.Reply,
+			Started:  thhResponseTime,
 		})
 	}
 	return

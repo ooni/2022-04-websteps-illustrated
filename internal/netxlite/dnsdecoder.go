@@ -17,6 +17,9 @@ var (
 
 	// ErrDNSIsResponse indicates that we were passed a DNS response.
 	ErrDNSIsResponse = errors.New("ooresolver: expected query but received response")
+
+	// ErrDNSIsQuery indicates that we were passed a DNS query.
+	ErrDNSIsQuery = errors.New("ooresolver: expected response but received query")
 )
 
 func (d *DNSDecoderMiekg) ParseQuery(data []byte) (*dns.Msg, error) {
@@ -30,9 +33,20 @@ func (d *DNSDecoderMiekg) ParseQuery(data []byte) (*dns.Msg, error) {
 	return query, nil
 }
 
-func (d *DNSDecoderMiekg) ParseReply(data []byte, queryID uint16) (*dns.Msg, error) {
+func (d *DNSDecoderMiekg) ParseReply(data []byte) (*dns.Msg, error) {
 	reply := &dns.Msg{}
 	if err := reply.Unpack(data); err != nil {
+		return nil, err
+	}
+	if !reply.Response {
+		return nil, ErrDNSIsQuery
+	}
+	return reply, nil
+}
+
+func (d *DNSDecoderMiekg) ParseReplyForQueryID(data []byte, queryID uint16) (*dns.Msg, error) {
+	reply, err := d.ParseReply(data)
+	if err != nil {
 		return nil, err
 	}
 	if reply.Id != queryID {
@@ -59,7 +73,7 @@ func (d *DNSDecoderMiekg) rcodeToError(reply *dns.Msg) error {
 }
 
 func (d *DNSDecoderMiekg) DecodeLookupHTTPS(data []byte, queryID uint16) (*model.HTTPSSvc, error) {
-	reply, err := d.ParseReply(data, queryID)
+	reply, err := d.ParseReplyForQueryID(data, queryID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +81,7 @@ func (d *DNSDecoderMiekg) DecodeLookupHTTPS(data []byte, queryID uint16) (*model
 }
 
 func (d *DNSDecoderMiekg) DecodeLookupNS(data []byte, queryID uint16) ([]*net.NS, error) {
-	reply, err := d.ParseReply(data, queryID)
+	reply, err := d.ParseReplyForQueryID(data, queryID)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +146,7 @@ func (d *DNSDecoderMiekg) DecodeReplyLookupNS(reply *dns.Msg) ([]*net.NS, error)
 
 func (d *DNSDecoderMiekg) DecodeLookupHost(
 	qtype uint16, data []byte, queryID uint16) ([]string, error) {
-	reply, err := d.ParseReply(data, queryID)
+	reply, err := d.ParseReplyForQueryID(data, queryID)
 	if err != nil {
 		return nil, err
 	}

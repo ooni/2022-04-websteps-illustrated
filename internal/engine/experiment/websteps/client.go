@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/apex/log"
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
@@ -100,12 +101,20 @@ type Client struct {
 type THClient interface {
 	// THRequestAsync performs an async TH request posting the result on the out channel.
 	THRequestAsync(ctx context.Context, thReq *THRequest, out chan<- *THResponseOrError)
+
+	// THRequest performs a sync TH request.
+	THRequest(ctx context.Context, req *THRequest) (*THResponse, error)
 }
 
 // NewTHClient creates a new client for communicating with the TH.
 func NewTHClient(logger model.Logger, dialer model.Dialer,
 	tlsDialer model.TLSDialer, thURL string) THClient {
 	return NewClient(logger, dialer, tlsDialer, thURL, &measurex.Options{})
+}
+
+// NewTHClient with default settings creates a new THClient using default settings.
+func NewTHClientWithDefaultSettings(thURL string) THClient {
+	return NewTHClient(log.Log, nil, nil, thURL)
 }
 
 // NewClient creates a new Client instance.
@@ -394,11 +403,11 @@ func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 // importTHMeasurement returns a copy of the input measurement with
 // adjusted IDs (related to the measurer) and times.
 func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THResponse,
-	cur *measurex.URLMeasurement) (out *THResponseWithID) {
-	out = &THResponseWithID{
-		id:       cur.ID,
-		DNS:      []*measurex.DNSLookupMeasurement{},
-		Endpoint: []*measurex.EndpointMeasurement{},
+	cur *measurex.URLMeasurement) (out *THResponse) {
+	out = &THResponse{
+		URLMeasurementID: cur.ID,
+		DNS:              []*measurex.DNSLookupMeasurement{},
+		Endpoint:         []*measurex.EndpointMeasurement{},
 	}
 	now := time.Now()
 	for _, e := range in.DNS {
@@ -408,6 +417,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			Lookup: &archival.FlatDNSLookupEvent{
 				ALPNs:           e.ALPNs(),
 				Addresses:       e.Addresses(),
+				CNAME:           e.CNAME(),
 				Domain:          e.Domain(),
 				Failure:         e.Failure(),
 				Finished:        now,
@@ -417,7 +427,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 				ResolverNetwork: e.ResolverNetwork(),
 				Started:         now,
 			},
-			RoundTrip: []*archival.FlatDNSRoundTripEvent{},
+			RoundTrip: c.importDNSRoundTripEvent(now, e.RoundTrip),
 		})
 	}
 	for _, e := range in.Endpoint {
@@ -438,6 +448,22 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			TCPConnect:       nil,
 			QUICTLSHandshake: nil,
 			HTTPRoundTrip:    c.importHTTPRoundTripEvent(now, e.HTTPRoundTrip),
+		})
+	}
+	return
+}
+
+func (c *Client) importDNSRoundTripEvent(now time.Time,
+	input []*archival.FlatDNSRoundTripEvent) (out []*archival.FlatDNSRoundTripEvent) {
+	for _, e := range input {
+		out = append(out, &archival.FlatDNSRoundTripEvent{
+			Address:  e.Address,
+			Failure:  e.Failure,
+			Finished: now,
+			Network:  e.Network,
+			Query:    e.Query,
+			Reply:    e.Reply,
+			Started:  now,
 		})
 	}
 	return
@@ -469,9 +495,9 @@ func (c *Client) importHTTPRoundTripEvent(now time.Time,
 // domain argument is the domain of the URL we're measuring. In case
 // the TH measurement is nil or there are no suitable addresses, the return
 // value is a nil list and false. Otherwise, a valid list and true.
-func (thm *THResponseWithID) URLAddressList(domain string) (o []*measurex.URLAddress, v bool) {
+func (thm *THResponse) URLAddressList(domain string) (o []*measurex.URLAddress, v bool) {
 	if thm != nil {
-		o, v = measurex.NewURLAddressList(thm.id, domain, thm.DNS, thm.Endpoint)
+		o, v = measurex.NewURLAddressList(thm.URLMeasurementID, domain, thm.DNS, thm.Endpoint)
 	}
 	return
 }

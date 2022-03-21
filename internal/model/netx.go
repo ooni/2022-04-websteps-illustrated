@@ -70,7 +70,12 @@ type DNSDecoder interface {
 	//
 	// Note that the error returned by this function is not wrapped and
 	// it is your responsiblity to wrap it if needed.
-	ParseReply(data []byte, queryID uint16) (*dns.Msg, error)
+	ParseReply(data []byte) (*dns.Msg, error)
+
+	// ParseReplyForQueryID parses a reply for the specific queryID. This
+	// function is like ParseReply but also ensures that the reply we parse
+	// has the same query ID of the query we sent.
+	ParseReplyForQueryID(data []byte, queryID uint16) (*dns.Msg, error)
 
 	// ParseQuery parses a DNS query.
 	ParseQuery(data []byte) (*dns.Msg, error)

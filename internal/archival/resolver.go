@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
+	"github.com/miekg/dns"
 )
 
 // DNSLookupType indicates the type of DNS lookup.
@@ -66,6 +68,7 @@ func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain stri
 	s.appendDNSLookupEvent(&FlatDNSLookupEvent{
 		ALPNs:           nil,
 		Addresses:       addrs,
+		CNAME:           "",
 		Domain:          domain,
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
@@ -90,6 +93,7 @@ func (s *Saver) lookupHTTPS(ctx context.Context, reso model.Resolver, domain str
 	s.appendDNSLookupEvent(&FlatDNSLookupEvent{
 		ALPNs:           s.safeALPNs(https),
 		Addresses:       s.safeAddresses(https),
+		CNAME:           "",
 		Domain:          domain,
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
@@ -123,6 +127,7 @@ func (s *Saver) lookupNS(ctx context.Context, reso model.Resolver, domain string
 	s.appendDNSLookupEvent(&FlatDNSLookupEvent{
 		ALPNs:           nil,
 		Addresses:       nil,
+		CNAME:           "",
 		Domain:          domain,
 		Failure:         NewFlatFailure(err),
 		Finished:        time.Now(),
@@ -170,4 +175,38 @@ func (s *Saver) appendDNSRoundTripEvent(ev *FlatDNSRoundTripEvent) {
 	s.mu.Lock()
 	s.trace.DNSRoundTrip = append(s.trace.DNSRoundTrip, ev)
 	s.mu.Unlock()
+}
+
+// MaybeGatherCNAME tries to read the CNAME from DNSRoundTripEvents. If there is
+// zero or more than one CNAMEs in the reply, we return an empty string.
+func MaybeGatherCNAME(rts []*FlatDNSRoundTripEvent) string {
+	cnames := maybeGatherCNAMEs(&netxlite.DNSDecoderMiekg{}, rts)
+	if len(cnames) != 1 {
+		return ""
+	}
+	return cnames[0]
+}
+
+// maybeGatherCNAMEs returns the unique CNAMEs in the reply.
+func maybeGatherCNAMEs(decoder model.DNSDecoder, rts []*FlatDNSRoundTripEvent) (out []string) {
+	cnames := map[string]int{}
+	for _, rt := range rts {
+		if len(rt.Reply) <= 0 {
+			continue
+		}
+		msg, err := decoder.ParseReply(rt.Reply)
+		if err != nil {
+			continue
+		}
+		for _, ans := range msg.Answer {
+			switch avalue := ans.(type) {
+			case *dns.CNAME:
+				cnames[avalue.Target]++
+			}
+		}
+	}
+	for key := range cnames {
+		out = append(out, key)
+	}
+	return
 }
