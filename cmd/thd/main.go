@@ -17,17 +17,18 @@ import (
 
 type CLI struct {
 	Address     string `doc:"address where to listen (default: \":9876\")" short:"A"`
-	CacheDir    string `doc:"directory where to store cache (default: \"./cache\")" short:"C"`
+	CacheDir    string `doc:"directory where to store cache (default: empty)" short:"C"`
 	Help        bool   `doc:"prints this help message" short:"h"`
 	MostlyCache bool   `doc:"never expire cache entries and keep adding to the cache"`
 	User        string `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
 	Verbose     bool   `doc:"enable verbose mode" short:"v"`
 }
 
-func main() {
+// getopt parses command line options.
+func getopt() *CLI {
 	opts := &CLI{
 		Address:     ":9876",
-		CacheDir:    "cache",
+		CacheDir:    "",
 		Help:        false,
 		MostlyCache: false,
 		User:        "nobody",
@@ -42,7 +43,16 @@ func main() {
 	if opts.Verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-	dropprivileges(log.Log, opts.User) // must drop before touch the disk
+	return opts
+}
+
+// maybeOpenCache opens the cache if we configured a cache. Otherwise
+// this function returns a nil pointer indicating there's no cache.
+func maybeOpenCache(ctx context.Context, opts *CLI) (*cachex.Cache, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(ctx)
+	if opts.CacheDir == "" {
+		return nil, cancel
+	}
 	cache, err := cachex.Open(opts.CacheDir)
 	if err != nil {
 		log.WithError(err).Fatal("cannot open cache dir")
@@ -50,15 +60,24 @@ func main() {
 	olog := measurex.NewOperationLogger(log.Log, "trimming the cache")
 	cache.Trim()
 	olog.Stop(nil)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	go trimCache(ctx, cache)
+	return cache, cancel
+}
+
+func main() {
+	opts := getopt()
+	dropprivileges(log.Log, opts.User) // must drop before touching the disk
+	cache, cancel := maybeOpenCache(context.Background(), opts)
+	defer cancel()
 	thOptions := &websteps.THHandlerOptions{
 		Logger: log.Log,
 		MeasurerFactory: func(logger model.Logger,
 			options *measurex.Options) (measurex.AbstractMeasurer, error) {
 			lib := measurex.NewDefaultLibrary(logger)
 			mx := measurex.NewMeasurerWithOptions(logger, lib, options)
+			if cache == nil {
+				return mx, nil
+			}
 			var cpp measurex.CachingPolicy
 			switch opts.MostlyCache {
 			case true:
@@ -78,6 +97,7 @@ func main() {
 	http.ListenAndServe(opts.Address, nil)
 }
 
+// trimCache periodically attempts to trim the cache.
 func trimCache(ctx context.Context, cache *cachex.Cache) {
 	ticker := time.NewTicker(15 * time.Minute)
 	defer ticker.Stop()
@@ -93,6 +113,7 @@ func trimCache(ctx context.Context, cache *cachex.Cache) {
 	}
 }
 
+// cachePruningPolicy is the policy for evicting stale cache entries.
 type cachePruningPolicy struct{}
 
 var _ measurex.CachingPolicy = &cachePruningPolicy{}
