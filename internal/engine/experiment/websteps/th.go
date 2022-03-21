@@ -568,12 +568,11 @@ var thhResponseTime = time.Date(2022, time.March, 05, 22, 44, 00, 0, time.UTC)
 func (thr *THRequestHandler) simplifyDNS(
 	in []*measurex.DNSLookupMeasurement) (out []*measurex.DNSLookupMeasurement) {
 	for _, entry := range in {
-		// Do not include into the response all the lookups imported from the probe and
-		// warn if any lookup different from "probe" figures inside the list.
-		//
-		// Exclude any entry different from DoH because we should be using DoH here.
+		// We expect the TH to always use DoH. If we see any different network here it
+		// should be a bug. Unless the network is "external". In such case we're just
+		// looking at the probe measurements imported by the TH.
 		if entry.ResolverNetwork() != archival.NetworkTypeDoH {
-			if v := entry.ResolverNetwork(); v != "probe" {
+			if v := entry.ResolverNetwork(); v != "external" {
 				log.Printf("[BUG] unexpected resolver network: %s", v)
 			}
 			continue
