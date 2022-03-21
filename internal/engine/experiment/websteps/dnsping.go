@@ -28,7 +28,10 @@ import (
 // to retry the query a bunch of times);
 //
 // 3. we see NXDOMAIN (in which case we also hope that dnsping allows us
-// to detect legit late replies, assuming there are any).
+// to detect possible legit late or duplicate DNS responses).
+//
+// When we start a background dnsping, we return a valid channel
+// and true. Otherwise we return a nil channel and false.
 //
 // The dnsping will run in parallel with other websteps operation and
 // you'll be able to obtain the result from the returned channel.
@@ -37,20 +40,21 @@ import (
 // dnsping experiment has actually performed. This happens when none of
 // three above triggering conditions are actually met.
 func (c *Client) dnsPingFollowUp(ctx context.Context, mx measurex.AbstractMeasurer,
-	current *measurex.URLMeasurement) <-chan *dnsping.Result {
+	current *measurex.URLMeasurement) (<-chan *dnsping.Result, bool) {
 	var overall []*dnsping.SinglePingPlan
 	for _, entry := range c.dnsPingSelectQueries(current.DNS) {
 		plans := c.dnsPingMakePlan(entry)
 		overall = append(overall, plans...)
 	}
-	if len(overall) > 0 {
-		// The dnsping codebase does not emit this information but it's useful
-		// when reading the logs to know it has started.
-		c.logger.Infof("🚧️ [dnsping] starting in the background to validate lookups")
+	if len(overall) <= 0 {
+		return nil, false
 	}
+	// The dnsping codebase does not emit this information but it's useful
+	// when reading the logs to know it has started.
+	c.logger.Infof("🚧️ [dnsping] starting in the background to validate lookups")
 	engine := dnsping.NewEngine(c.logger, mx)
 	engine.QueryTimeout = mx.FlattenOptions().DNSLookupTimeout
-	return engine.RunAsync(overall)
+	return engine.RunAsync(overall), true
 }
 
 // dnsPingSelectQueries filters the list of all the queries

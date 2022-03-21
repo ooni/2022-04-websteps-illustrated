@@ -324,7 +324,7 @@ func defaultResolvers() (out []*measurex.DNSResolverInfo) {
 func (c *Client) step(ctx context.Context, cache *stepsCache,
 	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) *SingleStepMeasurement {
 	c.dnsLookup(ctx, cache, mx, cur)
-	dc := c.dnsPingFollowUp(ctx, mx, cur)
+	dc, pingRunning := c.dnsPingFollowUp(ctx, mx, cur)
 	ssm := newSingleStepMeasurement(cur)
 	thc := c.th(ctx, cur)
 	c.measureDiscoveredEndpoints(ctx, cache, mx, cur)
@@ -337,7 +337,7 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
 		c.logger.Info("🚧️ [th] import TH results... ok")
 	}
-	ssm.DNSPing = c.waitForDNSPing(dc)
+	ssm.DNSPing = c.waitForDNSPing(dc, pingRunning)
 	c.measureAdditionalEndpoints(ctx, mx, ssm)
 	c.logger.Infof("🔬 analyzing the collected results")
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx, c.logger)
@@ -353,9 +353,11 @@ func (c *Client) waitForTHC(thc <-chan *THResponseOrError) *THResponseOrError {
 	return out
 }
 
-func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result) *dnsping.Result {
-	ol := measurex.NewOperationLogger(
-		c.logger, "check whether dnsping was started and wait for it if needed")
+func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result, pingRunning bool) *dnsping.Result {
+	if !pingRunning {
+		return nil
+	}
+	ol := measurex.NewOperationLogger(c.logger, "waiting for dnsping to complete")
 	out := <-dc
 	ol.Stop(nil)
 	return out
