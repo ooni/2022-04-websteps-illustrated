@@ -22,6 +22,7 @@ func NewOperationLogger(logger model.Logger, format string, v ...interface{}) *O
 		logger:  logger,
 		once:    &sync.Once{},
 		message: fmt.Sprintf(format, v...),
+		t:       time.Now(),
 		wg:      &sync.WaitGroup{},
 	}
 	ol.wg.Add(1)
@@ -35,6 +36,7 @@ type OperationLogger struct {
 	message string
 	once    *sync.Once
 	sighup  chan interface{}
+	t       time.Time
 	wg      *sync.WaitGroup
 }
 
@@ -54,10 +56,8 @@ func (ol *OperationLogger) Stop(err error) {
 	ol.once.Do(func() {
 		close(ol.sighup)
 		ol.wg.Wait()
-		if err != nil {
-			ol.logger.Infof("%s... %s", ol.message, err.Error())
-			return
-		}
-		ol.logger.Infof("%s... ok", ol.message)
+		d := time.Since(ol.t)
+		es := model.ErrorToStringOrOK(err)
+		ol.logger.Infof("%s... %s (in %s)", ol.message, es, d)
 	})
 }
