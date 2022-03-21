@@ -61,10 +61,14 @@ func (*cachingForeverPolicy) StaleEndpointMeasurement(
 // the domain but also the lookup type to distinguish between
 // similar DNS lookups for the same domain.
 //
-// 2. it stores all the endpoint measurements using the same
-// IP address into the same bucket and checks for equality
-// using their summary to distinguish between endpoint measurements
-// targeting the same IP address.
+// 2. it stores all the endpoint measurements using as key their
+// summary, which should avoid creating too large buckets.
+//
+// On disk, the cache stores a list of records having the same
+// ~unique sha256. Even when there should only be a single record
+// with a given identifier (unlikely for domains but much more
+// likely for endpoints) we use a list on disk just in case
+// there's going to be any hash collision.
 type CachingMeasurer struct {
 	// cache is the underlying cache.
 	cache *cachex.Cache
@@ -278,7 +282,7 @@ type CachedEndpointMeasurement struct {
 func (mx *CachingMeasurer) findEndpointMeasurement(
 	plan *EndpointPlan) (*EndpointMeasurement, bool) {
 	begin := time.Now()
-	elist, _, _ := mx.readEndpointEntry(plan.IPAddress())
+	elist, _, _ := mx.readEndpointEntry(plan.Summary())
 	for _, entry := range elist {
 		if entry.M == nil {
 			continue
@@ -296,7 +300,7 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 }
 
 func (mx *CachingMeasurer) storeEndpointMeasurement(em *EndpointMeasurement) error {
-	elist, key, _ := mx.readEndpointEntry(em.IPAddress())
+	elist, key, _ := mx.readEndpointEntry(em.Summary())
 	var out []CachedEndpointMeasurement
 	for _, entry := range elist {
 		if entry.M == nil {
