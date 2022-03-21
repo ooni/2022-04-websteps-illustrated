@@ -102,7 +102,7 @@ type FlatFailedOperation = archival.FlatFailure
 // EndpointMeasurement is an endpoint measurement.
 type EndpointMeasurement struct {
 	// ID is the unique ID of this measurement.
-	ID int64
+	ID int64 `json:",omitempty"`
 
 	// URLMeasurementID is the ID of the URLMeasurement that created us.
 	URLMeasurementID int64 `json:"-"`

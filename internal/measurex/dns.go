@@ -211,7 +211,7 @@ const (
 // DNSLookupMeasurement is a DNS lookup measurement.
 type DNSLookupMeasurement struct {
 	// ID is the unique ID of this measurement.
-	ID int64
+	ID int64 `json:",omitempty"`
 
 	// URLMeasurementID is the ID of the parent URLMeasurement. We do not
 	// emit this information to JSON because it is redundant, but it's still
@@ -227,7 +227,7 @@ type DNSLookupMeasurement struct {
 	// more round trips performed during the lookup. The system resolver
 	// fakes out a round trip with query type ANY and all the info
 	// that we could gather from calling getaddrinfo (or equivalent).
-	RoundTrip []*archival.FlatDNSRoundTripEvent
+	RoundTrip []*archival.FlatDNSRoundTripEvent `json:",omitempty"`
 }
 
 // Summary returns a string representing the DNS measurement's plan. Two
@@ -356,6 +356,14 @@ func (dlm *DNSLookupMeasurement) Addresses() []string {
 func (dlm *DNSLookupMeasurement) ALPNs() []string {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.ALPNs
+	}
+	return nil
+}
+
+// NS returns the list of NS we discovered during the lookup.
+func (dlm *DNSLookupMeasurement) NS() []string {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.NS
 	}
 	return nil
 }
