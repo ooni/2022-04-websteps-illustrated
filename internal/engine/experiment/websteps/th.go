@@ -39,7 +39,7 @@ type THResponseOrError struct {
 type THResponse struct {
 	// StillRunning is a boolean flag that tells the client that
 	// the test helper is still alive and running.
-	StillRunning bool
+	StillRunning bool `json:",omitempty"`
 
 	// DNS contains DNS measurements.
 	DNS []*measurex.DNSLookupMeasurement
@@ -63,10 +63,10 @@ type THRequest struct {
 	URL string
 
 	// Options contains the options. Nil means using defaults.
-	Options *measurex.Options
+	Options *measurex.Options `json:",omitempty"`
 
 	// Plan is the endpoint measurement plan.
-	Plan []THRequestEndpointPlan
+	Plan []THRequestEndpointPlan `json:",omitempty"`
 }
 
 // THRequestEndpointPlan is the plan for measuring an endpoint.
