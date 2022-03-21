@@ -33,7 +33,7 @@ var (
 	NetworkTypeDoH = NetworkType("doh")
 
 	// NetworkTypeDoH3 indicates we're using DNS-over-HTTP3.
-	NetworkTypeDoH3 = NetworkType("doh")
+	NetworkTypeDoH3 = NetworkType("doh3")
 
 	// NetworkTypeSystem identifies the system resolver.
 	NetworkTypeSystem = NetworkType("system")
