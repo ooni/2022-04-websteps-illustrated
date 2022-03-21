@@ -545,7 +545,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logger.Warnf("🐛 [endpoint] cannot find TH measurement #%d", pe.ID)
+		logger.Warnf("🐛 [endpoint] cannot find TH measurement matching #%d", pe.ID)
 		return score
 	}
 
