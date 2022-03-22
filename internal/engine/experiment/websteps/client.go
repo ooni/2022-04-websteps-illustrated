@@ -127,9 +127,11 @@ func NewClient(logger model.Logger, dialer model.Dialer,
 		dialerCleartext: dialer,
 		dialerTLS:       tlsDialer,
 		logger:          logger,
-		options:         clientOptions,
-		resolvers:       defaultResolvers(),
-		thURL:           thURL,
+		options: clientOptions.Chain(&measurex.Options{
+			HTTPExtractTitle: true,
+		}),
+		resolvers: defaultResolvers(),
+		thURL:     thURL,
 	}
 }
 
