@@ -24,6 +24,9 @@ type ArchivalDNSLookupMeasurement struct {
 	// Failure is the failure that occurred.
 	Failure *string `json:"failure"`
 
+	// Addresses contains the discovered addresses.
+	Addresses []string `json:"addresses"`
+
 	// Queries contains the DNS lookup events.
 	Queries []model.ArchivalDNSLookupResult `json:"queries"`
 }
@@ -31,10 +34,11 @@ type ArchivalDNSLookupMeasurement struct {
 // ToArchival converts a DNSLookupMeasurement to ArchivalDNSLookupMeasurement.
 func (m *DNSLookupMeasurement) ToArchival(begin time.Time) ArchivalDNSLookupMeasurement {
 	return ArchivalDNSLookupMeasurement{
-		ID:      m.ID,
-		Domain:  m.Domain(),
-		Failure: m.Failure().ToArchivalFailure(),
-		Queries: m.queries(begin),
+		ID:        m.ID,
+		Domain:    m.Domain(),
+		Failure:   m.Failure().ToArchivalFailure(),
+		Addresses: m.Addresses(),
+		Queries:   m.queries(begin),
 	}
 }
 

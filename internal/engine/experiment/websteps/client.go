@@ -34,28 +34,6 @@ type TestKeys struct {
 	Flags int64
 }
 
-// ArchivalTestKeys contains the archival test keys.
-type ArchivalTestKeys struct {
-	URL    string                           `json:"url"`
-	Steps  []*ArchivalSingleStepMeasurement `json:"steps"`
-	Bodies *HashingBodies                   `json:"bodies"`
-	Flags  int64                            `json:"flags"`
-}
-
-// ToArchival converts TestKeys to the archival data format.
-func (tk *TestKeys) ToArchival(begin time.Time) (out *ArchivalTestKeys) {
-	out = &ArchivalTestKeys{
-		URL:    tk.URL,
-		Steps:  []*ArchivalSingleStepMeasurement{}, // later
-		Bodies: tk.Bodies,
-		Flags:  tk.Flags,
-	}
-	for _, entry := range tk.Steps {
-		out.Steps = append(out.Steps, entry.ToArchival(begin))
-	}
-	return
-}
-
 // TestKeysOrError contains either test keys or an error.
 type TestKeysOrError struct {
 	// Err is the error that occurred.

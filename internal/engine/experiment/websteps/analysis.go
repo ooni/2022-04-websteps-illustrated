@@ -18,6 +18,15 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
+// Analysis contains the results of the analysis.
+type Analysis struct {
+	// DNS contains the DNS results analysis.
+	DNS []*AnalysisDNS `json:"dns"`
+
+	// Endpoint contains the endpoint results analysis.
+	Endpoint []*AnalysisEndpoint `json:"endpoint"`
+}
+
 // We represent analysis results using an int64 bitmask. We define
 // the following groups of bits within the bitmask:
 //
