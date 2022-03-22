@@ -53,13 +53,13 @@ func NewFakeFlatDNSLookupEvent(resolverNetwork NetworkType, resolverAddress stri
 
 // FlatDNSRoundTripEvent contains the result of a DNS round trip.
 type FlatDNSRoundTripEvent struct {
-	Address  string      `json:",omitempty"`
-	Failure  FlatFailure `json:",omitempty"`
-	Finished time.Time
-	Network  NetworkType
-	Query    []byte `json:",omitempty"`
-	Reply    []byte `json:",omitempty"`
-	Started  time.Time
+	Failure         FlatFailure `json:",omitempty"`
+	Finished        time.Time
+	Query           []byte `json:",omitempty"`
+	Reply           []byte `json:",omitempty"`
+	ResolverAddress string `json:",omitempty"`
+	ResolverNetwork NetworkType
+	Started         time.Time
 }
 
 // FlatFailure is the flat data format representation of failure.

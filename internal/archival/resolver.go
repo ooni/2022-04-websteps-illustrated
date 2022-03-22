@@ -160,13 +160,13 @@ func (s *Saver) dnsRoundTrip(ctx context.Context, txp model.DNSTransport, query 
 	started := time.Now()
 	reply, err := txp.RoundTrip(ctx, query)
 	s.appendDNSRoundTripEvent(&FlatDNSRoundTripEvent{
-		Address:  txp.Address(),
-		Failure:  NewFlatFailure(err),
-		Finished: time.Now(),
-		Network:  NetworkType(txp.Network()),
-		Query:    query,
-		Reply:    reply,
-		Started:  started,
+		ResolverAddress: txp.Address(),
+		Failure:         NewFlatFailure(err),
+		Finished:        time.Now(),
+		ResolverNetwork: NetworkType(txp.Network()),
+		Query:           query,
+		Reply:           reply,
+		Started:         started,
 	})
 	return reply, err
 }

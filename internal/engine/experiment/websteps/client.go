@@ -467,13 +467,13 @@ func (c *Client) importDNSRoundTripEvent(now time.Time,
 	input []*archival.FlatDNSRoundTripEvent) (out []*archival.FlatDNSRoundTripEvent) {
 	for _, e := range input {
 		out = append(out, &archival.FlatDNSRoundTripEvent{
-			Address:  e.Address,
-			Failure:  e.Failure,
-			Finished: now,
-			Network:  e.Network,
-			Query:    e.Query,
-			Reply:    e.Reply,
-			Started:  now,
+			ResolverAddress: e.ResolverAddress,
+			Failure:         e.Failure,
+			Finished:        now,
+			ResolverNetwork: e.ResolverNetwork,
+			Query:           e.Query,
+			Reply:           e.Reply,
+			Started:         now,
 		})
 	}
 	return

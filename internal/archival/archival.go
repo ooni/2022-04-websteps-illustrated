@@ -460,7 +460,7 @@ func NewArchivalDNSRoundTripEventList(begin time.Time, in []*FlatDNSRoundTripEve
 func (ev *FlatDNSRoundTripEvent) ToArchival(begin time.Time) *model.ArchivalDNSLookupResult {
 	out := &model.ArchivalDNSLookupResult{
 		Answers:          []model.ArchivalDNSAnswer{}, // later
-		Engine:           string(ev.Network),
+		Engine:           string(ev.ResolverNetwork),
 		Failure:          ev.Failure.ToArchivalFailure(),
 		Hostname:         "", // later
 		QueryType:        "", // later
@@ -468,7 +468,7 @@ func (ev *FlatDNSRoundTripEvent) ToArchival(begin time.Time) *model.ArchivalDNSL
 		RawReply:         ev.bytesToBinaryData(ev.Reply),
 		ResolverHostname: nil, // legacy
 		ResolverPort:     nil, // legacy
-		ResolverAddress:  ev.Address,
+		ResolverAddress:  ev.ResolverAddress,
 		Started:          ev.Started.Sub(begin).Seconds(),
 		T:                ev.Finished.Sub(begin).Seconds(),
 	}
@@ -577,14 +577,14 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 }
 
 func (ev *FlatDNSRoundTripEvent) ttl(value uint32) (out *uint32) {
-	if ev.Network != "system" {
+	if ev.ResolverNetwork != "system" {
 		out = &value
 	}
 	return
 }
 
 func (ev *FlatDNSRoundTripEvent) bytesToBinaryData(in []byte) *model.ArchivalBinaryData {
-	if len(in) < 1 || ev.Network == "system" {
+	if len(in) < 1 || ev.ResolverNetwork == "system" {
 		return nil
 	}
 	return &model.ArchivalBinaryData{

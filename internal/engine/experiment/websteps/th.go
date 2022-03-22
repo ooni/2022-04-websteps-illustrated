@@ -708,13 +708,13 @@ func (thr *THRequestHandler) simplifyDNSRoundTrip(
 	in []*archival.FlatDNSRoundTripEvent) (out []*archival.FlatDNSRoundTripEvent) {
 	for _, e := range in {
 		out = append(out, &archival.FlatDNSRoundTripEvent{
-			Address:  e.Address,
-			Failure:  e.Failure,
-			Finished: thhResponseTime,
-			Network:  e.Network,
-			Query:    e.Query,
-			Reply:    e.Reply,
-			Started:  thhResponseTime,
+			ResolverAddress: e.ResolverAddress,
+			Failure:         e.Failure,
+			Finished:        thhResponseTime,
+			ResolverNetwork: e.ResolverNetwork,
+			Query:           e.Query,
+			Reply:           e.Reply,
+			Started:         thhResponseTime,
 		})
 	}
 	return
