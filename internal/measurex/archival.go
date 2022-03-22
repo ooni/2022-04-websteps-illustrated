@@ -51,14 +51,14 @@ type ArchivalEndpointMeasurement struct {
 	// ID is the unique ID of this measurement.
 	ID int64 `json:"id,omitempty"`
 
-	// URLMeasurementID is the ID of the URLMeasurement that created us.
-	URLMeasurementID int64 `json:"url_measurement_id"`
-
 	// URL is the URL we're fetching.
 	URL string `json:"url"`
 
-	// Endpoint is the endpoint address.
-	Endpoint string `json:"endpoint"`
+	// Endpoint is the endpoint network.
+	Network string `json:"network"`
+
+	// Address is the endpoint address.
+	Address string `json:"address"`
 
 	// Failure is the error that occurred.
 	Failure *string `json:"failure"`
@@ -84,9 +84,9 @@ func (m *EndpointMeasurement) ToArchival(
 	begin time.Time, bodyFlags int64) ArchivalEndpointMeasurement {
 	return ArchivalEndpointMeasurement{
 		ID:               m.ID,
-		URLMeasurementID: m.URLMeasurementID,
 		URL:              m.URL.String(),
-		Endpoint:         m.EndpointAddress(),
+		Network:          string(m.Network),
+		Address:          m.Address,
 		Failure:          m.Failure.ToArchivalFailure(),
 		FailedOperation:  m.FailedOperation.ToArchivalFailure(),
 		NetworkEvents:    archival.NewArchivalNetworkEventList(begin, m.NetworkEvent),
