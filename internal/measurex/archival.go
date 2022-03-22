@@ -21,6 +21,12 @@ type ArchivalDNSLookupMeasurement struct {
 	// Domain is the domain this lookup refers to.
 	Domain string `json:"domain"`
 
+	// ResolverNetwork is the network used by this resolver.
+	ResolverNetwork string `json:"resolver_network"`
+
+	// ResolverAddress is the address used by this resolver.
+	ResolverAddress string `json:"resolver_address"`
+
 	// Failure is the failure that occurred.
 	Failure *string `json:"failure"`
 
@@ -34,11 +40,13 @@ type ArchivalDNSLookupMeasurement struct {
 // ToArchival converts a DNSLookupMeasurement to ArchivalDNSLookupMeasurement.
 func (m *DNSLookupMeasurement) ToArchival(begin time.Time) ArchivalDNSLookupMeasurement {
 	return ArchivalDNSLookupMeasurement{
-		ID:        m.ID,
-		Domain:    m.Domain(),
-		Failure:   m.Failure().ToArchivalFailure(),
-		Addresses: m.Addresses(),
-		Queries:   m.queries(begin),
+		ID:              m.ID,
+		Domain:          m.Domain(),
+		ResolverNetwork: string(m.ResolverNetwork()),
+		ResolverAddress: m.ResolverAddress(),
+		Failure:         m.Failure().ToArchivalFailure(),
+		Addresses:       m.Addresses(),
+		Queries:         m.queries(begin),
 	}
 }
 
