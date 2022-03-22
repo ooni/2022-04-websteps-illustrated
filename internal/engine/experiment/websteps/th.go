@@ -877,5 +877,5 @@ func (thh *THHandler) newTHRequestHandler() *THRequestHandler {
 // thhResolvers contains the static list of resolvers used by the THHandler.
 var thhResolvers = []*measurex.DNSResolverInfo{{
 	Network: "doh",
-	Address: "https://dns.google/dns-query",
+	Address: "https://dns.cloudflare.com/dns-query",
 }}
