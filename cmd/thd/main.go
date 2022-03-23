@@ -5,7 +5,6 @@ import (
 	"context"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
@@ -56,7 +55,7 @@ func maybeOpenCache(ctx context.Context, opts *CLI) (*measurex.Cache, context.Ca
 	olog := measurex.NewOperationLogger(log.Log, "trimming the cache")
 	cache.Trim()
 	olog.Stop(nil)
-	go trimCache(ctx, cache)
+	cache.StartTrimmer(ctx)
 	return cache, cancel
 }
 
@@ -79,7 +78,7 @@ func main() {
 			case true:
 				cpp = measurex.CachingForeverPolicy()
 			case false:
-				cpp = &cachePruningPolicy{}
+				cpp = measurex.ReasonableCachingPolicy()
 			}
 			cmx := measurex.NewCachingMeasurer(mx, logger, cache, cpp)
 			return cmx, nil
@@ -91,35 +90,4 @@ func main() {
 	http.Handle("/", thh)
 	log.Infof("Listening at: \"%s\"", opts.Address)
 	http.ListenAndServe(opts.Address, nil)
-}
-
-// trimCache periodically attempts to trim the cache.
-func trimCache(ctx context.Context, cache *measurex.Cache) {
-	ticker := time.NewTicker(15 * time.Minute)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			// Note that this does not _actually_ trim the cache but _may_ trim
-			// the cache if enough time has passed since last time.
-			cache.Trim()
-		}
-	}
-}
-
-// cachePruningPolicy is the policy for evicting stale cache entries.
-type cachePruningPolicy struct{}
-
-var _ measurex.CachingPolicy = &cachePruningPolicy{}
-
-const staleTime = 15 * time.Minute
-
-func (*cachePruningPolicy) StaleDNSLookupMeasurement(m *measurex.CachedDNSLookupMeasurement) bool {
-	return m == nil || time.Since(m.T) > staleTime
-}
-
-func (*cachePruningPolicy) StaleEndpointMeasurement(m *measurex.CachedEndpointMeasurement) bool {
-	return m == nil || time.Since(m.T) > staleTime
 }

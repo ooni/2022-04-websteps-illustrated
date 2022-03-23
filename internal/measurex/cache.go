@@ -22,6 +22,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -31,11 +33,15 @@ import (
 // simpleCache provides a simple cache-on-filesystem functionality.
 type simpleCache struct {
 	dirpath string
+	now     func() time.Time
 }
 
 // newSimpleCache creates a new simpleCache instance.
 func newSimpleCache(dirpath string) *simpleCache {
-	return &simpleCache{dirpath: dirpath}
+	return &simpleCache{
+		dirpath: dirpath,
+		now:     time.Now,
+	}
 }
 
 var _ model.KeyValueStore = &simpleCache{}
@@ -54,7 +60,11 @@ func (sc *simpleCache) Set(key string, value []byte) error {
 		return err
 	}
 	const fperms = 0600
-	return lockedfile.Write(fpath, bytes.NewReader(value), fperms)
+	if err := lockedfile.Write(fpath, bytes.NewReader(value), fperms); err != nil {
+		return err
+	}
+	sc.maybeMarkAsUsed(fpath)
+	return nil
 }
 
 // fsmap maps a given key to a directory and a file paths.
@@ -65,9 +75,109 @@ func (sc *simpleCache) fsmap(key string) (dpath, fpath string) {
 	return
 }
 
-func (sc *simpleCache) Trim() error {
-	// TODO(bassosimone): implement this functionality.
-	return nil
+// Time constants for cache expiration.
+//
+// We set the mtime on a cache file on each use, but at most one per cacheMtimeInterval,
+// to avoid causing many unnecessary inode updates. The mtimes therefore
+// roughly reflect "time of last use" but may in fact be older.
+//
+// We scan the cache for entries to delete at most once per cacheTrimInterval.
+//
+// When we do scan the cache, we delete entries that have not been used for
+// at least cacheTrimLimit. This code was adapted from Go internals and the original
+// code has numbers based on statistics. We should do the same for OONI.
+//
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Source: https://github.com/rogpeppe/go-internal/commit/797a764460877f0a4bd570a61d60d10815e728e6
+const (
+	cacheMtimeInterval = 15 * time.Minute
+	cacheTrimInterval  = 45 * time.Minute
+	cacheTrimLimit     = 2 * time.Hour
+)
+
+// maybeMarkAsUsed makes a best-effort attempt to update mtime on file,
+// so that mtime reflects cache access time.
+//
+// Because the reflection only needs to be approximate,
+// and to reduce the amount of disk activity caused by using
+// cache entries, maybeMarkAsUsed only updates the mtime if the current
+// mtime is more than an mtimeInterval old. This heuristic eliminates
+// nearly all of the mtime updates that would otherwise happen,
+// while still keeping the mtimes useful for cache trimming.
+//
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Source: https://github.com/rogpeppe/go-internal/commit/797a764460877f0a4bd570a61d60d10815e728e6
+func (sc *simpleCache) maybeMarkAsUsed(file string) {
+	info, err := os.Stat(file)
+	now := sc.now()
+	if err == nil && now.Sub(info.ModTime()) < cacheMtimeInterval {
+		return
+	}
+	os.Chtimes(file, now, now)
+}
+
+// Trim removes old cache entries that are likely not to be reused.
+//
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Source: https://github.com/rogpeppe/go-internal/commit/797a764460877f0a4bd570a61d60d10815e728e6
+func (sc *simpleCache) Trim() {
+	now := sc.now()
+
+	trimfilepath := filepath.Join(sc.dirpath, "trim.txt")
+
+	// We maintain in dir/trim.txt the time of the last completed cache trim.
+	// If the cache has been trimmed recently enough, do nothing.
+	// This is the common case.
+	data, _ := os.ReadFile(trimfilepath)
+	lt, err := strconv.ParseInt(strings.TrimSpace(string(data)), 10, 64)
+	if err == nil && now.Sub(time.Unix(lt, 0)) < cacheTrimInterval {
+		return
+	}
+
+	// Trim each of the 256 subdirectories.
+	// We subtract an additional mtimeInterval
+	// to account for the imprecision of our "last used" mtimes.
+	cutoff := now.Add(-cacheTrimLimit - cacheMtimeInterval)
+	for i := 0; i < 256; i++ {
+		subdir := filepath.Join(sc.dirpath, fmt.Sprintf("%02x", i))
+		sc.trimSubdir(subdir, cutoff)
+	}
+
+	os.WriteFile(trimfilepath, []byte(fmt.Sprintf("%d", now.Unix())), 0666)
+}
+
+// trimSubdir trims a single cache subdirectory.
+//
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Source: https://github.com/rogpeppe/go-internal/commit/797a764460877f0a4bd570a61d60d10815e728e6
+func (sc *simpleCache) trimSubdir(subdir string, cutoff time.Time) {
+	// Read all directory entries from subdir before removing
+	// any files, in case removing files invalidates the file offset
+	// in the directory scan. Also, ignore error from df.Readdirnames,
+	// because we don't care about reporting the error and we still
+	// want to process any entries found before the error.
+	df, err := os.Open(subdir)
+	if err != nil {
+		return
+	}
+	names, _ := df.Readdirnames(-1)
+	df.Close()
+
+	for _, name := range names {
+		// Remove only cache entries (xxxx-a and xxxx-d).
+		if !strings.HasSuffix(name, "-a") && !strings.HasSuffix(name, "-d") {
+			continue
+		}
+		entry := filepath.Join(subdir, name)
+		info, err := os.Stat(entry)
+		if err == nil && info.ModTime().Before(cutoff) {
+			os.Remove(entry)
+		}
+	}
 }
 
 // Cache is a cache for measurex DNS and endpoint measurements.
@@ -87,6 +197,23 @@ func NewCache(dirpath string) *Cache {
 func (c *Cache) Trim() {
 	c.dns.Trim()
 	c.epnt.Trim()
+}
+
+// StartTrimmer starts a background goroutine that runs until the
+// given context is active and periodically trims the cache.
+func (c *Cache) StartTrimmer(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(15 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				c.Trim()
+			}
+		}
+	}()
 }
 
 // CachingPolicy allows to customize che CachingMeasurer policy.
@@ -115,6 +242,26 @@ func (*cachingForeverPolicy) StaleDNSLookupMeasurement(
 func (*cachingForeverPolicy) StaleEndpointMeasurement(
 	*CachedEndpointMeasurement) bool {
 	return false
+}
+
+// ReasonableCachingPolicy returns a reasonable caching policy.
+func ReasonableCachingPolicy() CachingPolicy {
+	return &reasonableCachingPolicy{}
+}
+
+type reasonableCachingPolicy struct{}
+
+var _ CachingPolicy = &reasonableCachingPolicy{}
+
+// cacheStaleTime is the time after which a record inaide an entry becomes stale.
+const cacheStaleTime = 15 * time.Minute
+
+func (*reasonableCachingPolicy) StaleDNSLookupMeasurement(m *CachedDNSLookupMeasurement) bool {
+	return m == nil || time.Since(m.T) > cacheStaleTime
+}
+
+func (*reasonableCachingPolicy) StaleEndpointMeasurement(m *CachedEndpointMeasurement) bool {
+	return m == nil || time.Since(m.T) > cacheStaleTime
 }
 
 // CachingMeasurer is a measurer using a local cache.
@@ -318,7 +465,6 @@ type CachedEndpointMeasurement struct {
 	T time.Time
 	M *EndpointMeasurement
 }
-
 
 func (mx *CachingMeasurer) findEndpointMeasurement(
 	plan *EndpointPlan) (*EndpointMeasurement, bool) {
