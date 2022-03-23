@@ -144,3 +144,18 @@ func (r *ParallelResolver) LookupNS(
 	}
 	return r.Decoder.DecodeLookupNS(replydata, queryID)
 }
+
+// LookupPTR implements Resolver.LookupPTR.
+func (r *ParallelResolver) LookupPTR(
+	ctx context.Context, hostname string) ([]string, error) {
+	querydata, queryID, err := r.Encoder.EncodeQuery(
+		hostname, dns.TypePTR, r.Txp.RequiresPadding())
+	if err != nil {
+		return nil, err
+	}
+	replydata, err := r.Txp.RoundTrip(ctx, querydata)
+	if err != nil {
+		return nil, err
+	}
+	return r.Decoder.DecodeLookupPTR(replydata, queryID)
+}

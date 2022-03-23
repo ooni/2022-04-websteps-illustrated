@@ -61,6 +61,9 @@ type DNSDecoder interface {
 	// DecodeLookupNS is like DecodeLookupHTTPS but for NS queries.
 	DecodeLookupNS(data []byte, queryID uint16) ([]*net.NS, error)
 
+	// DecodeLookupPTR is like DecodeLookupNS but for PTR queries.
+	DecodeLookupPTR(data []byte, queryID uint16) ([]string, error)
+
 	// ParseReply parses a reply without decoding it. This function
 	// will ONLY return error if data is not a valid DNS message. In
 	// particular, it WILL NOT return any error that depends on the
@@ -96,6 +99,9 @@ type DNSDecoder interface {
 
 	// DecodeReplyLookupNS is like DecodeReplyLookupHTTPS but for NS queries.
 	DecodeReplyLookupNS(reply *dns.Msg) ([]*net.NS, error)
+
+	// DecodeReplyLookupPTR is like DecodeReplyLookupNS but for PTR queries.
+	DecodeReplyLookupPTR(reply *dns.Msg) ([]string, error)
 }
 
 // The DNSEncoder encodes DNS queries to bytes
@@ -230,6 +236,10 @@ type Resolver interface {
 
 	// LookupNS issues a NS query for a domain.
 	LookupNS(ctx context.Context, domain string) ([]*net.NS, error)
+
+	// LookupPTR issues a PTR query for a domain. To perform a reverse DNS lookup
+	// you need to reverse the IP addr first using miekg/dns.ReverseAddr.
+	LookupPTR(ctx context.Context, domain string) ([]string, error)
 }
 
 // TLSConn is the kind of TLS conn we use in ooniprobe.

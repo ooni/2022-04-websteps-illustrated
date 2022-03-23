@@ -89,6 +89,11 @@ func (r *resolverSystem) LookupNS(
 	return nil, ErrNoDNSTransport
 }
 
+func (r *resolverSystem) LookupPTR(
+	ctx context.Context, domain string) ([]string, error) {
+	return nil, ErrNoDNSTransport
+}
+
 // These vars export internal names to legacy ooni/probe-cli code.
 //
 // Deprecated: do not use these names in new code.

@@ -48,6 +48,7 @@ func (spr *SinglePingResult) DNSLookupMeasurementList(
 		out = append(out, &measurex.DNSLookupMeasurement{
 			ID:               entry.ID,
 			URLMeasurementID: urlMeasurementID,
+			ReverseAddress:   "",
 			Lookup: &archival.FlatDNSLookupEvent{
 				ALPNs:           entry.ALPNs,
 				Addresses:       entry.Addresses,

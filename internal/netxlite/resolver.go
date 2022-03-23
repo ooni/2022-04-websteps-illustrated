@@ -240,6 +240,11 @@ func (r *nullResolver) LookupNS(
 	return nil, ErrNoResolver
 }
 
+func (r *nullResolver) LookupPTR(
+	ctx context.Context, domain string) ([]string, error) {
+	return nil, ErrNoResolver
+}
+
 // resolverErrWrapper is a Resolver that knows about wrapping errors.
 type resolverErrWrapper struct {
 	model.Resolver

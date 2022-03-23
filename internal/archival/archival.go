@@ -206,7 +206,7 @@ func (ev *FlatDNSLookupEvent) ToArchival(begin time.Time) []model.ArchivalDNSLoo
 	case DNSLookupTypeNS:
 		return ev.toArchivalNS(begin)
 	default:
-		log.Printf("ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
+		log.Printf("[BUG] ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
 		return []model.ArchivalDNSLookupResult{}
 	}
 }
@@ -504,8 +504,10 @@ func (ev *FlatDNSRoundTripEvent) fillHostnameAndQueryType(out *model.ArchivalDNS
 		out.QueryType = "CNAME"
 	case dns.TypeANY:
 		out.QueryType = "ANY"
+	case dns.TypePTR:
+		out.QueryType = "PTR"
 	default:
-		// nothing
+		log.Printf("[BUG] fillHostnameAndQueryType: unhandled query type: %d", q0.Qtype)
 	}
 }
 
@@ -570,8 +572,20 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 				NS:         "",
 				TTL:        ev.ttl(v.Hdr.Ttl),
 			})
+		case *dns.PTR:
+			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
+				ALPN:       "",
+				ASN:        0,
+				ASOrgName:  "",
+				AnswerType: "PTR",
+				Hostname:   v.Ptr, // ooniprobe-legacy probably did this
+				IPv4:       "",
+				IPv6:       "",
+				NS:         "",
+				TTL:        ev.ttl(v.Hdr.Ttl),
+			})
 		default:
-			// nothing
+			log.Printf("[BUG] fillAnswers: unhandled record type %T", answer)
 		}
 	}
 }

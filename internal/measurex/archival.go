@@ -21,6 +21,10 @@ type ArchivalDNSLookupMeasurement struct {
 	// Domain is the domain this lookup refers to.
 	Domain string `json:"domain"`
 
+	// ReverseAddress is a convenience field to help analysis that is only
+	// set when we're performing a reverse DNS lookup.
+	ReverseAddress string `json:"reverse_address,omitempty"`
+
 	// ResolverNetwork is the network used by this resolver.
 	ResolverNetwork string `json:"resolver_network"`
 
@@ -42,6 +46,7 @@ func (m *DNSLookupMeasurement) ToArchival(begin time.Time) ArchivalDNSLookupMeas
 	return ArchivalDNSLookupMeasurement{
 		ID:              m.ID,
 		Domain:          m.Domain(),
+		ReverseAddress:  m.ReverseAddress,
 		ResolverNetwork: string(m.ResolverNetwork()),
 		ResolverAddress: m.ResolverAddress(),
 		Failure:         m.Failure().ToArchivalFailure(),

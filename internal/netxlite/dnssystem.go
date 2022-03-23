@@ -83,6 +83,12 @@ func (r *DNSSystemResolver) LookupNS(
 	return nil, ErrDNSNotImplemented
 }
 
+// LookupPTR implements DNSResolver.LookupPTR.
+func (r *DNSSystemResolver) LookupPTR(
+	ctx context.Context, domain string) ([]string, error) {
+	return nil, ErrDNSNotImplemented
+}
+
 // DNSSystemTransport is a transport that uses getaddrinfo or
 // the go standard library to perform a DNS resolution.
 type DNSSystemTransport struct {

@@ -398,6 +398,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 		dns := &measurex.DNSLookupMeasurement{
 			ID:               mx.NextID(),
 			URLMeasurementID: cur.ID,
+			ReverseAddress:   e.ReverseAddress,
 			Lookup: &archival.FlatDNSLookupEvent{
 				ALPNs:           e.ALPNs(),
 				Addresses:       e.Addresses(),
@@ -407,6 +408,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 				Finished:        now,
 				LookupType:      e.LookupType(),
 				NS:              e.NS(),
+				PTRs:            e.PTRs(),
 				ResolverAddress: e.ResolverAddress(),
 				ResolverNetwork: e.ResolverNetwork(),
 				Started:         now,

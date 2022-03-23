@@ -27,13 +27,16 @@ var (
 
 	// DNSLookupTypeNS indicates we're performing a NS lookup type.
 	DNSLookupTypeNS = DNSLookupType("ns")
+
+	// DNSLookupTypeReverse indicates we're performing a reverse lookup.
+	DNSLookupTypeReverse = DNSLookupType("reverse")
 )
 
 // WrapResolver wraps a resolver to use the saver.
 func (s *Saver) WrapResolver(reso model.Resolver) model.Resolver {
 	return &resolverSaver{
-		Resolver: reso,
-		s:        s,
+		r: reso,
+		s: s,
 	}
 }
 
@@ -46,20 +49,38 @@ func (s *Saver) WrapDNSTransport(txp model.DNSTransport) model.DNSTransport {
 }
 
 type resolverSaver struct {
-	model.Resolver
+	r model.Resolver
 	s *Saver
 }
 
+var _ model.Resolver = &resolverSaver{}
+
 func (r *resolverSaver) LookupHost(ctx context.Context, domain string) ([]string, error) {
-	return r.s.lookupHost(ctx, r.Resolver, domain)
+	return r.s.lookupHost(ctx, r.r, domain)
 }
 
 func (r *resolverSaver) LookupHTTPS(ctx context.Context, domain string) (*model.HTTPSSvc, error) {
-	return r.s.lookupHTTPS(ctx, r.Resolver, domain)
+	return r.s.lookupHTTPS(ctx, r.r, domain)
 }
 
 func (r *resolverSaver) LookupNS(ctx context.Context, domain string) ([]*net.NS, error) {
-	return r.s.lookupNS(ctx, r.Resolver, domain)
+	return r.s.lookupNS(ctx, r.r, domain)
+}
+
+func (r *resolverSaver) LookupPTR(ctx context.Context, domain string) ([]string, error) {
+	return r.s.lookupPTR(ctx, r.r, domain)
+}
+
+func (r *resolverSaver) Address() string {
+	return r.r.Address()
+}
+
+func (r *resolverSaver) Network() string {
+	return r.r.Network()
+}
+
+func (r *resolverSaver) CloseIdleConnections() {
+	r.r.CloseIdleConnections()
 }
 
 func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain string) ([]string, error) {
@@ -74,6 +95,7 @@ func (s *Saver) lookupHost(ctx context.Context, reso model.Resolver, domain stri
 		Finished:        time.Now(),
 		LookupType:      DNSLookupTypeGetaddrinfo,
 		NS:              nil,
+		PTRs:            nil,
 		ResolverAddress: reso.Address(),
 		ResolverNetwork: NetworkType(reso.Network()),
 		Started:         started,
@@ -99,6 +121,7 @@ func (s *Saver) lookupHTTPS(ctx context.Context, reso model.Resolver, domain str
 		Finished:        time.Now(),
 		LookupType:      DNSLookupTypeHTTPS,
 		NS:              nil,
+		PTRs:            nil,
 		ResolverAddress: reso.Address(),
 		ResolverNetwork: NetworkType(reso.Network()),
 		Started:         started,
@@ -133,6 +156,7 @@ func (s *Saver) lookupNS(ctx context.Context, reso model.Resolver, domain string
 		Finished:        time.Now(),
 		LookupType:      DNSLookupTypeNS,
 		NS:              s.ns(ns),
+		PTRs:            nil,
 		ResolverAddress: reso.Address(),
 		ResolverNetwork: NetworkType(reso.Network()),
 		Started:         started,
@@ -145,6 +169,26 @@ func (s *Saver) ns(ns []*net.NS) (out []string) {
 		out = append(out, e.Host)
 	}
 	return
+}
+
+func (s *Saver) lookupPTR(ctx context.Context, reso model.Resolver, domain string) ([]string, error) {
+	started := time.Now()
+	domains, err := reso.LookupPTR(ctx, domain)
+	s.appendDNSLookupEvent(&FlatDNSLookupEvent{
+		ALPNs:           nil,
+		Addresses:       nil,
+		CNAME:           "",
+		Domain:          domain,
+		Failure:         NewFlatFailure(err),
+		Finished:        time.Now(),
+		LookupType:      DNSLookupTypeReverse,
+		NS:              []string{},
+		PTRs:            domains,
+		ResolverAddress: reso.Address(),
+		ResolverNetwork: NetworkType(reso.Network()),
+		Started:         started,
+	})
+	return domains, err
 }
 
 type dnsTransportSaver struct {

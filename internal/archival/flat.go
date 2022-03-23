@@ -27,6 +27,7 @@ type FlatDNSLookupEvent struct {
 	Finished        time.Time
 	LookupType      DNSLookupType
 	NS              []string `json:",omitempty"`
+	PTRs            []string `json:",omitempty"`
 	ResolverAddress string   `json:",omitempty"`
 	ResolverNetwork NetworkType
 	Started         time.Time
@@ -44,7 +45,8 @@ func NewFakeFlatDNSLookupEvent(resolverNetwork NetworkType, resolverAddress stri
 		Failure:         "",
 		Finished:        now,
 		LookupType:      lookupType,
-		NS:              []string{},
+		NS:              nil,
+		PTRs:            nil,
 		ResolverAddress: resolverAddress,
 		ResolverNetwork: resolverNetwork,
 		Started:         now,

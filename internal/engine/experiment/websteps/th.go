@@ -549,6 +549,7 @@ func (thr *THRequestHandler) step(
 		um.DNS = append(um.DNS, m)
 	}
 	probeAddrs := thr.addProbeDNS(mx, um, req.Plan)
+	revch := thr.reverseDNSLookupAsync(ctx, mx, um, probeAddrs)
 	// Implementation note: of course it doesn't make sense here for the
 	// test helper to follow bogons discovered by the client :^)
 	epplan, _ := um.NewEndpointPlan(thr.logger(), measurex.EndpointPlanningExcludeBogons)
@@ -562,8 +563,43 @@ func (thr *THRequestHandler) step(
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
-	thr.saver().Save(um) // allows saving the measurement for analysis
+	um.DNS = append(um.DNS, <-revch...) // merge async results of the reverse lookup
+	thr.saver().Save(um)                // allows saving the measurement for analysis
 	return thr.serialize(um), nil
+}
+
+// reverseDNSLookupAsync performs a reverse DNS lookup for all the IP addresses we know.
+func (thr *THRequestHandler) reverseDNSLookupAsync(ctx context.Context, mx measurex.AbstractMeasurer,
+	um *measurex.URLMeasurement, probeAddrs []string) <-chan []*measurex.DNSLookupMeasurement {
+	out := make(chan []*measurex.DNSLookupMeasurement)
+	go func() {
+		// 0. close channel when done, we'll return a nil list in the worst case
+		defer close(out)
+		// 1. build a list of unique IP addresses to reverse lookup
+		uniqm := map[string]int{}
+		for _, dns := range um.DNS {
+			for _, addr := range dns.Addresses() {
+				uniqm[addr]++
+			}
+		}
+		for _, addr := range probeAddrs {
+			uniqm[addr]++
+		}
+		uniq := []string{}
+		for addr := range uniqm {
+			uniq = append(uniq, addr)
+		}
+		// 2. generate a reverse lookup plan
+		plan := um.NewDNSReverseLookupPlans(uniq, thr.resolvers()...)
+		// 3. collect results
+		v := []*measurex.DNSLookupMeasurement{}
+		for m := range mx.DNSLookups(ctx, plan...) {
+			v = append(v, m)
+		}
+		// 4. return results to the caller.
+		out <- v
+	}()
+	return out
 }
 
 // patchEndpointPlan returns a modified endpoint plan where:
@@ -684,6 +720,7 @@ func (thr *THRequestHandler) simplifyDNS(
 		out = append(out, &measurex.DNSLookupMeasurement{
 			ID:               0,
 			URLMeasurementID: 0,
+			ReverseAddress:   entry.ReverseAddress,
 			Lookup: &archival.FlatDNSLookupEvent{
 				ALPNs:           entry.ALPNs(),
 				Addresses:       entry.Addresses(),
@@ -693,6 +730,7 @@ func (thr *THRequestHandler) simplifyDNS(
 				Finished:        thhResponseTime,
 				LookupType:      entry.LookupType(),
 				NS:              entry.NS(),
+				PTRs:            entry.PTRs(),
 				ResolverAddress: entry.ResolverAddress(),
 				ResolverNetwork: entry.ResolverNetwork(),
 				Started:         thhResponseTime,

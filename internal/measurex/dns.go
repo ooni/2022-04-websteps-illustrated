@@ -18,6 +18,7 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/miekg/dns"
 )
 
 // DNSResolverInfo contains info about a DNS resolver.
@@ -77,6 +78,11 @@ type DNSLookupPlan struct {
 
 	// Domain is the domain to measure.
 	Domain string
+
+	// ReverseAddress is a convenience field holding the addr for
+	// which we issued a reverse lookup, which only makes sense when
+	// we're actually performing a reverse lookup.
+	ReverseAddress string `json:",omitempty"`
 
 	// LookupType is the type of lookup to perform.
 	LookupType archival.DNSLookupType
@@ -143,6 +149,7 @@ func newDNSLookupPlans(urlMeasurementID int64, domain string,
 		basePlan := &DNSLookupPlan{
 			URLMeasurementID: urlMeasurementID,
 			Domain:           domain,
+			ReverseAddress:   "",
 			LookupType:       archival.DNSLookupTypeGetaddrinfo,
 			Options:          options,
 			Resolver:         r,
@@ -164,6 +171,7 @@ func (dlp *DNSLookupPlan) Clone() (out *DNSLookupPlan) {
 		out = &DNSLookupPlan{
 			URLMeasurementID: dlp.URLMeasurementID,
 			Domain:           dlp.Domain,
+			ReverseAddress:   dlp.ReverseAddress,
 			LookupType:       dlp.LookupType,
 			Options:          dlp.Options.Flatten(),
 			Resolver:         dlp.Resolver.Clone(),
@@ -218,6 +226,11 @@ type DNSLookupMeasurement struct {
 	// handy to know it when we're processing measurements.
 	URLMeasurementID int64 `json:"-"`
 
+	// ReverseAddress is a convenience field holding the addr for
+	// which we issued a reverse lookup, which only makes sense when
+	// we're actually performing a reverse lookup.
+	ReverseAddress string `json:",omitempty"`
+
 	// Lookup contains the DNS lookup event. This field contains a summary
 	// of the information discovered during this lookup. We recommend using
 	// this structure for processing the results.
@@ -228,6 +241,31 @@ type DNSLookupMeasurement struct {
 	// fakes out a round trip with query type ANY and all the info
 	// that we could gather from calling getaddrinfo (or equivalent).
 	RoundTrip []*archival.FlatDNSRoundTripEvent `json:",omitempty"`
+}
+
+// NewDNSReverseLookupPlans generates a []*DNSLookupPlan for performing
+// a reverse lookup for the given list of addresses and the given resolvers.
+func (um *URLMeasurement) NewDNSReverseLookupPlans(
+	addrs []string, ri ...*DNSResolverInfo) []*DNSLookupPlan {
+	out := []*DNSLookupPlan{}
+	for _, addr := range addrs {
+		reverseAddr, err := dns.ReverseAddr(addr)
+		if err != nil {
+			// TODO(bassosimone): should we emit a warning about this?
+			continue
+		}
+		for _, r := range ri {
+			out = append(out, &DNSLookupPlan{
+				URLMeasurementID: um.ID,
+				Domain:           reverseAddr,
+				ReverseAddress:   addr,
+				LookupType:       archival.DNSLookupTypeReverse,
+				Options:          um.Options,
+				Resolver:         r,
+			})
+		}
+	}
+	return out
 }
 
 // Summary returns a string representing the DNS measurement's plan. Two
@@ -261,15 +299,17 @@ func (dlm *DNSLookupMeasurement) Summary() string {
 //
 // The following table shows when two lookup types are weakly compatible:
 //
-//     +-------------+-------------+-------+--------+
-//     |             | getaddrinfo | https |   ns   |
-//     +-------------+-------------+-------+--------+
-//     | getaddrinfo |     yes     |  yes  |   no   |
-//     +-------------+-------------+-------+--------+
-//     |    https    |     yes     |  yes  |   no   |
-//     +-------------+-------------+-------+--------+
-//     |      ns     |      no     |   no  |  yes   |
-//     +-------------+-------------+-------+--------+
+//     +-------------+-------------+-------+--------+---------+
+//     |             | getaddrinfo | https |   ns   | reverse |
+//     +-------------+-------------+-------+--------+---------+
+//     | getaddrinfo |     yes     |  yes  |   no   |   no    |
+//     +-------------+-------------+-------+--------+---------+
+//     |    https    |     yes     |  yes  |   no   |   no    |
+//     +-------------+-------------+-------+--------+---------+
+//     |      ns     |      no     |   no  |  yes   |   no    |
+//     +-------------+-------------+-------+--------+---------+
+//     |   reverse   |      no     |   no  |   no   |  yes    |
+//     +-------------+-------------+-------+--------+---------+
 //
 // In addition, two lookup types are _always_ weakly compatible when they're the
 // same, even if they are not listed in the above table.
@@ -317,14 +357,11 @@ func (dlm *DNSLookupMeasurement) IsAnotherInstanceOf(o *DNSLookupMeasurement) bo
 // UsingResolverIPv6 returns whether this DNS lookups used an IPv6 resolver.
 func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 	if dlm.Lookup != nil {
-		switch dlm.Lookup.ResolverNetwork {
+		switch v := dlm.Lookup.ResolverNetwork; v {
 		case "tcp", "udp", "dot":
 			usingIPv6 = isEndpointIPv6(dlm.ResolverAddress())
-		case "doh":
-			// TODO(bassosimone): implement this case
-			log.Printf("[BUG] UsingResolverIPv6: doh case is not implemented")
 		default:
-			// nothing
+			log.Printf("[BUG] UsingResolverIPv6: case %s: not implemented", v)
 		}
 	}
 	return
@@ -347,6 +384,14 @@ func (dlm *DNSLookupMeasurement) Describe() string {
 func (dlm *DNSLookupMeasurement) Addresses() []string {
 	if dlm.Lookup != nil {
 		return dlm.Lookup.Addresses
+	}
+	return nil
+}
+
+// PTRs returns the PTRs we discovered during the lookup.
+func (dlm *DNSLookupMeasurement) PTRs() []string {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.PTRs
 	}
 	return nil
 }
@@ -419,7 +464,7 @@ func (dlm *DNSLookupMeasurement) ResolverNetwork() archival.NetworkType {
 // DoH resolvers, we just return the URL. For all the other resolvers, we use the
 // network as the scheme and the address as the URL host.
 func (dlm *DNSLookupMeasurement) ResolverURL() string {
-	switch dlm.ResolverNetwork() {
+	switch v := dlm.ResolverNetwork(); v {
 	case archival.NetworkTypeUDP:
 		return fmt.Sprintf("udp://%s", dlm.ResolverAddress())
 	case archival.NetworkTypeTCP:
@@ -431,6 +476,7 @@ func (dlm *DNSLookupMeasurement) ResolverURL() string {
 	case "system":
 		return "system:///"
 	default:
+		log.Printf("[BUG] ResolverURL not implemented for: %s", v)
 		return ""
 	}
 }
@@ -500,6 +546,8 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			output <- mx.lookupHTTPSSvcUDP(ctx, t)
 		case archival.DNSLookupTypeNS:
 			output <- mx.lookupNSUDP(ctx, t)
+		default:
+			log.Printf("[BUG] asked the UDP resolver for %s lookup type", t.LookupType)
 		}
 	case archival.NetworkTypeDoH, archival.NetworkTypeDoH3:
 		switch t.LookupType {
@@ -509,6 +557,10 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 			output <- mx.lookupHTTPSSvcDoH(ctx, t)
 		case archival.DNSLookupTypeNS:
 			output <- mx.lookupNSDoH(ctx, t)
+		case archival.DNSLookupTypeReverse:
+			output <- mx.lookupReverseDoH(ctx, t)
+		default:
+			log.Printf("[BUG] asked the HTTPS resolver for %s lookup type", t.LookupType)
 		}
 	}
 }
@@ -610,6 +662,20 @@ func (mx *Measurer) lookupNSDoH(
 	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
 }
 
+// lookupReverseDoH performs a reverse lookup using a DoH resolver.
+func (mx *Measurer) lookupReverseDoH(
+	ctx context.Context, t *DNSLookupPlan) *DNSLookupMeasurement {
+	saver := archival.NewSaver()
+	hc := mx.httpClientForDNSLookupTarget(t)
+	r := mx.Library.NewResolverDoH(
+		saver, hc, string(t.ResolverNetwork()), t.ResolverAddress())
+	// Note: no close idle connections because actually we'd like to keep
+	// open connections with the server.
+	id := mx.NextID()
+	_, _ = mx.doLookupReverse(ctx, t.Domain, r, t, id)
+	return mx.newDNSLookupMeasurement(id, t, saver.MoveOutTrace())
+}
+
 // doLookupHost is the worker function to perform an A and AAAA lookup.
 func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) ([]string, error) {
@@ -649,12 +715,26 @@ func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
 	return ns, err
 }
 
+// doLookupReverse is the worker function to perform a reverse lookup.
+func (mx *Measurer) doLookupReverse(ctx context.Context, domain string,
+	r model.Resolver, t *DNSLookupPlan, id int64) ([]string, error) {
+	ol := NewOperationLogger(mx.Logger, "[#%d] LookupReverse %s with %s resolver %s",
+		id, domain, r.Network(), r.Address())
+	timeout := t.Options.dnsLookupTimeout()
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	ptrs, err := r.LookupPTR(ctx, domain)
+	ol.Stop(err)
+	return ptrs, err
+}
+
 // newDNSLookupMeasurement is the internal factory for creating a DNSLookupMeasurement.
 func (mx *Measurer) newDNSLookupMeasurement(id int64,
 	t *DNSLookupPlan, trace *archival.Trace) *DNSLookupMeasurement {
 	out := &DNSLookupMeasurement{
 		ID:               id,
 		URLMeasurementID: t.URLMeasurementID,
+		ReverseAddress:   t.ReverseAddress,
 		Lookup:           nil,
 		RoundTrip:        nil,
 	}
@@ -689,6 +769,7 @@ func newFakeHTTPSSvcDNSLookupMeasurement(urlMeasurementID int64, mx AbstractMeas
 	return &DNSLookupMeasurement{
 		ID:               mx.NextID(),
 		URLMeasurementID: urlMeasurementID,
+		ReverseAddress:   "",
 		Lookup: archival.NewFakeFlatDNSLookupEvent(
 			resolverNetwork, resolverAddress, archival.DNSLookupTypeHTTPS,
 			domain, alpns, addresses,

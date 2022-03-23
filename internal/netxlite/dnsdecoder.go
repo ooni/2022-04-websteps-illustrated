@@ -176,4 +176,29 @@ func (d *DNSDecoderMiekg) DecodeReplyLookupHost(qtype uint16, reply *dns.Msg) ([
 	return addrs, nil
 }
 
+func (d *DNSDecoderMiekg) DecodeLookupPTR(data []byte, queryID uint16) ([]string, error) {
+	reply, err := d.ParseReplyForQueryID(data, queryID)
+	if err != nil {
+		return nil, err
+	}
+	return d.DecodeReplyLookupPTR(reply)
+}
+
+func (d *DNSDecoderMiekg) DecodeReplyLookupPTR(reply *dns.Msg) ([]string, error) {
+	if err := d.rcodeToError(reply); err != nil {
+		return nil, err
+	}
+	var domains []string
+	for _, answer := range reply.Answer {
+		switch v := answer.(type) {
+		case *dns.PTR:
+			domains = append(domains, v.Ptr)
+		}
+	}
+	if len(domains) <= 0 {
+		return nil, ErrOODNSNoAnswer
+	}
+	return domains, nil
+}
+
 var _ model.DNSDecoder = &DNSDecoderMiekg{}
