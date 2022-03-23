@@ -19,6 +19,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 
@@ -329,20 +330,35 @@ func endpointSummary(URL *SimpleURL, network archival.NetworkType,
 		log.Printf("[BUG] endpointSummary passed a nil URL")
 		return ""
 	}
+	// stablerepr ensures that we emit a stable representation of the
+	// headers: keys ordering is not stable in golang maps.
+	stablerepr := func(h http.Header) [][]string {
+		out := [][]string{}
+		for k, vv := range h {
+			for _, v := range vv {
+				out = append(out, []string{k, v})
+			}
+		}
+		sort.SliceStable(out, func(i, j int) bool {
+			return out[i][0] < out[j][0]
+		})
+		return out
+	}
 	d = append(d, CanonicalURLString(URL))
 	d = append(d, string(network))
 	d = append(d, address)
+	// ao is a shortcut to write less :^)
 	ao := endpointDumpOption
 	d = append(d, ao("alpn", o.alpn()))
 	d = append(d, ao("http_extract_title", o.httpExtractTitle()))
 	d = append(d, ao("http_host_header", o.httpHostHeader()))
-	d = append(d, ao("http_request_headers", o.httpClonedRequestHeaders()))
+	d = append(d, ao("http_request_headers", stablerepr(o.httpClonedRequestHeaders())))
 	d = append(d, ao("max_http_response_body_snapshot_size", o.maxHTTPResponseBodySnapshotSize()))
 	d = append(d, ao("max_https_response_body_snapshot_size_connectivity", o.maxHTTPSResponseBodySnapshotSizeConnectivity()))
 	d = append(d, ao("max_https_response_body_snapshot_size_throttling", o.maxHTTPSResponseBodySnapshotSizeThrottling()))
 	d = append(d, ao("sni", o.sni()))
 	d = append(d, SortedSerializedCookiesNames(cookies)...)
-	return strings.Join(d, " ")
+	return strings.Join(d, "\n\t")
 }
 
 // IsAnotherInstanceOf returns whether this EndpointMeasurement
