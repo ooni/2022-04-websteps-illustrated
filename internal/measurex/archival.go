@@ -72,11 +72,26 @@ type ArchivalEndpointMeasurement struct {
 	// Address is the endpoint address.
 	Address string `json:"address"`
 
+	// CookieNames contains the cookie names we sent.
+	CookiesNames []string `json:"cookies_names"`
+
 	// Failure is the error that occurred.
 	Failure *string `json:"failure"`
 
 	// FailedOperation is the operation that failed.
 	FailedOperation *string `json:"failed_operation"`
+
+	// StatusCode is the status code if any.
+	StatusCode int64 `json:"status_code"`
+
+	// Location is the redirect location if any.
+	Location string `json:"location"`
+
+	// BodyLength is the body length if any.
+	BodyLength int64 `json:"body_length"`
+
+	// Title is the webpage title if any.
+	Title string `json:"title"`
 
 	// NetworkEvent contains network events (if any).
 	NetworkEvents []model.ArchivalNetworkEvent `json:"network_events"`
@@ -99,8 +114,13 @@ func (m *EndpointMeasurement) ToArchival(
 		URL:              m.URL.String(),
 		Network:          string(m.Network),
 		Address:          m.Address,
+		CookiesNames:     SortedSerializedCookiesNames(m.OrigCookies),
 		Failure:          m.Failure.ToArchivalFailure(),
 		FailedOperation:  m.FailedOperation.ToArchivalFailure(),
+		StatusCode:       m.StatusCode(),
+		Location:         m.LocationAsString(),
+		BodyLength:       m.BodyLength(),
+		Title:            m.HTTPTitle,
 		NetworkEvents:    archival.NewArchivalNetworkEventList(begin, m.NetworkEvent),
 		TCPConnect:       m.toArchivalTCPConnectResult(begin),
 		QUICTLSHandshake: m.toArchivalTLSOrQUICHandshakeResult(begin),
