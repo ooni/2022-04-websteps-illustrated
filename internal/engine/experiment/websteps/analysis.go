@@ -543,7 +543,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 	}
 
 	// Let's now see to compare with what the TH did.
-	the, found := ssm.endpointFindMatchingMeasurement(pe)
+	the, found := ssm.endpointFindMatchingMeasurement(pe, logger, 0)
 	if !found {
 		// Special case: if we are using HTTPS (or HTTP3) and we
 		// succeded, then we're most likely okay, modulo sanctions.
@@ -553,8 +553,15 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 		}
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
+		//
+		// Because this could be a bug in matching the
+		// endpoints, let's spit out ~nice text.
 		score.Flags |= AnalysisGiveUp
+		logger.Warn("🐛 [endpoint] === BEGIN BUG INFORMATION ===")
 		logger.Warnf("🐛 [endpoint] cannot find TH measurement matching #%d", pe.ID)
+		ssm.endpointFindMatchingMeasurement(pe, logger, analysisFindVerbose)
+		logger.Warn("🐛 [endpoint] === END BUG INFORMATION ===")
+		logger.Warn("🐛 [endpoint] please, send us the information above")
 		return score
 	}
 
@@ -773,16 +780,27 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 	return score
 }
 
+// Flags modifying the behavior of matching functions
+const (
+	analysisFindVerbose = 1 << iota
+)
+
 // endpointFindMatchingMeasurement takes in input a probe's endpoint and
 // returns in output the corresponding TH endpoint measurement.
-func (ssm *SingleStepMeasurement) endpointFindMatchingMeasurement(
-	pe *measurex.EndpointMeasurement) (*measurex.EndpointMeasurement, bool) {
+func (ssm *SingleStepMeasurement) endpointFindMatchingMeasurement(pe *measurex.EndpointMeasurement,
+	logger model.Logger, flags int64) (*measurex.EndpointMeasurement, bool) {
 	if ssm.TH == nil {
 		return nil, false
+	}
+	if (flags & analysisFindVerbose) != 0 {
+		logger.Infof("🔎 we're trying to match:\n\t%s", pe.Summary())
 	}
 	for _, the := range ssm.TH.Endpoint {
 		if pe.IsAnotherInstanceOf(the) {
 			return the, true
+		}
+		if (flags & analysisFindVerbose) != 0 {
+			logger.Infof("🔎 candidate #%d does not match:\n\t%s", the.ID, the.Summary())
 		}
 	}
 	return nil, false
