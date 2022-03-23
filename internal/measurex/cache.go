@@ -319,13 +319,6 @@ type CachedEndpointMeasurement struct {
 	M *EndpointMeasurement
 }
 
-func cacheCutLongString(s string) string {
-	const toolong = 64
-	if len(s) > toolong {
-		s = s[:toolong] + " [...]"
-	}
-	return s
-}
 
 func (mx *CachingMeasurer) findEndpointMeasurement(
 	plan *EndpointPlan) (*EndpointMeasurement, bool) {
@@ -341,8 +334,8 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 		if mx.policy.StaleEndpointMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
-		mx.logger.Infof("👛 endpoint entry '%s' in %v",
-			cacheCutLongString(entry.M.Summary()), time.Since(begin))
+		mx.logger.Infof("👛 endpoint entry in %v:\n\t%s",
+			time.Since(begin), entry.M.Summary())
 		return entry.M, true
 	}
 	return nil, false
