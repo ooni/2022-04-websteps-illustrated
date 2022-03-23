@@ -4,9 +4,11 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"golang.org/x/net/publicsuffix"
 )
 
 //
@@ -17,9 +19,80 @@ import (
 
 // dnsWebConnectivityDNSDiff is the DNSDiff algorithm originally
 // designed for Web Connectivity and now adapted to websteps.
-func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
-	pq, thq *measurex.DNSLookupMeasurement) bool {
-	// 1. stop if measurement and control returned IP addresses
+func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(logger model.Logger,
+	pq, thq *measurex.DNSLookupMeasurement, thResp *THResponse) bool {
+
+	// we use these flags to classify who did see what
+	const (
+		inMeasurement = 1 << 0
+		inControl     = 1 << 1
+		inBoth        = inMeasurement | inControl
+	)
+
+	// who is an helper function for printing log messages
+	who := func(flags int64) string {
+		if (flags & inBoth) == inBoth {
+			return "both"
+		}
+		if (flags & inControl) != 0 {
+			return "th"
+		}
+		if (flags & inMeasurement) != 0 {
+			return "probe"
+		}
+		return "none"
+	}
+
+	// 1. check whether we can find common "public suffix" for any of
+	// the IP addresses returned by the probe and the TH.
+	//
+	// This check was not in MK. A simpler version of this check
+	// was implemented by the original ooniprobe.
+	if thResp != nil {
+		// 1.1. map every IP address to the known public suffixes for it
+		suffixes := make(map[string][]string)
+		for _, dns := range thResp.DNS {
+			if dns.LookupType() != archival.DNSLookupTypeReverse {
+				continue
+			}
+			for _, ptr := range dns.PTRs() {
+				suffix, err := publicsuffix.EffectiveTLDPlusOne(strings.TrimSuffix(ptr, "."))
+				if err != nil {
+					continue // probably a corner case
+				}
+				suffixes[dns.ReverseAddress] = append(suffixes[dns.ReverseAddress], suffix)
+			}
+		}
+		// 1.2. compute the intersection between probe and TH results
+		suffmap := make(map[string]int64)
+		for _, addr := range pq.Addresses() {
+			for _, suf := range suffixes[addr] {
+				suffmap[suf] |= inMeasurement
+			}
+		}
+		for _, addr := range thq.Addresses() {
+			for _, suf := range suffixes[addr] {
+				suffmap[suf] |= inControl
+			}
+		}
+		// 1.3. declare there's no DNS diff if we find a common intersection
+		for _, value := range suffmap {
+			if (value & inBoth) == inBoth {
+				return false // no diff
+			}
+		}
+		// 1.4. explain to the user why this lookup failed.
+		if len(suffmap) > 0 {
+			logger.Infof("🧐 [dnsDiff] reverse mapping IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
+			for key, value := range suffmap {
+				logger.Infof("        - only the %s found IP addresses mapping to %s", who(value), key)
+			}
+			logger.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
+			logger.Info("")
+		}
+	}
+
+	// 2. stop if measurement and control returned IP addresses
 	// that belong to the same Autonomous System(s).
 	//
 	// This specific check is present in MK's implementation.
@@ -29,26 +102,32 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 	// websteps we check for bogons before invoking this algorithm).
 	//
 	// Note that this of course covers the cases where results are equal.
-	const (
-		inMeasurement = 1 << 0
-		inControl     = 1 << 1
-		inBoth        = inMeasurement | inControl
-	)
 	asnmap := make(map[uint]int64)
 	for _, addr := range pq.Addresses() {
-		asnmap[ssm.dnsMapAddrToASN(addr)] |= inMeasurement
+		if asnum := ssm.dnsMapAddrToASN(addr); asnum != 0 {
+			asnmap[asnum] |= inMeasurement
+		}
 	}
 	for _, addr := range thq.Addresses() {
-		asnmap[ssm.dnsMapAddrToASN(addr)] |= inControl
+		if asnum := ssm.dnsMapAddrToASN(addr); asnum != 0 {
+			asnmap[asnum] |= inControl
+		}
 	}
-	for key, value := range asnmap {
-		// Note: zero means that the ASN lookup failed
-		if key != 0 && (value&inBoth) == inBoth {
+	for _, value := range asnmap {
+		if (value & inBoth) == inBoth {
 			return false // no diff
 		}
 	}
+	if len(asnmap) > 0 {
+		logger.Infof("🧐 [dnsDiff] comparing the ASNs of the IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
+		for key, value := range asnmap {
+			logger.Infof("        - only the %s found IP addresses in AS%d", who(value), key)
+		}
+		logger.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
+		logger.Info("")
+	}
 
-	// 2. when ASN lookup failed (unlikely), check whether
+	// 3. when ASN lookup failed (unlikely), check whether
 	// there is overlap in the returned IP addresses
 	ipmap := make(map[string]int)
 	for _, addr := range pq.Addresses() {
@@ -63,6 +142,7 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 			return false // no diff
 		}
 	}
+	logger.Infof("😟 [dnsDiff] no common addresses in #%d and %d; looks like #dnsDiff to me", pq.ID, thq.ID)
 
 	// 3. conclude that measurement and control are inconsistent
 	return true

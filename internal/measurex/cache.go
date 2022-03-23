@@ -480,8 +480,7 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 		if mx.policy.StaleEndpointMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
-		mx.logger.Infof("👛 endpoint entry in %v:\n\t%s",
-			time.Since(begin), entry.M.Summary())
+		mx.logger.Infof("👛 endpoint entry in %v: %s", time.Since(begin), entry.M.Summary())
 		return entry.M, true
 	}
 	return nil, false

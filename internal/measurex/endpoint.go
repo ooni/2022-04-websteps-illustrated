@@ -358,7 +358,7 @@ func endpointSummary(URL *SimpleURL, network archival.NetworkType,
 	d = append(d, ao("max_https_response_body_snapshot_size_throttling", o.maxHTTPSResponseBodySnapshotSizeThrottling()))
 	d = append(d, ao("sni", o.sni()))
 	d = append(d, SortedSerializedCookiesNames(cookies)...)
-	return strings.Join(d, "\n\t")
+	return strings.Join(d, " ")
 }
 
 // IsAnotherInstanceOf returns whether this EndpointMeasurement

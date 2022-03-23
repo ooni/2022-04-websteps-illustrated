@@ -18,26 +18,26 @@ import (
 
 type CLI struct {
 	Archival     bool     `doc:"show results in the OONI archival data format"`
+	Backend      string   `doc:"test helper server URL (default: \"ws://127.0.0.1:9876\")" short:"b"`
 	Both         bool     `doc:"ask the test helper to test both HTTP and HTTPS"`
 	Help         bool     `doc:"prints this help message" short:"h"`
 	Input        string   `doc:"URL to submit to the test helper" short:"i" required:"true"`
 	QUICEndpoint []string `doc:"ask the test helper to test this QUIC endpoint"`
 	TCPEndpoint  []string `doc:"ask the test helper to test this TCP endpoint"`
 	Verbose      bool     `doc:"enable verbose mode" short:"v"`
-	URL          string   `doc:"test helper server URL (default: \"ws://127.0.0.1:9876\")" short:"U"`
 }
 
 // getopt gets command line options.
 func getopt() *CLI {
 	opts := &CLI{
 		Archival:     false,
+		Backend:      "ws://127.0.0.1:9876",
 		Both:         false,
 		Help:         false,
 		Input:        "",
 		QUICEndpoint: []string{},
 		TCPEndpoint:  []string{},
 		Verbose:      false,
-		URL:          "ws://127.0.0.1:9876",
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -81,7 +81,7 @@ func newRequest(opts *CLI) *websteps.THRequest {
 func main() {
 	opts := getopt()
 	request := newRequest(opts)
-	clnt := websteps.NewTHClientWithDefaultSettings(opts.URL)
+	clnt := websteps.NewTHClientWithDefaultSettings(opts.Backend)
 	dump(request)
 	begin := time.Now()
 	resp, err := clnt.THRequest(context.Background(), request)

@@ -325,7 +325,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 	// So, now we're in the case in which both succeded. We know from
 	// the above checks that we didn't receive any bogon and the TH could
 	// not complete any HTTPS measurement with this query's results.
-	if ssm.dnsWebConnectivityDNSDiff(pq, thq) {
+	if ssm.dnsWebConnectivityDNSDiff(logger, pq, thq, ssm.TH) {
 		score.Flags |= AnalysisDNSDiff
 	}
 
