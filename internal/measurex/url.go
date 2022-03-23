@@ -71,9 +71,9 @@ func (su *SimpleURL) ToURL() *url.URL {
 		User:        nil,
 		Host:        su.Host,
 		Path:        su.Path,
-		RawPath:     su.RawQuery,
+		RawPath:     "",
 		ForceQuery:  false,
-		RawQuery:    "",
+		RawQuery:    su.RawQuery,
 		Fragment:    "",
 		RawFragment: "",
 	}
