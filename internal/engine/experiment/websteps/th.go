@@ -178,7 +178,7 @@ func (c *Client) websocketDial(ctx context.Context) (*websocket.Conn, error) {
 	}
 	conn, _, err := dialer.DialContext(ctx, c.thURL, http.Header{})
 	if err != nil {
-		logcat.Warnf("websteps: cannot websocket-dial with server: %s", err.Error())
+		logcat.Shrugf("[thclient] cannot dial: %s", err.Error())
 		return nil, err
 	}
 	const timeout = 90 * time.Second
@@ -218,7 +218,7 @@ func (c *Client) websocketSend(conn *websocket.Conn, thReq *THRequest) error {
 	data, err := json.Marshal(thReq)
 	runtimex.PanicOnError(err, "json.Marshal failed")
 	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
-		logcat.Warnf("websteps: cannot write using websocket: %s", err.Error())
+		logcat.Shrugf("[thclient] cannot write: %s", err.Error())
 		return err
 	}
 	return nil
@@ -230,25 +230,25 @@ func (c *Client) websocketRecvAsync(conn *websocket.Conn, out chan<- *THResponse
 	for {
 		mtype, reader, err := conn.NextReader()
 		if err != nil {
-			logcat.Warnf("websteps: cannot read from server: %s", err.Error())
+			logcat.Shrugf("[thclient] cannot read message header: %s", err.Error())
 			out <- &THResponseOrError{Err: err}
 			return
 		}
 		if mtype != websocket.TextMessage {
-			logcat.Warnf("websteps: unexpected message type: %d", mtype)
+			logcat.Bugf("[thclient] unexpected message type: %d", mtype)
 			out <- &THResponseOrError{Err: err}
 			return
 		}
 		reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
 		data, err := netxlite.ReadAllContext(context.Background(), reader)
 		if err != nil {
-			logcat.Warnf("websteps: cannot read from server: %s", err.Error())
+			logcat.Shrugf("[thclient] cannot read message body: %s", err.Error())
 			out <- &THResponseOrError{Err: err}
 			return
 		}
 		var thResp THResponse
 		if err := json.Unmarshal(data, &thResp); err != nil {
-			logcat.Warnf("websteps: cannot unmarshal from server: %s", err.Error())
+			logcat.Bugf("[thclient] cannot unmarshal message: %s", err.Error())
 			out <- &THResponseOrError{Err: err}
 			return
 		}
@@ -353,7 +353,7 @@ func (thr *THRequestHandler) upgrade(
 	}
 	conn, err := upgrader.Upgrade(w, req, http.Header{})
 	if err != nil {
-		logcat.Warnf("cannot upgrade to websocket: %s", err.Error())
+		logcat.Shrugf("[thh] cannot upgrade to websocket: %s", err.Error())
 		return nil, err
 	}
 	const timeout = 90 * time.Second
@@ -367,22 +367,22 @@ func (thr *THRequestHandler) upgrade(
 func (thr *THRequestHandler) readMsg(conn *websocket.Conn) (*THRequest, error) {
 	mtype, reader, err := conn.NextReader()
 	if err != nil {
-		logcat.Warnf("cannot upgrade to websocket: %s", err.Error())
+		logcat.Shrugf("[thh] cannot read message header: %s", err.Error())
 		return nil, err
 	}
 	if mtype != websocket.TextMessage {
-		logcat.Warn("received non-text message")
+		logcat.Shrugf("[thh] received non-text message")
 		return nil, err
 	}
 	reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
 	data, err := netxlite.ReadAllContext(context.Background(), reader)
 	if err != nil {
-		logcat.Warnf("cannot read websocket message: %s", err.Error())
+		logcat.Shrugf("[thh] cannot read message body: %s", err.Error())
 		return nil, err
 	}
 	var thReq THRequest
 	if err := json.Unmarshal(data, &thReq); err != nil {
-		logcat.Warnf("cannot unmarshal websocket message: %s", err.Error())
+		logcat.Shrugf("[thh] cannot unmarshal message: %s", err.Error())
 		return nil, err
 	}
 	return &thReq, nil
@@ -440,7 +440,7 @@ func (thr *THRequestHandler) writeToClient(conn *websocket.Conn, thResp *THRespo
 	data, err := json.Marshal(thResp)
 	runtimex.PanicOnError(err, "json.Marshal failed")
 	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
-		logcat.Warnf("cannot write messsge to client: %s", err.Error())
+		logcat.Shrugf("[thh] cannot write message: %s", err.Error())
 		return err
 	}
 	return nil
@@ -661,7 +661,7 @@ func (thr *THRequestHandler) simplifyDNS(
 		// looking at the probe measurements imported by the TH.
 		if entry.ResolverNetwork() != archival.NetworkTypeDoH {
 			if v := entry.ResolverNetwork(); v != "external" {
-				logcat.Warnf("[BUG] unexpected resolver network: %s", v)
+				logcat.Bugf("unexpected resolver network: %s", v)
 			}
 			continue
 		}
@@ -835,7 +835,7 @@ func (thr *THRequestHandler) addProbeDNS(mx measurex.AbstractMeasurer,
 	for _, e := range plan {
 		addr, _, err := net.SplitHostPort(e.Address)
 		if err != nil {
-			logcat.Warnf("addProbeDNS: cannot split host and port: %s", err.Error())
+			logcat.Shrugf("[thh] SplitHostPort: %s", err.Error())
 			continue
 		}
 		addrs = append(addrs, addr)

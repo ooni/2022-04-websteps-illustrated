@@ -197,7 +197,7 @@ func (um *URLMeasurement) AddFromExternalDNSLookup(mx AbstractMeasurer,
 	var goodAddrs []string
 	for _, addr := range StringListSortUniq(addrs) {
 		if net.ParseIP(addr) == nil {
-			logcat.Warnf("AddFromExternalDNSLookup: cannot parse IP: %s", addr)
+			logcat.Shrugf("[mx] AddFromExternalDNSLookup: cannot parse IP: %s", addr)
 			continue
 		}
 		goodAddrs = append(goodAddrs, addr)
@@ -375,7 +375,7 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 		for _, addr := range dns.Addresses() {
 			if net.ParseIP(addr) == nil {
 				// Skip CNAMEs in case they slip through.
-				logcat.Warnf("cannot parse %+v inside dns as IP address", addr)
+				logcat.Shrugf("[mx] NewURLAddressList: cannot parse IP: %s", addr)
 				continue
 			}
 			uniq[addr] |= flags
@@ -389,7 +389,7 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 		ipAddr := epnt.IPAddress()
 		if ipAddr == "" {
 			// This may actually be an IPv6 address with explicit scope
-			logcat.Warnf("cannot parse %+v inside epnt.Address as IP address", epnt.Address)
+			logcat.Shrugf("[mx] NewURLAddressList: cannot parse IP: %s", ipAddr)
 			continue
 		}
 		if epnt.IsHTTPMeasurement() {
@@ -482,7 +482,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 			if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
 				if err != nil {
-					logcat.Warnf("cannot make plan: %s", err.Error())
+					logcat.Shrugf("[mx] cannot make plan: %s", err.Error())
 					continue
 				}
 				out = append(out, plan)
@@ -491,7 +491,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 			if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
 				if err != nil {
-					logcat.Warnf("cannot make plan: %s", err.Error())
+					logcat.Shrugf("[mx] cannot make plan: %s", err.Error())
 					continue
 				}
 				out = append(out, plan)
@@ -506,7 +506,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 			if !addr.AlreadyTestedHTTP3() {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
 				if err != nil {
-					logcat.Warnf("cannot make plan: %s", err.Error())
+					logcat.Shrugf("[mx] cannot make plan: %s", err.Error())
 					continue
 				}
 				out = append(out, plan)

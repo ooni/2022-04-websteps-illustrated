@@ -43,8 +43,22 @@ const (
 	TRACE
 )
 
-// gq is the global messages queue.
-var gq *queue = newqueue()
+var (
+	// gq is the global messages queue.
+	gq *queue = newqueue()
+
+	// emojis controls whether we're using emojis.
+	emojis = atomicx.NewInt32(0)
+)
+
+// SetEnableEmojis allows to enable or disable emojis usage.
+func SetEnableEmojis(enabled bool) {
+	if enabled {
+		emojis.Swap(1)
+	} else {
+		emojis.Swap(0)
+	}
+}
 
 // queue is the queue containing log messages.
 type queue struct {
@@ -246,4 +260,125 @@ func (dl *defaultLogger) Warn(msg string) {
 // Warnf implements Logger.Warnf
 func (dl *defaultLogger) Warnf(format string, v ...interface{}) {
 	fmt.Fprintf(dl.w, format+"\n", v...)
+}
+
+func hasEmojis() bool {
+	return emojis.Load() != 0
+}
+
+var bugemoji = map[bool]string{
+	true:  "🐛 ",
+	false: "BUG: ",
+}
+
+// Bug is a convenience function for emitting a log message about a bug. By default
+// this log message will be at WARN level. We may be continuing to run after we notice
+// there's a bug, but subsequent results may be influenced by that.
+func Bug(message string) {
+	Warn(bugemoji[hasEmojis()] + message)
+}
+
+// Bugf is like Bug but allows formatting a message.
+func Bugf(format string, value ...interface{}) {
+	Warnf(bugemoji[hasEmojis()]+format, value...)
+}
+
+var cacheemoji = map[bool]string{
+	true:  "👛 ",
+	false: "CACHE: ",
+}
+
+// Cache is a convenience function for emitting messages related to the cache. The user
+// should not see these messages by default unless they want more details. For this
+// reason we emit this kind of messages at the INFO level.
+func Cache(message string) {
+	Info(cacheemoji[hasEmojis()] + message)
+}
+
+// Cachef is like Cache but allows formatting a message.
+func Cachef(format string, value ...interface{}) {
+	Warnf(cacheemoji[hasEmojis()]+format, value...)
+}
+
+var shrugemoji = map[bool]string{
+	true:  "🤷 ",
+	false: "WTF: ",
+}
+
+// Shrug is a convenience function for emitting log messages detailing that something
+// not under our control went wrong and we don't know what to do about this. We emit
+// these messaeges as warnings because we users to let us know about these errors.
+func Shrug(message string) {
+	Warn(shrugemoji[hasEmojis()] + message)
+}
+
+// Shrugf is like Shrug but allows formatting a message,
+func Shrugf(format string, value ...interface{}) {
+	Warnf(shrugemoji[hasEmojis()]+format, value...)
+}
+
+var completeemoji = map[bool]string{
+	true:  "   ",
+	false: "DONE: ",
+}
+
+// Complete is a convenience function for emitting log messages related to user
+// visible operations that may require some time for finishing and are now complete.
+// This kind of log messages is of NOTICE level and help to indicate progress.
+func Complete(message string) {
+	Notice(completeemoji[hasEmojis()] + message)
+}
+
+// Completef is like Complete but allows formatting a message.
+func Completef(format string, value ...interface{}) {
+	Noticef(completeemoji[hasEmojis()]+format, value...)
+}
+
+var pendingemoji = map[bool]string{
+	true:  "   ",
+	false: "PENDING: ",
+}
+
+// Pending is a convenience function for emitting log messages related to user
+// visible operations that may require some time for finishing and are still
+// pending after some time. This kind of messages is a NOTICE.
+func Pending(message string) {
+	Notice(pendingemoji[hasEmojis()] + message)
+}
+
+// Pendingf is like Pending but allows formatting messages.
+func Pendingf(format string, value ...interface{}) {
+	Noticef(pendingemoji[hasEmojis()]+format, value...)
+}
+
+var stepemoji = map[bool]string{
+	true:  "📌 ",
+	false: "STEP: ",
+}
+
+// Step is a convenience function for emitting log messages related to one
+// of several steps within an experiment. These are NOTICEs.
+func Step(message string) {
+	Notice(stepemoji[hasEmojis()] + message)
+}
+
+// Stepf is like Step but allows formatting messages.
+func Stepf(format string, value ...interface{}) {
+	Noticef(stepemoji[hasEmojis()]+format, value...)
+}
+
+var substepemoji = map[bool]string{
+	true:  "📎 ",
+	false: "SUBSTEP: ",
+}
+
+// Substep is a convenience function for emitting log messages related to one
+// of several substeps within a step. These are NOTICEs.
+func Substep(message string) {
+	Notice(substepemoji[hasEmojis()] + message)
+}
+
+// Substepf is like Substep but allows formatting messages.
+func Substepf(format string, value ...interface{}) {
+	Noticef(substepemoji[hasEmojis()]+format, value...)
 }

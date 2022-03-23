@@ -58,7 +58,7 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 			if !found {
 				break // we've emptied the queue
 			}
-			logcat.Infof("🧐 depth=%d; crawling %s", q.Depth(), cur.URL.String())
+			logcat.Stepf("depth=%d; crawling %s", q.Depth(), cur.URL.String())
 			c.do(ctx, mx, cur)
 			q.RememberVisitedURLs(cur.Endpoint)
 			redirects, _ := mx.Redirects(cur.Endpoint, cur.Options)
@@ -72,18 +72,18 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 
 // do visits the URL described by um using mx.
 func (c *Crawler) do(ctx context.Context, mx AbstractMeasurer, um *URLMeasurement) {
-	logcat.Info("📡 resolving the domain name using all resolvers")
+	logcat.Substep("resolving the domain name using all resolvers")
 	const flags = 0 // no extra queries
 	dnsPlan := um.NewDNSLookupPlans(flags, c.Resolvers...)
 	for m := range mx.DNSLookups(ctx, dnsPlan...) {
 		um.DNS = append(um.DNS, m)
 	}
-	logcat.Info("📡 visiting endpoints deriving from DNS")
+	logcat.Substep("visiting endpoints deriving from DNS")
 	epntPlan, _ := um.NewEndpointPlan(0)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
-	logcat.Info("📡 visiting extra endpoints deriving from Alt-Svc (if any)")
+	logcat.Substep("visiting extra endpoints deriving from Alt-Svc (if any)")
 	epntPlan, _ = um.NewEndpointPlan(EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)

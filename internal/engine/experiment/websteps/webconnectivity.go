@@ -210,8 +210,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 	// We're going to mark all these cases as "gave up analysis".
 	if !the.IsHTTPRedirect() && the.StatusCode() != 200 {
 		flags |= AnalysisGiveUp
-		logcat.Warnf(
-			"😅 [analysis] give up b/c the TH response is neither redirect nor 200")
+		logcat.Shrug("[analysis] TH response is neither 3xx nor 200: give up")
 		return
 	}
 	flags |= AnalysisHTTPDiffStatusCode

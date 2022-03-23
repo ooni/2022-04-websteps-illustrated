@@ -30,7 +30,7 @@ var _ model.Resolver = &DNSSystemResolver{}
 // using the given DNSSystemTransport instance.
 func NewDNSSystemResolver(txp model.DNSTransport) *DNSSystemResolver {
 	if txp.Network() != "system" {
-		logcat.Warnf("BUG: using NewDNSSystemResolver with non-system transport")
+		logcat.Bugf("using NewDNSSystemResolver with non-system transport")
 	}
 	return &DNSSystemResolver{
 		decoder: &DNSDecoderMiekg{},

@@ -42,7 +42,7 @@ func (t *DNSOverUDPTransport) RoundTrip(ctx context.Context, rawQuery []byte) ([
 	defer func() {
 		// ensure we drain the channel and mention there is a bug if we see more events
 		for ev := range ch {
-			logcat.Warnf("BUG: unexpected message on channel: %+v", ev)
+			logcat.Bugf("unexpected message on channel: %+v", ev)
 		}
 	}()
 	rr := <-ch
@@ -170,7 +170,7 @@ func dnsOverUDPReadRawRepliesFromWorker(pconn model.UDPLikeConn, expectedAddr ne
 		}
 		isValid := expectedAddr.String() == srcAddr.String()
 		if !isValid && (flags&DNSOverUDPIncludeRepliesFromUnexpectedServers) == 0 {
-			logcat.Warnf("netxlite: DNS reply from unexpected UDP server: %s", srcAddr.String())
+			logcat.Shrugf("netxlite: DNS reply from unexpected UDP server: %s", srcAddr.String())
 			continue
 		}
 		numReplies++ // count the number of emitted replies

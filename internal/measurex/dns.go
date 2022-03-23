@@ -361,7 +361,7 @@ func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 		case "tcp", "udp", "dot":
 			usingIPv6 = isEndpointIPv6(dlm.ResolverAddress())
 		default:
-			logcat.Warnf("[BUG] UsingResolverIPv6: case %s: not implemented", v)
+			logcat.Bugf("UsingResolverIPv6: case %s: not implemented", v)
 		}
 	}
 	return
@@ -477,7 +477,7 @@ func (dlm *DNSLookupMeasurement) ResolverURL() string {
 	case "system":
 		return "system:///"
 	default:
-		logcat.Warnf("[BUG] ResolverURL not implemented for: %s", v)
+		logcat.Bugf("ResolverURL not implemented for: %s", v)
 		return ""
 	}
 }
@@ -537,7 +537,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 		case archival.DNSLookupTypeGetaddrinfo:
 			output <- mx.lookupHostSystem(ctx, t)
 		default:
-			logcat.Warnf("[BUG] asked the system resolver for %s lookup type", t.LookupType)
+			logcat.Bugf("asked the system resolver for %s lookup type", t.LookupType)
 		}
 	case archival.NetworkTypeUDP:
 		switch t.LookupType {
@@ -548,7 +548,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 		case archival.DNSLookupTypeNS:
 			output <- mx.lookupNSUDP(ctx, t)
 		default:
-			logcat.Warnf("[BUG] asked the UDP resolver for %s lookup type", t.LookupType)
+			logcat.Bugf("asked the UDP resolver for %s lookup type", t.LookupType)
 		}
 	case archival.NetworkTypeDoH, archival.NetworkTypeDoH3:
 		switch t.LookupType {
@@ -561,7 +561,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 		case archival.DNSLookupTypeReverse:
 			output <- mx.lookupReverseDoH(ctx, t)
 		default:
-			logcat.Warnf("[BUG] asked the HTTPS resolver for %s lookup type", t.LookupType)
+			logcat.Bugf("asked the HTTPS resolver for %s lookup type", t.LookupType)
 		}
 	}
 }
@@ -740,7 +740,7 @@ func (mx *Measurer) newDNSLookupMeasurement(id int64,
 		RoundTrip:        nil,
 	}
 	if len(trace.DNSLookup) != 1 {
-		logcat.Warnf("[BUG] expected a single DNSLookup entry: %+v", trace.DNSLookup)
+		logcat.Bugf("expected a single DNSLookup entry: %+v", trace.DNSLookup)
 	}
 	if len(trace.DNSLookup) == 1 {
 		out.Lookup = trace.DNSLookup[0]

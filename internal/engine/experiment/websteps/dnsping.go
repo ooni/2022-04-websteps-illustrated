@@ -51,7 +51,7 @@ func (c *Client) dnsPingFollowUp(ctx context.Context, mx measurex.AbstractMeasur
 	}
 	// The dnsping codebase does not emit this information but it's useful
 	// when reading the logs to know it has started.
-	logcat.Infof("🚧️ [dnsping] starting in the background to validate lookups")
+	logcat.Substep("starting dnsping in the background to validate lookups")
 	engine := dnsping.NewEngine(mx)
 	engine.QueryTimeout = mx.FlattenOptions().DNSLookupTimeout
 	return engine.RunAsync(overall), true
@@ -72,7 +72,7 @@ func (c *Client) dnsPingSelectQueries(in []*measurex.DNSLookupMeasurement) (
 			continue // we can only retry UDP
 		}
 		if entry.ResolverAddress() == "" {
-			logcat.Warnf("[BUG] UDP query w/o resolver address")
+			logcat.Bugf("UDP query w/o resolver address")
 			continue // should not happen but #safetyNet
 		}
 		switch entry.Failure() {

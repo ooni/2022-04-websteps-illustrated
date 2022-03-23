@@ -23,6 +23,7 @@ type CLI struct {
 	Backend   string          `doc:"backend URL (default: use OONI backend)" short:"b"`
 	CacheDir  string          `doc:"optional directory where to store cache (default: none)" short:"C"`
 	Deep      bool            `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
+	Emoji     bool            `doc:"enable emitting messages with emojis" short:"e"`
 	Fast      bool            `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
 	Help      bool            `doc:"prints this help message" short:"h"`
 	Input     []string        `doc:"add URL to list of URLs to crawl" short:"i"`
@@ -39,6 +40,7 @@ func getopt() *CLI {
 		Backend:   "wss://0.th.ooni.org/websteps/v1/th",
 		CacheDir:  "",
 		Deep:      false,
+		Emoji:     false,
 		Fast:      false,
 		Help:      false,
 		Input:     []string{},
@@ -61,6 +63,7 @@ func getopt() *CLI {
 	if opts.Verbose > 0 {
 		logcat.IncrementLogLevel(int(opts.Verbose))
 	}
+	logcat.SetEnableEmojis(opts.Emoji)
 	readInputFiles(opts)
 	if opts.Random {
 		rnd := rand.New(rand.NewSource(time.Now().UnixNano()))

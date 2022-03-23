@@ -288,14 +288,14 @@ var _ model.QUICDialer = &quicDialerLogger{}
 func (d *quicDialerLogger) DialContext(
 	ctx context.Context, network, address string,
 	tlsConfig *tls.Config, quicConfig *quic.Config) (quic.EarlySession, error) {
-	logcat.Debugf("quic_dial%s %s/%s...", d.operationSuffix, address, network)
+	logcat.Tracef("quic_dial%s %s/%s...", d.operationSuffix, address, network)
 	sess, err := d.Dialer.DialContext(ctx, network, address, tlsConfig, quicConfig)
 	if err != nil {
-		logcat.Debugf("quic_dial%s %s/%s... %s", d.operationSuffix,
+		logcat.Tracef("quic_dial%s %s/%s... %s", d.operationSuffix,
 			address, network, err)
 		return nil, err
 	}
-	logcat.Debugf("quic_dial%s %s/%s... ok", d.operationSuffix, address, network)
+	logcat.Tracef("quic_dial%s %s/%s... ok", d.operationSuffix, address, network)
 	return sess, nil
 }
 

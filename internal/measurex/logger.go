@@ -45,7 +45,7 @@ func (ol *OperationLogger) logloop() {
 	defer timer.Stop()
 	select {
 	case <-timer.C:
-		logcat.Infof("%s... in progress", ol.message)
+		logcat.Pendingf("%s... in progress", ol.message)
 	case <-ol.sighup:
 		// we'll emit directly in stop
 	}
@@ -57,6 +57,6 @@ func (ol *OperationLogger) Stop(err error) {
 		ol.wg.Wait()
 		d := time.Since(ol.t)
 		es := model.ErrorToStringOrOK(err)
-		logcat.Infof("%s... %s (in %s)", ol.message, es, d)
+		logcat.Completef("%s... %s (in %s)", ol.message, es, d)
 	})
 }

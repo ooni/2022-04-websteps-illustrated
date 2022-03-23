@@ -133,7 +133,7 @@ func (c *Client) newMeasurer(options *measurex.Options) (measurex.AbstractMeasur
 func (c *Client) steps(ctx context.Context, input string) {
 	mx, err := c.newMeasurer(c.options)
 	if err != nil {
-		logcat.Warnf("❌ cannot create a new measurer: %s", err.Error())
+		logcat.Bugf("[websteps] cannot create a new measurer: %s", err.Error())
 		c.Output <- &TestKeysOrError{
 			Err:      fmt.Errorf("cannot create measurer %s: %w", input, err),
 			TestKeys: nil,
@@ -142,7 +142,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 	}
 	initial, err := mx.NewURLMeasurement(input)
 	if err != nil {
-		logcat.Warnf("❌ cannot parse input as URL: %s", err.Error())
+		logcat.Shrugf("[websteps] cannot parse input as URL: %s", err.Error())
 		c.Output <- &TestKeysOrError{
 			Err:      fmt.Errorf("cannot parse %s: %w", input, err),
 			TestKeys: nil,
@@ -167,7 +167,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 			// also leave when we reach the max crawler depth.
 			break
 		}
-		logcat.Infof("📌 depth=%d; crawling %s", q.Depth(), cur.URL.String())
+		logcat.Stepf("depth=%d; crawling %s", q.Depth(), cur.URL.String())
 		// Implementation note: here we use a background context for the
 		// measurement step because we don't want to interrupt web measurements
 		// midway. We'll stop when we enter into the next iteration.
@@ -307,13 +307,12 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 	if maybeTH.Err == nil {
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
-		logcat.Info("🚧️ [th] import TH results...")
+		logcat.Substep("getting TH results")
 		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
-		logcat.Info("🚧️ [th] import TH results... ok")
 	}
 	ssm.DNSPing = c.waitForDNSPing(dc, pingRunning)
 	c.measureAdditionalEndpoints(ctx, mx, ssm)
-	logcat.Infof("🔬 analyzing the collected results")
+	logcat.Substep("analyzing the probe and the TH results")
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx)
 	ssm.Analysis.Endpoint = ssm.endpointAnalysis(mx)
 	// TODO(bassosimone): run follow-up experiments
@@ -340,12 +339,12 @@ func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result, pingRunning bool) *dn
 func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
 	dnsv, found := cache.dnsLookup(mx, cur.ID, cur.Domain())
+	logcat.Substepf("resolving the %s domain name", cur.Domain())
 	if found {
 		logcat.Infof("📡 [initial] domain %s already in dnscache", cur.Domain())
 		cur.DNS = append(cur.DNS, dnsv)
 		return
 	}
-	logcat.Infof("📡 [initial] resolving %s name using all resolvers", cur.Domain())
 	const flags = 0 // no extra queries
 	dnsPlans := cur.NewDNSLookupPlans(flags, c.resolvers...)
 	for m := range mx.DNSLookups(ctx, dnsPlans...) {
@@ -355,7 +354,7 @@ func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 
 func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCache,
 	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
-	logcat.Info("📡 [initial] measuring endpoints discovered using the DNS")
+	logcat.Substepf("testing all the discovered IP addresses")
 	ual, _ := cur.URLAddressList()
 	// Rewrite the current URLAddressList to ensure that IP addresses we've already
 	// used, even if with different domains, end up at the beginning. A test case
@@ -371,7 +370,7 @@ func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCac
 
 func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
-	logcat.Info("📡 [initial] measuring extra endpoints discovered using Alt-Svc (if any)")
+	logcat.Substepf("possibly measuring HTTP3 endpoints discovered using Alt-Svc")
 	epntPlan, _ := cur.NewEndpointPlan(measurex.EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
@@ -488,12 +487,9 @@ func (thm *THResponse) URLAddressList(domain string) (o []*measurex.URLAddress, 
 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 	mx measurex.AbstractMeasurer, ssm *SingleStepMeasurement) {
-	logcat.Info("📡 [additional] looking for new endpoints in TH/dnsping results")
+	logcat.Substep("checking for and testing additional addresses in TH/dnsping results")
 	addrslist, _ := c.expandProbeKnowledge(mx, ssm)
 	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(addrslist, 0)
-	if len(plan) > 0 {
-		logcat.Info("📡 [additional] measuring newly discovered endpoints")
-	}
 	for m := range mx.MeasureEndpoints(ctx, plan...) {
 		ssm.ProbeAdditional = append(ssm.ProbeAdditional, m)
 	}

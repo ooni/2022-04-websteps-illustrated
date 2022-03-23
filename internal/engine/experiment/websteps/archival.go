@@ -67,11 +67,11 @@ type ArchivalTHResponse struct {
 // ToArchival converts test keys to the OONI archival data format.
 func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleStepMeasurement {
 	if ssm == nil {
-		logcat.Warnf("[BUG] trying to archive an nil SingleStepMeasurement")
+		logcat.Bugf("trying to archive an nil SingleStepMeasurement")
 		return nil
 	}
 	if ssm.ProbeInitial == nil {
-		logcat.Warn("[BUG] ssm.ProbeInitial should never be nil")
+		logcat.Bugf("ssm.ProbeInitial should never be nil")
 		return nil
 	}
 	// Note: we're serializing the body choosing the option to

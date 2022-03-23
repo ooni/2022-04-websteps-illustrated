@@ -206,7 +206,7 @@ func (ev *FlatDNSLookupEvent) ToArchival(begin time.Time) []model.ArchivalDNSLoo
 	case DNSLookupTypeNS:
 		return ev.toArchivalNS(begin)
 	default:
-		logcat.Warnf("[BUG] ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
+		logcat.Bugf("ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
 		return []model.ArchivalDNSLookupResult{}
 	}
 }
@@ -507,7 +507,7 @@ func (ev *FlatDNSRoundTripEvent) fillHostnameAndQueryType(out *model.ArchivalDNS
 	case dns.TypePTR:
 		out.QueryType = "PTR"
 	default:
-		logcat.Warnf("[BUG] fillHostnameAndQueryType: unhandled query type: %d", q0.Qtype)
+		logcat.Bugf("fillHostnameAndQueryType: unhandled query type: %d", q0.Qtype)
 	}
 }
 
@@ -523,7 +523,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 		switch v := answer.(type) {
 		case *dns.HTTPS:
 			// TODO(bassosimone): properly decode HTTPS replies
-			logcat.Warnf("[BUG] decoding of HTTPSSvc replies is not implemented")
+			logcat.Bugf("decoding of HTTPSSvc replies is not implemented")
 		case *dns.A:
 			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
 				ALPN:       "",
@@ -585,7 +585,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 				TTL:        ev.ttl(v.Hdr.Ttl),
 			})
 		default:
-			logcat.Warnf("[BUG] fillAnswers: unhandled record type %T", answer)
+			logcat.Bugf("fillAnswers: unhandled record type %T", answer)
 		}
 	}
 }

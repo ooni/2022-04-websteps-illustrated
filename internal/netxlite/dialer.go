@@ -162,16 +162,16 @@ type dialerLogger struct {
 var _ model.Dialer = &dialerLogger{}
 
 func (d *dialerLogger) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
-	logcat.Debugf("dial%s %s/%s...", d.operationSuffix, address, network)
+	logcat.Tracef("dial%s %s/%s...", d.operationSuffix, address, network)
 	start := time.Now()
 	conn, err := d.Dialer.DialContext(ctx, network, address)
 	elapsed := time.Since(start)
 	if err != nil {
-		logcat.Debugf("dial%s %s/%s... %s in %s", d.operationSuffix,
+		logcat.Tracef("dial%s %s/%s... %s in %s", d.operationSuffix,
 			address, network, err, elapsed)
 		return nil, err
 	}
-	logcat.Debugf("dial%s %s/%s... ok in %s", d.operationSuffix,
+	logcat.Tracef("dial%s %s/%s... ok in %s", d.operationSuffix,
 		address, network, elapsed)
 	return conn, nil
 }

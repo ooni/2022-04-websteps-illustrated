@@ -43,7 +43,7 @@ func (tk *TestKeys) finalReprocessingHTTPStatusDiff(epnt *AnalysisEndpoint) {
 		return // skip the results we're not interested to
 	}
 	if epnt.probe == nil || epnt.th == nil {
-		logcat.Warnf("[final] BUG: all HTTPDiff entries should have reprocessing info")
+		logcat.Bugf("[final] all HTTPDiff entries should have reprocessing info")
 		return
 	}
 	if !epnt.th.IsHTTPRedirect() {
@@ -51,12 +51,12 @@ func (tk *TestKeys) finalReprocessingHTTPStatusDiff(epnt *AnalysisEndpoint) {
 	}
 	ph := epnt.probe.ResponseBodyTLSH()
 	if tk.Bodies == nil || len(tk.Bodies.Bodies) < 1 {
-		logcat.Warnf("[final] BUG: tk.Bodies is not properly initialized")
+		logcat.Bugf("[final] tk.Bodies is not properly initialized")
 		return
 	}
 	entry, found := tk.Bodies.Bodies[ph]
 	if !found {
-		logcat.Warnf("[final] BUG: did not find my own body in tk.Bodies")
+		logcat.Bugf("[final] did not find my own body in tk.Bodies")
 		return
 	}
 	// see if the same body was observed by another HTTP response

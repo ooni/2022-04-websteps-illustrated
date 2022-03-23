@@ -84,3 +84,8 @@ func (v *Int32) Add(delta int32) int32 {
 func (v *Int32) Load() int32 {
 	return atomic.LoadInt32(&v.v)
 }
+
+// Swap behaves like atomic.SwapInt32
+func (v *Int32) Swap(other int32) int32 {
+	return atomic.SwapInt32(&v.v, other)
+}

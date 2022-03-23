@@ -311,7 +311,7 @@ func (em *EndpointMeasurement) Summary() string {
 func endpointDumpJSON(v interface{}) string {
 	data, err := json.Marshal(v)
 	if err != nil {
-		logcat.Warnf("[BUG] endpointDumpJSON: %s", err.Error())
+		logcat.Bugf("endpointDumpJSON: %s", err.Error())
 	}
 	return string(data)
 }
@@ -327,7 +327,7 @@ func endpointSummary(URL *SimpleURL, network archival.NetworkType,
 	address string, o *Options, cookies []*http.Cookie) string {
 	var d []string
 	if URL == nil {
-		logcat.Warnf("[BUG] endpointSummary passed a nil URL")
+		logcat.Bug("endpointSummary passed a nil URL")
 		return ""
 	}
 	// stablerepr ensures that we emit a stable representation of the
@@ -568,7 +568,7 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 	}
 
 	if len(trace.HTTPRoundTrip) > 1 {
-		logcat.Warnf("warning: more than one HTTPRoundTrip entry: %+v", trace.HTTPRoundTrip)
+		logcat.Bugf("[mx] more than one HTTPRoundTrip entry: %+v", trace.HTTPRoundTrip)
 	}
 	if len(trace.HTTPRoundTrip) == 1 {
 		out.HTTPRoundTrip = trace.HTTPRoundTrip[0]
@@ -578,14 +578,14 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 	}
 
 	if len(trace.QUICTLSHandshake) > 1 {
-		logcat.Warnf("warning: more than one QUICTLSHandshake entry: %+v", trace.QUICTLSHandshake)
+		logcat.Bugf("[mx] more than one QUICTLSHandshake entry: %+v", trace.QUICTLSHandshake)
 	}
 	if len(trace.QUICTLSHandshake) == 1 {
 		out.QUICTLSHandshake = trace.QUICTLSHandshake[0]
 	}
 
 	if len(trace.TCPConnect) > 1 {
-		logcat.Warnf("warning: more than one TCPConnect entry: %+v", trace.TCPConnect)
+		logcat.Bugf("[mx] more than one TCPConnect entry: %+v", trace.TCPConnect)
 	}
 	if len(trace.TCPConnect) == 1 {
 		out.TCPConnect = trace.TCPConnect[0]

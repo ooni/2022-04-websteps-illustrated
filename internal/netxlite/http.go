@@ -37,25 +37,25 @@ type httpTransportLogger struct {
 var _ model.HTTPTransport = &httpTransportLogger{}
 
 func (txp *httpTransportLogger) RoundTrip(req *http.Request) (*http.Response, error) {
-	logcat.Debugf("> %s %s", req.Method, req.URL.String())
+	logcat.Tracef("> %s %s", req.Method, req.URL.String())
 	for key, values := range req.Header {
 		for _, value := range values {
-			logcat.Debugf("> %s: %s", key, value)
+			logcat.Tracef("> %s: %s", key, value)
 		}
 	}
-	logcat.Debug(">")
+	logcat.Tracef(">")
 	resp, err := txp.HTTPTransport.RoundTrip(req)
 	if err != nil {
-		logcat.Debugf("< %s", err)
+		logcat.Tracef("< %s", err)
 		return nil, err
 	}
-	logcat.Debugf("< %d", resp.StatusCode)
+	logcat.Tracef("< %d", resp.StatusCode)
 	for key, values := range resp.Header {
 		for _, value := range values {
-			logcat.Debugf("< %s: %s", key, value)
+			logcat.Tracef("< %s: %s", key, value)
 		}
 	}
-	logcat.Debug("<")
+	logcat.Tracef("<")
 	return resp, nil
 }
 

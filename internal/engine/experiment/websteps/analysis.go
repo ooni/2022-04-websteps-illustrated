@@ -257,7 +257,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logcat.Warnf("🐛 [dns] cannot find TH measurement matching #%d", pq.ID)
+		logcat.Bugf("[dns] cannot find TH measurement matching #%d", pq.ID)
 		return score
 	}
 
@@ -285,7 +285,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// strange/unexpected. We could dig in more but, for
 		// now, let's just give up for now.
 		score.Flags |= AnalysisGiveUp
-		logcat.Warn("[dns] give up analysis because the TH failed")
+		logcat.Shrug("[dns] give up analysis because the TH failed")
 		return score
 	}
 
@@ -429,13 +429,13 @@ func (ssm *SingleStepMeasurement) dnsFindMatchingQuery(
 	switch pq.LookupType() {
 	case archival.DNSLookupTypeGetaddrinfo, archival.DNSLookupTypeHTTPS:
 	default:
-		logcat.Warnf("[BUG] dnsFindMatchingQuery passed unexpected lookup type: %s", pq.LookupType())
+		logcat.Bugf("dnsFindMatchingQuery passed unexpected lookup type: %s", pq.LookupType())
 		return nil, false
 	}
 	// first attempt: try to find a compatible measurement
 	for _, thq := range ssm.TH.DNS {
 		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
-			logcat.Warnf("[BUG] unexpected resolver network in TH: %s", v)
+			logcat.Bugf("unexpected resolver network in TH: %s", v)
 		}
 		if !pq.IsCompatibleWith(thq) {
 			continue
@@ -445,7 +445,7 @@ func (ssm *SingleStepMeasurement) dnsFindMatchingQuery(
 	// second attempt: try to find a weakly compatible measurement
 	for _, thq := range ssm.TH.DNS {
 		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
-			logcat.Warnf("[BUG] unexpected resolver network in TH: %s", v)
+			logcat.Bugf("unexpected resolver network in TH: %s", v)
 		}
 		if !pq.IsWeaklyCompatibleWith(thq) {
 			continue
@@ -553,11 +553,11 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx measurex.
 		// Because this could be a bug in matching the
 		// endpoints, let's spit out ~nice text.
 		score.Flags |= AnalysisGiveUp
-		logcat.Warn("🐛 [endpoint] === BEGIN BUG INFORMATION ===")
-		logcat.Warnf("🐛 [endpoint] cannot find TH measurement matching #%d", pe.ID)
+		logcat.Bug("[endpoint] === BEGIN BUG INFORMATION ===")
+		logcat.Bugf("[endpoint] cannot find TH measurement matching #%d", pe.ID)
 		ssm.endpointFindMatchingMeasurement(pe, analysisFindVerbose)
-		logcat.Warn("🐛 [endpoint] === END BUG INFORMATION ===")
-		logcat.Warn("🐛 [endpoint] please, send us the information above")
+		logcat.Bug("[endpoint] === END BUG INFORMATION ===")
+		logcat.Bug("[endpoint] please, send us the information above")
 		return score
 	}
 
@@ -586,7 +586,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx measurex.
 		// the backend or some other backend-side issue, so we're
 		// just going to give up making a sense of the result.
 		score.Flags |= AnalysisGiveUp
-		logcat.Warn("[endpoint] give up analysis because the TH failed")
+		logcat.Shrug("[endpoint] give up analysis because the TH failed")
 		return score
 	}
 

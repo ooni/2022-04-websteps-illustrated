@@ -271,7 +271,7 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 	// encode the query
 	rawQuery, qid, err := e.Encoder.EncodeQuery(plan.Domain, plan.QueryType, false)
 	if err != nil {
-		logcat.Warnf("[OOPS] dnsping: cannot encode query: %s", err.Error())
+		logcat.Bugf("dnsping: cannot encode query: %s", err.Error())
 		out <- &resultWrapper{Err: err}
 		return
 	}
@@ -280,7 +280,7 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 	pconn, expectedAddr, err := netxlite.DNSOverUDPWriteRawQueryTo(
 		e.Listener, plan.ResolverAddress, rawQuery)
 	if err != nil {
-		logcat.Warnf("[OOPS] dnsping: cannot send query: %s", err.Error())
+		logcat.Shrugf("dnsping: cannot send query: %s", err.Error())
 		out <- &resultWrapper{Err: err}
 		return
 	}
@@ -357,13 +357,8 @@ func (e *Engine) received(sourceAddress string,
 		})
 		return
 	}
-	emojis := map[bool]string{
-		false: "🔔",
-		true:  "❓",
-	}
-	emoji := emojis[len(result.Replies) > 0]
-	logcat.Infof("%s [dnsping] %s for %s/%s from %s in %s with dns.id %d",
-		emoji, dns.RcodeToString[reply.Rcode], result.Domain,
+	logcat.Completef("%s [dnsping] %s for %s/%s from %s in %s with dns.id %d",
+		dns.RcodeToString[reply.Rcode], result.Domain,
 		result.QueryTypeAsString(), sourceAddress,
 		rr.Received.Sub(result.Started), reply.Id)
 	addrs, alpns, err := e.finishParsing(result.QueryType, reply)

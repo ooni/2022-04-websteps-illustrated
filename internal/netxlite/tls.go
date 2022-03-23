@@ -212,18 +212,18 @@ var _ model.TLSHandshaker = &tlsHandshakerLogger{}
 func (h *tlsHandshakerLogger) Handshake(
 	ctx context.Context, conn net.Conn, config *tls.Config,
 ) (net.Conn, tls.ConnectionState, error) {
-	logcat.Debugf(
+	logcat.Tracef(
 		"tls {sni=%s next=%+v}...", config.ServerName, config.NextProtos)
 	start := time.Now()
 	tlsconn, state, err := h.TLSHandshaker.Handshake(ctx, conn, config)
 	elapsed := time.Since(start)
 	if err != nil {
-		logcat.Debugf(
+		logcat.Tracef(
 			"tls {sni=%s next=%+v}... %s in %s", config.ServerName,
 			config.NextProtos, err, elapsed)
 		return nil, tls.ConnectionState{}, err
 	}
-	logcat.Debugf(
+	logcat.Tracef(
 		"tls {sni=%s next=%+v}... ok in %s {next=%s cipher=%s v=%s}",
 		config.ServerName, config.NextProtos, elapsed, state.NegotiatedProtocol,
 		TLSCipherSuiteString(state.CipherSuite),

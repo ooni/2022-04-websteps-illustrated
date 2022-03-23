@@ -20,9 +20,9 @@ import (
 func parseStringToTlsh(in string) (*tlsh.Tlsh, error) {
 	if len(in) != 70 {
 		if len(in) != 0 {
-			logcat.Warnf("TLSH: invalid string length: %d", len(in))
+			logcat.Bugf("[tlsh] invalid string length: %d", len(in))
 		}
-		return nil, errors.New("passed an empty string hash")
+		return nil, errors.New("invalid serialized hash")
 	}
 	return tlsh.ParseStringToTlsh(in)
 }
