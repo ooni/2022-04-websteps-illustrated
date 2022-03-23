@@ -579,8 +579,7 @@ func (mx *Measurer) Redirects(
 		}
 		next, good := uniq[summary]
 		if !good {
-			requestHeaders := mx.newHeadersForRedirect(
-				epnt.Location, epnt.RequestHeaders())
+			requestHeaders := mx.newHeadersForRedirect(epnt.URL)
 			next = &URLMeasurement{
 				ID:          mx.NextID(),
 				EndpointIDs: []int64{},
@@ -608,13 +607,18 @@ func (mx *Measurer) Redirects(
 }
 
 // newHeadersForRedirect builds new headers for a redirect.
-func (mx *Measurer) newHeadersForRedirect(location *SimpleURL, orig http.Header) http.Header {
-	out := http.Header{}
-	for key, values := range orig {
-		out[key] = values
-	}
-	if location != nil { // just in case
-		out.Set("Referer", location.String())
+func (mx *Measurer) newHeadersForRedirect(origURL *SimpleURL) http.Header {
+	// Implementation note: because the TH filters the headers it
+	// accepts when importing client options, we need to avoid sending
+	// fancy headers. So, let's just re-create the standard headers
+	// for measuring plus the referer. (Note: today the code was failing
+	// to match the TH and the probe headers because the probe did also
+	// include `Host`, which TH filters out, and obviously `Host` was
+	// added by the probe here before we removed the code to derive
+	// follow-up requests headers from previous ones.)
+	out := NewHTTPRequestHeaderForMeasuring()
+	if origURL != nil { // just in case
+		out.Set("Referer", origURL.String())
 	}
 	return out
 }
