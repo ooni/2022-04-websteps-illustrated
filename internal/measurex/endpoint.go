@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -24,6 +23,7 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/lucas-clemente/quic-go"
@@ -311,7 +311,7 @@ func (em *EndpointMeasurement) Summary() string {
 func endpointDumpJSON(v interface{}) string {
 	data, err := json.Marshal(v)
 	if err != nil {
-		log.Printf("[BUG] endpointDumpJSON: %s", err.Error())
+		logcat.Warnf("[BUG] endpointDumpJSON: %s", err.Error())
 	}
 	return string(data)
 }
@@ -327,7 +327,7 @@ func endpointSummary(URL *SimpleURL, network archival.NetworkType,
 	address string, o *Options, cookies []*http.Cookie) string {
 	var d []string
 	if URL == nil {
-		log.Printf("[BUG] endpointSummary passed a nil URL")
+		logcat.Warnf("[BUG] endpointSummary passed a nil URL")
 		return ""
 	}
 	// stablerepr ensures that we emit a stable representation of the
@@ -568,7 +568,7 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 	}
 
 	if len(trace.HTTPRoundTrip) > 1 {
-		log.Printf("warning: more than one HTTPRoundTrip entry: %+v", trace.HTTPRoundTrip)
+		logcat.Warnf("warning: more than one HTTPRoundTrip entry: %+v", trace.HTTPRoundTrip)
 	}
 	if len(trace.HTTPRoundTrip) == 1 {
 		out.HTTPRoundTrip = trace.HTTPRoundTrip[0]
@@ -578,14 +578,14 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 	}
 
 	if len(trace.QUICTLSHandshake) > 1 {
-		log.Printf("warning: more than one QUICTLSHandshake entry: %+v", trace.QUICTLSHandshake)
+		logcat.Warnf("warning: more than one QUICTLSHandshake entry: %+v", trace.QUICTLSHandshake)
 	}
 	if len(trace.QUICTLSHandshake) == 1 {
 		out.QUICTLSHandshake = trace.QUICTLSHandshake[0]
 	}
 
 	if len(trace.TCPConnect) > 1 {
-		log.Printf("warning: more than one TCPConnect entry: %+v", trace.TCPConnect)
+		logcat.Warnf("warning: more than one TCPConnect entry: %+v", trace.TCPConnect)
 	}
 	if len(trace.TCPConnect) == 1 {
 		out.TCPConnect = trace.TCPConnect[0]
@@ -722,8 +722,7 @@ func (mx *Measurer) httpHTTPSOrHTTP3Get(ctx context.Context, epnt *EndpointPlan)
 func (mx *Measurer) tcpEndpointConnectWithSaver(ctx context.Context,
 	epnt *EndpointPlan, saver *archival.Saver, id int64) (net.Conn, string, error) {
 	timeout := epnt.Options.tcpConnectTimeout()
-	ol := NewOperationLogger(mx.Logger, "[#%d] TCPConnect %s",
-		id, epnt.Address)
+	ol := NewOperationLogger("[#%d] TCPConnect %s", id, epnt.Address)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	d := mx.Library.NewDialerWithoutResolver(saver)
@@ -745,7 +744,7 @@ func (mx *Measurer) tlsEndpointHandshakeWithSaver(ctx context.Context,
 	}
 	timeout := epnt.Options.tlsHandshakeTimeout()
 	tlsConfig := epnt.tlsConfig()
-	ol := NewOperationLogger(mx.Logger, "[#%d] TLSHandshake %s with sni=%s",
+	ol := NewOperationLogger("[#%d] TLSHandshake %s with sni=%s",
 		id, epnt.Address, tlsConfig.ServerName)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -762,7 +761,7 @@ func (mx *Measurer) quicEndpointHandshakeWithSaver(ctx context.Context,
 	epnt *EndpointPlan, saver *archival.Saver, id int64) (quic.EarlySession, string, error) {
 	timeout := epnt.Options.quicHandshakeTimeout()
 	tlsConfig := epnt.tlsConfig()
-	ol := NewOperationLogger(mx.Logger, "[#%d] QUICHandshake %s with sni=%s",
+	ol := NewOperationLogger("[#%d] QUICHandshake %s with sni=%s",
 		id, epnt.Address, tlsConfig.ServerName)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -846,7 +845,7 @@ func (mx *Measurer) httpClientDo(ctx context.Context,
 	req.Host = epnt.Options.httpHostHeader()
 	req.Header = epnt.Options.httpClonedRequestHeaders() //  clone b/c of potential parallel usage
 	timeout := epnt.Options.httpGETTimeout()
-	ol := NewOperationLogger(mx.Logger, "[#%d] %s %s with %s/%s",
+	ol := NewOperationLogger("[#%d] %s %s with %s/%s",
 		id, req.Method, req.URL.String(), epnt.Address, epnt.Network)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()

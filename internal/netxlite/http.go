@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	oohttp "github.com/ooni/oohttp"
 )
@@ -36,25 +37,25 @@ type httpTransportLogger struct {
 var _ model.HTTPTransport = &httpTransportLogger{}
 
 func (txp *httpTransportLogger) RoundTrip(req *http.Request) (*http.Response, error) {
-	txp.Logger.Debugf("> %s %s", req.Method, req.URL.String())
+	logcat.Debugf("> %s %s", req.Method, req.URL.String())
 	for key, values := range req.Header {
 		for _, value := range values {
-			txp.Logger.Debugf("> %s: %s", key, value)
+			logcat.Debugf("> %s: %s", key, value)
 		}
 	}
-	txp.Logger.Debug(">")
+	logcat.Debug(">")
 	resp, err := txp.HTTPTransport.RoundTrip(req)
 	if err != nil {
-		txp.Logger.Debugf("< %s", err)
+		logcat.Debugf("< %s", err)
 		return nil, err
 	}
-	txp.Logger.Debugf("< %d", resp.StatusCode)
+	logcat.Debugf("< %d", resp.StatusCode)
 	for key, values := range resp.Header {
 		for _, value := range values {
-			txp.Logger.Debugf("< %s: %s", key, value)
+			logcat.Debugf("< %s: %s", key, value)
 		}
 	}
-	txp.Logger.Debug("<")
+	logcat.Debug("<")
 	return resp, nil
 }
 

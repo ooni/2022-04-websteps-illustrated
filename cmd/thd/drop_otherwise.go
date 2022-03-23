@@ -3,8 +3,6 @@
 
 package main
 
-import "github.com/bassosimone/websteps-illustrated/internal/model"
-
-func dropprivileges(logger model.Logger, user string) {
+func dropprivileges(user string) {
 	// not implemented
 }

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/lucas-clemente/quic-go"
 )
@@ -287,14 +288,14 @@ var _ model.QUICDialer = &quicDialerLogger{}
 func (d *quicDialerLogger) DialContext(
 	ctx context.Context, network, address string,
 	tlsConfig *tls.Config, quicConfig *quic.Config) (quic.EarlySession, error) {
-	d.Logger.Debugf("quic_dial%s %s/%s...", d.operationSuffix, address, network)
+	logcat.Debugf("quic_dial%s %s/%s...", d.operationSuffix, address, network)
 	sess, err := d.Dialer.DialContext(ctx, network, address, tlsConfig, quicConfig)
 	if err != nil {
-		d.Logger.Debugf("quic_dial%s %s/%s... %s", d.operationSuffix,
+		logcat.Debugf("quic_dial%s %s/%s... %s", d.operationSuffix,
 			address, network, err)
 		return nil, err
 	}
-	d.Logger.Debugf("quic_dial%s %s/%s... ok", d.operationSuffix, address, network)
+	logcat.Debugf("quic_dial%s %s/%s... ok", d.operationSuffix, address, network)
 	return sess, nil
 }
 

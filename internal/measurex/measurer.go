@@ -16,7 +16,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/apex/log"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/lucas-clemente/quic-go/http3"
 )
@@ -41,9 +40,6 @@ type Measurer struct {
 	// Library is the MANDATORY network-measurement library.
 	Library *Library
 
-	// Logger is the MANDATORY logger to use.
-	Logger model.Logger
-
 	// Options contains the options. If nil, we'll use default values.
 	Options *Options
 
@@ -57,12 +53,12 @@ var DefaultHTTP3Transport = &http3.RoundTripper{}
 // NewMeasurerWithDefaultSettings creates a new measurer using apex/log's
 // singleton as the logger and netxlite as the underlying library.
 func NewMeasurerWithDefaultSettings() *Measurer {
-	return NewMeasurer(log.Log, NewDefaultLibrary(log.Log))
+	return NewMeasurer(NewDefaultLibrary())
 }
 
 // NewMeasurer creates a new Measurer instance using the default settings.
-func NewMeasurer(logger model.Logger, library *Library) *Measurer {
-	return NewMeasurerWithOptions(logger, library, &Options{})
+func NewMeasurer(library *Library) *Measurer {
+	return NewMeasurerWithOptions(library, &Options{})
 }
 
 // AbstractMeasurer is an abstract view of a Measurer.
@@ -82,7 +78,7 @@ type AbstractMeasurer interface {
 	NewURLMeasurement(input string) (*URLMeasurement, error)
 
 	// NewURLRedirectDeque behaves like Measurer.NewURLRedirectDeque.
-	NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque
+	NewURLRedirectDeque() *URLRedirectDeque
 
 	// NextID behaves like Measurer.NextID.
 	NextID() int64
@@ -95,14 +91,12 @@ type AbstractMeasurer interface {
 var _ AbstractMeasurer = &Measurer{}
 
 // NewMeasurerWithOptions creates a new Measurer instance with the given options.
-func NewMeasurerWithOptions(
-	logger model.Logger, library *Library, options *Options) *Measurer {
+func NewMeasurerWithOptions(library *Library, options *Options) *Measurer {
 	return &Measurer{
 		HTTP3ClientForDoH: &http.Client{Transport: DefaultHTTP3Transport},
 		HTTPClientForDoH:  http.DefaultClient,
 		IDGenerator:       NewIDGenerator(),
 		Library:           library,
-		Logger:            logger,
 		Options:           options,
 		TLSHandshaker:     library.NewTLSHandshakerStdlib(),
 	}

@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
@@ -161,16 +162,16 @@ type dialerLogger struct {
 var _ model.Dialer = &dialerLogger{}
 
 func (d *dialerLogger) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
-	d.DebugLogger.Debugf("dial%s %s/%s...", d.operationSuffix, address, network)
+	logcat.Debugf("dial%s %s/%s...", d.operationSuffix, address, network)
 	start := time.Now()
 	conn, err := d.Dialer.DialContext(ctx, network, address)
 	elapsed := time.Since(start)
 	if err != nil {
-		d.DebugLogger.Debugf("dial%s %s/%s... %s in %s", d.operationSuffix,
+		logcat.Debugf("dial%s %s/%s... %s in %s", d.operationSuffix,
 			address, network, err, elapsed)
 		return nil, err
 	}
-	d.DebugLogger.Debugf("dial%s %s/%s... ok in %s", d.operationSuffix,
+	logcat.Debugf("dial%s %s/%s... ok in %s", d.operationSuffix,
 		address, network, elapsed)
 	return conn, nil
 }

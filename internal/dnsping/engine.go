@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
@@ -150,9 +151,6 @@ type Engine struct {
 	// Listener is the specific MANDATORY UDPListener to use.
 	Listener model.UDPListener
 
-	// Logger is the MANDATORY logger to use.
-	Logger model.Logger
-
 	// QueryTimeout is the MANDATORY query timeout to use.
 	QueryTimeout time.Duration
 }
@@ -163,14 +161,13 @@ type IDGenerator interface {
 }
 
 // NewEngine creates a new  engine instance using the given
-// logger, the given generator, and typical values for other fields.
-func NewEngine(logger model.Logger, idgen IDGenerator) *Engine {
+// generator, and typical values for other fields.
+func NewEngine(idgen IDGenerator) *Engine {
 	return &Engine{
 		Decoder:      &netxlite.DNSDecoderMiekg{},
 		Encoder:      &netxlite.DNSEncoderMiekg{},
 		IDGenerator:  idgen,
 		Listener:     netxlite.NewUDPListener(),
-		Logger:       logger,
 		QueryTimeout: 4 * time.Second,
 	}
 }
@@ -274,7 +271,7 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 	// encode the query
 	rawQuery, qid, err := e.Encoder.EncodeQuery(plan.Domain, plan.QueryType, false)
 	if err != nil {
-		e.Logger.Warnf("dnsping: cannot encode query: %s", err.Error())
+		logcat.Warnf("[OOPS] dnsping: cannot encode query: %s", err.Error())
 		out <- &resultWrapper{Err: err}
 		return
 	}
@@ -283,7 +280,7 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 	pconn, expectedAddr, err := netxlite.DNSOverUDPWriteRawQueryTo(
 		e.Listener, plan.ResolverAddress, rawQuery)
 	if err != nil {
-		e.Logger.Warnf("dnsping: cannot send query: %s", err.Error())
+		logcat.Warnf("[OOPS] dnsping: cannot send query: %s", err.Error())
 		out <- &resultWrapper{Err: err}
 		return
 	}
@@ -365,7 +362,7 @@ func (e *Engine) received(sourceAddress string,
 		true:  "❓",
 	}
 	emoji := emojis[len(result.Replies) > 0]
-	e.Logger.Infof("%s [dnsping] %s for %s/%s from %s in %s with dns.id %d",
+	logcat.Infof("%s [dnsping] %s for %s/%s from %s in %s with dns.id %d",
 		emoji, dns.RcodeToString[reply.Rcode], result.Domain,
 		result.QueryTypeAsString(), sourceAddress,
 		rr.Received.Sub(result.Started), reply.Id)

@@ -8,11 +8,11 @@ package websteps
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
@@ -51,8 +51,8 @@ func (c *Client) dnsPingFollowUp(ctx context.Context, mx measurex.AbstractMeasur
 	}
 	// The dnsping codebase does not emit this information but it's useful
 	// when reading the logs to know it has started.
-	c.logger.Infof("🚧️ [dnsping] starting in the background to validate lookups")
-	engine := dnsping.NewEngine(c.logger, mx)
+	logcat.Infof("🚧️ [dnsping] starting in the background to validate lookups")
+	engine := dnsping.NewEngine(mx)
 	engine.QueryTimeout = mx.FlattenOptions().DNSLookupTimeout
 	return engine.RunAsync(overall), true
 }
@@ -72,7 +72,7 @@ func (c *Client) dnsPingSelectQueries(in []*measurex.DNSLookupMeasurement) (
 			continue // we can only retry UDP
 		}
 		if entry.ResolverAddress() == "" {
-			log.Printf("[BUG] UDP query w/o resolver address")
+			logcat.Warnf("[BUG] UDP query w/o resolver address")
 			continue // should not happen but #safetyNet
 		}
 		switch entry.Failure() {

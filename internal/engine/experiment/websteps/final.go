@@ -6,21 +6,23 @@ package websteps
 // Contains code for final reprocessing.
 //
 
-import "github.com/bassosimone/websteps-illustrated/internal/model"
+import (
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
+)
 
 // finalReprocessingAndLogging performs the final reprocessing. Once each
 // piece of analysis is final, the code will log it.
-func (tk *TestKeys) finalReprocessingAndLogging(logger model.Logger) {
+func (tk *TestKeys) finalReprocessingAndLogging() {
 	for _, step := range tk.Steps {
 		if step.Analysis == nil {
 			continue // no analysis? nothing to do
 		}
 		for _, dns := range step.Analysis.DNS {
-			ExplainFlagsWithLogging(logger, dns, dns.Flags)
+			ExplainFlagsWithLogging(dns, dns.Flags)
 		}
 		for _, epnt := range step.Analysis.Endpoint {
-			tk.finalReprocessingHTTPStatusDiff(logger, epnt)
-			ExplainFlagsWithLogging(logger, epnt, epnt.Flags)
+			tk.finalReprocessingHTTPStatusDiff(epnt)
+			ExplainFlagsWithLogging(epnt, epnt.Flags)
 		}
 	}
 }
@@ -36,13 +38,12 @@ func (tk *TestKeys) finalReprocessingAndLogging(logger model.Logger) {
 // an "anomaly" _when_ the probe receives the correct content in
 // its HTTP request. In such a case, it seems more proper to
 // emit a weaker (reserved) flag indicating what has happened.
-func (tk *TestKeys) finalReprocessingHTTPStatusDiff(
-	logger model.Logger, epnt *AnalysisEndpoint) {
+func (tk *TestKeys) finalReprocessingHTTPStatusDiff(epnt *AnalysisEndpoint) {
 	if (epnt.Flags & AnalysisHTTPDiffStatusCode) == 0 {
 		return // skip the results we're not interested to
 	}
 	if epnt.probe == nil || epnt.th == nil {
-		logger.Warnf("[final] BUG: all HTTPDiff entries should have reprocessing info")
+		logcat.Warnf("[final] BUG: all HTTPDiff entries should have reprocessing info")
 		return
 	}
 	if !epnt.th.IsHTTPRedirect() {
@@ -50,12 +51,12 @@ func (tk *TestKeys) finalReprocessingHTTPStatusDiff(
 	}
 	ph := epnt.probe.ResponseBodyTLSH()
 	if tk.Bodies == nil || len(tk.Bodies.Bodies) < 1 {
-		logger.Warnf("[final] BUG: tk.Bodies is not properly initialized")
+		logcat.Warnf("[final] BUG: tk.Bodies is not properly initialized")
 		return
 	}
 	entry, found := tk.Bodies.Bodies[ph]
 	if !found {
-		logger.Warnf("[final] BUG: did not find my own body in tk.Bodies")
+		logcat.Warnf("[final] BUG: did not find my own body in tk.Bodies")
 		return
 	}
 	// see if the same body was observed by another HTTP response
@@ -69,7 +70,7 @@ func (tk *TestKeys) finalReprocessingHTTPStatusDiff(
 	if !another {
 		return // only observed by _this_ response
 	}
-	logger.Infof("😅 [final] request #%d in #%d %s #%d %s %s",
+	logcat.Infof("😅 [final] request #%d in #%d %s #%d %s %s",
 		epnt.probe.ID, epnt.probe.URLMeasurementID,
 		"has not been redirected like", epnt.th.ID,
 		"but directly got a body we later observed (HTTP proxy?)",

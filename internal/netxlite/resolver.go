@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"golang.org/x/net/idna"
 )
@@ -72,48 +73,48 @@ var _ model.Resolver = &resolverLogger{}
 
 func (r *resolverLogger) LookupHost(ctx context.Context, hostname string) ([]string, error) {
 	prefix := fmt.Sprintf("resolve[A,AAAA] %s with %s (%s)", hostname, r.Network(), r.Address())
-	r.Logger.Debugf("%s...", prefix)
+	logcat.Debugf("%s...", prefix)
 	start := time.Now()
 	addrs, err := r.Resolver.LookupHost(ctx, hostname)
 	elapsed := time.Since(start)
 	if err != nil {
-		r.Logger.Debugf("%s... %s in %s", prefix, err, elapsed)
+		logcat.Debugf("%s... %s in %s", prefix, err, elapsed)
 		return nil, err
 	}
-	r.Logger.Debugf("%s... %+v in %s", prefix, addrs, elapsed)
+	logcat.Debugf("%s... %+v in %s", prefix, addrs, elapsed)
 	return addrs, nil
 }
 
 func (r *resolverLogger) LookupHTTPS(
 	ctx context.Context, domain string) (*model.HTTPSSvc, error) {
 	prefix := fmt.Sprintf("resolve[HTTPS] %s with %s (%s)", domain, r.Network(), r.Address())
-	r.Logger.Debugf("%s...", prefix)
+	logcat.Debugf("%s...", prefix)
 	start := time.Now()
 	https, err := r.Resolver.LookupHTTPS(ctx, domain)
 	elapsed := time.Since(start)
 	if err != nil {
-		r.Logger.Debugf("%s... %s in %s", prefix, err, elapsed)
+		logcat.Debugf("%s... %s in %s", prefix, err, elapsed)
 		return nil, err
 	}
 	alpn := https.ALPN
 	a := https.IPv4
 	aaaa := https.IPv6
-	r.Logger.Debugf("%s... %+v %+v %+v in %s", prefix, alpn, a, aaaa, elapsed)
+	logcat.Debugf("%s... %+v %+v %+v in %s", prefix, alpn, a, aaaa, elapsed)
 	return https, nil
 }
 
 func (r *resolverLogger) LookupNS(
 	ctx context.Context, domain string) ([]*net.NS, error) {
 	prefix := fmt.Sprintf("resolve[NS] %s with %s (%s)", domain, r.Network(), r.Address())
-	r.Logger.Debugf("%s...", prefix)
+	logcat.Debugf("%s...", prefix)
 	start := time.Now()
 	ns, err := r.Resolver.LookupNS(ctx, domain)
 	elapsed := time.Since(start)
 	if err != nil {
-		r.Logger.Debugf("%s... %s in %s", prefix, err, elapsed)
+		logcat.Debugf("%s... %s in %s", prefix, err, elapsed)
 		return nil, err
 	}
-	r.Logger.Debugf("%s... %+v in %s", prefix, ns, elapsed)
+	logcat.Debugf("%s... %+v in %s", prefix, ns, elapsed)
 	return ns, nil
 }
 

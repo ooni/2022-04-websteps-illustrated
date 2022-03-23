@@ -2,7 +2,6 @@ package measurex
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -10,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"golang.org/x/net/idna"
 )
@@ -198,7 +197,7 @@ func (um *URLMeasurement) AddFromExternalDNSLookup(mx AbstractMeasurer,
 	var goodAddrs []string
 	for _, addr := range StringListSortUniq(addrs) {
 		if net.ParseIP(addr) == nil {
-			log.Printf("AddFromExternalDNSLookup: cannot parse IP: %s", addr)
+			logcat.Warnf("AddFromExternalDNSLookup: cannot parse IP: %s", addr)
 			continue
 		}
 		goodAddrs = append(goodAddrs, addr)
@@ -376,7 +375,7 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 		for _, addr := range dns.Addresses() {
 			if net.ParseIP(addr) == nil {
 				// Skip CNAMEs in case they slip through.
-				log.Printf("cannot parse %+v inside dns as IP address", addr)
+				logcat.Warnf("cannot parse %+v inside dns as IP address", addr)
 				continue
 			}
 			uniq[addr] |= flags
@@ -390,7 +389,7 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 		ipAddr := epnt.IPAddress()
 		if ipAddr == "" {
 			// This may actually be an IPv6 address with explicit scope
-			log.Printf("cannot parse %+v inside epnt.Address as IP address", epnt.Address)
+			logcat.Warnf("cannot parse %+v inside epnt.Address as IP address", epnt.Address)
 			continue
 		}
 		if epnt.IsHTTPMeasurement() {
@@ -440,9 +439,9 @@ const (
 
 // NewEndpointPlan is a convenience function that calls um.URLAddressList and passes the
 // resulting list to um.NewEndpointPlanWithAddressList.
-func (um *URLMeasurement) NewEndpointPlan(logger model.Logger, flags int64) ([]*EndpointPlan, bool) {
+func (um *URLMeasurement) NewEndpointPlan(flags int64) ([]*EndpointPlan, bool) {
 	addrs, _ := um.URLAddressList()
-	return um.NewEndpointPlanWithAddressList(logger, addrs, flags)
+	return um.NewEndpointPlanWithAddressList(addrs, flags)
 }
 
 // NewEndpointPlanWithAddressList creates a new plan for measuring all the endpoints
@@ -454,13 +453,13 @@ func (um *URLMeasurement) NewEndpointPlan(logger model.Logger, flags int64) ([]*
 // The flags argument allows to specify flags that modify the planning
 // algorithm. The EndpointPlanningExcludeBogons flag is such that we
 // will not include any bogon IP address into the returned plan.
-func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
+func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 	addrs []*URLAddress, flags int64) ([]*EndpointPlan, bool) {
 	out := make([]*EndpointPlan, 0, 8)
 	familyCounter := make(map[string]int64)
 	for _, addr := range addrs {
 		if (flags&EndpointPlanningExcludeBogons) != 0 && netxlite.IsBogon(addr.Address) {
-			logger.Infof("🧐 excluding bogon %s as requested", addr.Address)
+			logcat.Infof("🧐 excluding bogon %s as requested", addr.Address)
 			continue
 		}
 
@@ -474,7 +473,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 		}
 		if (flags&EndpointPlanningIncludeAll) == 0 &&
 			familyCounter[family] >= um.Options.maxAddressesPerFamily() {
-			logger.Infof("🧐 too many %s addresses already, skipping %s", family, addr.Address)
+			logcat.Infof("🧐 too many %s addresses already, skipping %s", family, addr.Address)
 			continue
 		}
 		counted := false
@@ -483,7 +482,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 			if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
 				if err != nil {
-					log.Printf("cannot make plan: %s", err.Error())
+					logcat.Warnf("cannot make plan: %s", err.Error())
 					continue
 				}
 				out = append(out, plan)
@@ -492,7 +491,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 			if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
 				if err != nil {
-					log.Printf("cannot make plan: %s", err.Error())
+					logcat.Warnf("cannot make plan: %s", err.Error())
 					continue
 				}
 				out = append(out, plan)
@@ -507,7 +506,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(logger model.Logger,
 			if !addr.AlreadyTestedHTTP3() {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
 				if err != nil {
-					log.Printf("cannot make plan: %s", err.Error())
+					logcat.Warnf("cannot make plan: %s", err.Error())
 					continue
 				}
 				out = append(out, plan)
@@ -629,9 +628,6 @@ type URLRedirectDeque struct {
 	// depth counts the depth
 	depth int64
 
-	// logger is the logger to use.
-	logger model.Logger
-
 	// mem contains the URLs we've already visited.
 	mem map[string]bool
 
@@ -646,10 +642,9 @@ type URLRedirectDeque struct {
 }
 
 // NewURLRedirectDeque creates an URLRedirectDeque.
-func (mx *Measurer) NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque {
+func (mx *Measurer) NewURLRedirectDeque() *URLRedirectDeque {
 	return &URLRedirectDeque{
 		depth:   0,
-		logger:  logger,
 		mem:     map[string]bool{},
 		mu:      sync.Mutex{},
 		options: mx.Options,
@@ -691,14 +686,14 @@ func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
 	defer r.mu.Unlock()
 	r.mu.Lock()
 	if r.depth >= r.options.maxCrawlerDepth() {
-		r.logger.Info("👋 reached maximum crawler depth")
+		logcat.Info("👋 reached maximum crawler depth")
 		return nil, false
 	}
 	for len(r.q) > 0 {
 		um := r.q[0]
 		r.q = r.q[1:]
 		if repr := CanonicalURLString(um.URL); r.mem[repr] {
-			r.logger.Infof("🧐 skip already visited URL: %s", repr)
+			logcat.Infof("🧐 skip already visited URL: %s", repr)
 			continue
 		}
 		r.depth++ // we increment the depth when we _remove_ and measure

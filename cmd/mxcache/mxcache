@@ -1,0 +1,894 @@
+#!/usr/bin/env python3
+
+"""Tool for inspecting measurex's cache."""
+
+from __future__ import annotations
+
+import base64
+import dateutil.parser
+from contextlib import contextmanager
+from dnslib import DNSRecord
+import json
+import os
+import sys
+from time import strptime
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Protocol,
+    TextIO,
+    Tuple,
+)
+import tabulate
+
+#
+# Common code
+#
+# This section of the script contains common code.
+#
+
+JSONDict = Dict[str, Any]
+
+JSONListOfDicts = List[JSONDict]
+
+
+def loader(dirpath: str, process: Callable[[str, JSONListOfDicts], None]):
+    """Walks the content of dirpath and calls process for each JSON file."""
+    for dirname in os.listdir(dirpath):
+        if dirname.endswith(".txt"):
+            continue  # skip files such as trim.txt
+        fulldir = os.path.join(dirpath, dirname)
+        for filename in os.listdir(fulldir):
+            if not filename.endswith("-d"):
+                continue  # data files inside the go objects cache
+            fullpath = os.path.join(fulldir, filename)
+            with open(fullpath, "rb") as filep:
+                process(fullpath, json.load(filep))
+
+
+class Columnable(Protocol):
+    """Anything that can be converted to Columnar."""
+
+    def columnar(self) -> Columnar:
+        """Converts to columnar data format."""
+        return Columnar()
+
+
+class Columnar:
+    """A columnar representation of a datum."""
+
+    def __init__(self, **kwargs: Any):
+        self._keys = list(kwargs.keys())
+        self._values = [list(kwargs.values())]
+
+    @staticmethod
+    def apply(args: List[Columnable]) -> Columnar:
+        """Applies a columnar transformation to a list of columnable items."""
+        if len(args) < 1:
+            return Columnar()
+        out = args[0].columnar()
+        for elem in args[1:]:
+            out = out.append(elem.columnar())
+        return out
+
+    def append(self, other: Columnar) -> Columnar:
+        """Returns a new columnar containing the content of self and the other
+        columnar. Raises TypeError if the columns are not compatible."""
+        if self._keys != other._keys:
+            raise TypeError(
+                f"cannot merge distinct types {self._keys} and {other._keys}"
+            )
+        out = Columnar()
+        out._keys = self._keys
+        out._values = self._values + other._values
+        return out
+
+    def only(self, *args: str) -> Columnar:
+        """Returns a new columnar where only the selected columns
+        have been preserved. Raises KeyError if at least one of the
+        requested columns is not present in the columnar."""
+        for arg in args:
+            if arg not in self._keys:
+                raise KeyError(f"column {arg} is not present")
+        out = Columnar()
+        out._keys = list(args)
+        for row in self._values:
+            d = dict(zip(self._keys, row))
+            outrow: List[Any] = []
+            for key in args:
+                outrow.append(d[key])
+            out._values += [outrow]
+        return out
+
+    def keys(self) -> List[str]:
+        """Returns a copy of the keys."""
+        return self._keys[:]
+
+    def values(self) -> List[Any]:
+        """Returns a copy of the values."""
+        return self._values[:]
+
+    def tabulate(self, tablefmt="grid") -> str:
+        """Returns a stringified table obtained using the tabulate package."""
+        return tabulate.tabulate(self._values, headers=self._keys, tablefmt=tablefmt)
+
+
+#
+# DNS cache
+#
+# This section of the script contains the DNS cache data
+# model (aka the "flat" data format).
+#
+# See internal/archival and internal/measurex.
+#
+
+
+class FlatDNSLookupEvent:
+    """Corresponds to internal/archival.FlatDNSLookupEvent."""
+
+    def __init__(self, data: JSONDict):
+        self.alpns = data.get("ALPNs", []) or []
+        self.addresses = data.get("Addresses", []) or []
+        self.cname = data.get("CNAME", "") or ""
+        self.domain = data.get("Domain", "") or ""
+        self.failure = data.get("Failure", "") or ""
+        self.finished = data.get("Finished", "") or ""
+        self.lookup_type = data.get("LookupType", "") or ""
+        self.ns = data.get("NS", []) or []
+        self.resolver_address = data.get("ResolverAddress", "") or ""
+        self.resolver_network = data.get("ResolverNetwork", "") or ""
+        self.started = data.get("Started", "") or ""
+
+
+class FlatDNSRoundTripEvent:
+    """Corresponds to internal/archival.FlatDNSRoundTripEvent."""
+
+    def __init__(self, data: JSONDict):
+        self.address = data.get("Address", "") or ""
+        self.failure = data.get("Failure", "") or ""
+        self.finished = data.get("Finished", "") or ""
+        self.network_type = data.get("NetworkType", "") or ""
+        self.query = data.get("Query", "") or ""
+        self.reply = data.get("Reply", "") or ""
+        self.started = data.get("Started", "") or ""
+
+    def __str__(self) -> str:
+        return "\n\n".join([str(self.decode_query()), str(self.decode_reply())])
+
+    def decode_query(self) -> DNSRecord:
+        """Decodes the base64 query to a DNSRecord."""
+        return self._decode(self.query)
+
+    def decode_reply(self) -> DNSRecord:
+        """Decodes the base64 reply to a DNSRecord."""
+        return self._decode(self.reply)
+
+    @staticmethod
+    def _decode(b64: str) -> DNSRecord:
+        return DNSRecord.parse(base64.b64decode(b64))
+
+
+class DNSLookupMeasurement:
+    """Corresponds to internal/measurex.DNSLookupMeasurement."""
+
+    def __init__(self, data: JSONDict):
+        self.id = data.get("ID", 0) or 0
+        self.lookup = FlatDNSLookupEvent(data.get("Lookup", {}) or {})
+        self.round_trip: List[FlatDNSRoundTripEvent] = []
+        for rt in data.get("RoundTrip", []) or []:
+            self.round_trip.append(FlatDNSRoundTripEvent(rt))
+
+
+class DNSRoundTripEventWrapper:
+    """Wrapper for DNSRoundTripEvent with DNSCacheRecord information."""
+
+    def __init__(self, record: DNSCacheRecord, event: FlatDNSRoundTripEvent):
+        self._record = record
+        self._event = event
+
+    def columnar(self) -> Columnar:
+        """Returns a columnar representation of the datum."""
+        return Columnar(
+            fullpath=self._record.fullpath,
+            index=self._record.index,
+            network=self.network_type(),
+            address=self.address(),
+            started=self.started(),
+            finished=self.finished(),
+            query=self.decode_query(),
+            reply=self.decode_reply(),
+        )
+
+    def network_type(self) -> str:
+        """Shortcut to obtain the network type."""
+        return self._event.network_type
+
+    def address(self) -> str:
+        """Shortcut to obtain the address."""
+        return self._event.address
+
+    def started(self) -> str:
+        """Shortcut to obtain the time when we started."""
+        return self._event.started
+
+    def finished(self) -> str:
+        """Shortcut to obtain the time when we finished."""
+        return self._event.finished
+
+    def decode_query(self) -> DNSRecord:
+        """Shortcut to obtain the decoded query."""
+        return self._event.decode_query()
+
+    def decode_reply(self) -> DNSRecord:
+        """Shortcut to obtain the decoded reply."""
+        return self._event.decode_reply()
+
+    def __str__(self) -> str:
+        return str(self._event)
+
+
+class DNSCacheRecord:
+    """A record inside a DNSCacheEntry."""
+
+    def __init__(self, fullpath: str, index: int, data: JSONDict):
+        self.fullpath = fullpath
+        self.index = index
+        self.t = data.get("T", "") or ""
+        self.m = DNSLookupMeasurement(data.get("M", {}) or {})
+
+    def columnar(self) -> Columnar:
+        """Returns a columnar representation of the datum."""
+        return Columnar(
+            fullpath=self.fullpath,
+            index=self.index,
+            resolver_network=self.resolver_network(),
+            resolver_address=self.resolver_address(),
+            domain=self.domain(),
+            started=self.started(),
+            finished=self.finished(),
+            addresses=self.addresses(),
+        )
+
+    def round_trips(self) -> List[DNSRoundTripEventWrapper]:
+        """Returns the list of round trips performed in this lookup."""
+        out: List[DNSRoundTripEventWrapper] = []
+        for elem in self.m.round_trip:
+            w = DNSRoundTripEventWrapper(self, elem)
+            out.append(w)
+        return out
+
+    def lookup(self) -> FlatDNSLookupEvent:
+        """Shortcut to obtain the lookup."""
+        return self.m.lookup
+
+    def started(self) -> str:
+        """Shortcut to obtain when we started."""
+        return self.lookup().started
+
+    def finished(self) -> str:
+        """Shortcut to obtain when we finished."""
+        return self.lookup().finished
+
+    def resolver_address(self) -> str:
+        """Shortcut to obtain the resolver address."""
+        return self.lookup().resolver_address
+
+    def resolver_network(self) -> str:
+        """Shortcut to obtain the resolver network."""
+        return self.lookup().resolver_network
+
+    def addresses(self) -> List[str]:
+        """Shortcut to obtain the resolved addresses."""
+        return self.lookup().addresses
+
+    def domain(self) -> str:
+        """Shortcut to obtain the domain to resolve."""
+        return self.lookup().domain
+
+    def unique_id(self) -> Tuple[str, int]:
+        """Unique ID of this result within the cache."""
+        return self.fullpath, self.index
+
+
+class DNSCacheEntry:
+    """An entry inside measurex's on disk DNS cache."""
+
+    def __init__(self, fullpath: str, data: JSONListOfDicts):
+        self.fullpath = fullpath
+        self.records: List[DNSCacheRecord] = []
+        for index, elem in enumerate(data):
+            self.records.append(DNSCacheRecord(fullpath, index, elem))
+
+
+class DNSCache:
+    """Content of measurex's DNS cache."""
+
+    def __init__(self, dirpath: str):
+        self.entries: List[DNSCacheEntry] = []
+        loader(os.path.join(dirpath, "d"), self._load)
+
+    def _load(self, fullpath: str, data: JSONListOfDicts):
+        self.entries.append(DNSCacheEntry(fullpath, data))
+
+
+#
+# Endpoint cache
+#
+# This section of the script contains the endpoint cache data
+# model (aka the "flat" data format).
+#
+# See internal/archival and internal/measurex.
+#
+
+
+class SimpleURL:
+    """Corresponds to internal/measurex.SimpleURL."""
+
+    def __init__(self, data: JSONDict):
+        self.scheme = data.get("Scheme", "") or ""
+        self.host = data.get("Host", "") or ""
+        self.path = data.get("Path", "") or ""
+        self.raw_query = data.get("RawQuery", "") or ""
+
+
+class EndpointMeasurement:
+    """Corresponds to internal/measurex.EndpointMeasurement."""
+
+    def __init__(self, data: JSONDict):
+        self.id = data.get("ID", 0) or 0
+        self.url = SimpleURL(data.get("URL", {}) or {})
+        self.network = data.get("Network", "") or ""
+        self.address = data.get("Address", "") or ""
+        self.options: JSONDict = data.get("Options", {}) or {}
+        self.orig_cookies: JSONListOfDicts = data.get("OrigCookies", []) or []
+        self.failure = data.get("Failure", "") or ""
+        self.failed_operation = data.get("FailedOperation", "") or ""
+        self.location = SimpleURL(data.get("Location", {}) or {})
+        self.http_title = data.get("HTTPTitle", "") or ""
+        self.network_event: JSONListOfDicts = data.get("NetworkEvent", []) or []
+        self.tcp_connect: JSONDict = data.get("TCPConnect", {}) or {}
+        self.quic_tls_handshake: JSONDict = data.get("QUICTLSHandshake", {}) or {}
+        self.http_round_trip: JSONDict = data.get("HTTPRoundTrip", {}) or {}
+
+
+class EndpointCacheRecord:
+    """Record inside a EndpointCacheEntry."""
+
+    def __init__(self, data: JSONDict):
+        self.t = data.get("T", "") or ""
+        self.m = EndpointMeasurement(data.get("M", {}) or {})
+
+
+class EndpointCacheEntry:
+    """Entry inside measurex's on disk endpoint cache."""
+
+    def __init__(self, fullpath: str, data: JSONListOfDicts):
+        self.fullpath = fullpath
+        self.records: List[EndpointCacheRecord] = []
+        for elem in data:
+            self.records.append(EndpointCacheRecord(elem))
+
+
+class EndpointCache:
+    """Content of measurex's endpoint cache."""
+
+    def __init__(self, dirpath: str):
+        self.entries: List[EndpointCacheEntry] = []
+        loader(os.path.join(dirpath, "e"), self._load)
+
+    def _load(self, fullpath: str, data: JSONListOfDicts):
+        self.entries.append(EndpointCacheEntry(fullpath, data))
+
+
+#
+# Database
+#
+# Searchable overlay over the DNSCache.
+#
+
+
+class TableDNSLookup:
+    """A table containing all DNSLookup instances."""
+
+    def __init__(self, dns: DNSCache):
+        self._primary_key = self._build_primary_key(dns)
+
+    @staticmethod
+    def _build_primary_key(cache: DNSCache) -> Dict[Tuple[str, int], DNSCacheRecord]:
+        out: Dict[Tuple[str, int], DNSCacheRecord] = {}
+        for entry in cache.entries:
+            for record in entry.records:
+                key = record.unique_id()
+                value = record
+                out[key] = value
+        return out
+
+    def select_record(self, fullpath: str, index: int) -> (DNSCacheRecord):
+        """Returns the DNSCacheRecord with the given fullpath and index."""
+        return self._primary_key[(fullpath, index)]
+
+    def select_all_records(self) -> Iterator[DNSCacheRecord]:
+        for rec in self._primary_key.values():
+            yield rec
+
+    def select_records_with_domain(self, domain: str) -> Iterator[DNSCacheRecord]:
+        for rec in self._primary_key.values():
+            if rec.domain() == domain:
+                yield rec
+
+    def select_records_with_address(self, ipaddr: str) -> Iterator[DNSCacheRecord]:
+        for rec in self._primary_key.values():
+            for addr in rec.addresses():
+                if addr == ipaddr:
+                    yield rec
+
+    def select_records_with_resolver(
+        self, network: str, address: str
+    ) -> Iterator[DNSCacheRecord]:
+        for rec in self._primary_key.values():
+            if rec.resolver_network() != network:
+                continue
+            if rec.resolver_address() != address:
+                continue
+            yield rec
+
+
+#
+# Views
+#
+# This section contains algorithms for creating views.
+#
+
+
+def each_dns_lookup(dns: DNSCache) -> Iterator[Tuple[int, int, DNSCacheRecord]]:
+    """Iterator that returns each DNS lookup inside a cache."""
+    for entry_idx, entry in enumerate(dns.entries):
+        for record_idx, record in enumerate(entry.records):
+            yield entry_idx, record_idx, record
+
+
+class DomainViewInfo:
+    """Infomation collected by a domain view."""
+
+    def __init__(self):
+        self.lookups: List[Tuple[int, int]] = []
+
+
+class DomainView:
+    """A view that maps a domain to all the resolved addresses."""
+
+    def __init__(self, dns: DNSCache):
+        self.domain = self._load_from_cache(dns)
+
+    @staticmethod
+    def _load_from_cache(dns: DNSCache) -> Dict[str, DomainViewInfo]:
+        out: Dict[str, DomainViewInfo] = {}
+        for eidx, ridx, rec in each_dns_lookup(dns):
+            domain = rec.m.lookup.domain
+            addrs = rec.m.lookup.addresses
+            out.setdefault(domain, DomainViewInfo())
+            for addr in addrs:
+                out[domain].lookups.append((eidx, ridx))
+        return out
+
+
+class IPAddressViewInfo:
+    """Information collected by an IP addr view."""
+
+    def __init__(self):
+        self.domain: Dict[str, int] = {}
+
+
+class IPAddressView:
+    """A view that maps IP addresses to resolver domains."""
+
+    def __init__(self, dns: DNSCache):
+        self.ipaddr = self._load_from_cache(dns)
+
+    @staticmethod
+    def _load_from_cache(dns: DNSCache) -> Dict[str, IPAddressViewInfo]:
+        out: Dict[str, IPAddressViewInfo] = {}
+        for _, _, rec in each_dns_lookup(dns):
+            domain = rec.m.lookup.domain
+            addrs = rec.m.lookup.addresses
+            for addr in addrs:
+                out.setdefault(addr, IPAddressViewInfo())
+                out[addr].domain.setdefault(domain, 0)
+                out[addr].domain[domain] += 1
+        return out
+
+
+#
+# HTMLGen
+#
+# This section contains code for organizing the content
+# of measurex's cache as a set of HTML files.
+#
+
+
+class HTMLGen:
+    """Transforms the cache content to a set of HTML files."""
+
+    def __init__(self, srcpath, destpath):
+        self.destpath = destpath
+        self.dns = TableDNSLookup(DNSCache(srcpath))
+        self.endpoint = EndpointCache(srcpath)
+        # self.dview = DomainView(self.dns)
+        # self.ipview = IPAddressView(self.dns)
+
+    def generate_root_ipaddr_page(self):
+        fname = "ipaddr.html"
+        with self._html_file(fname, fname) as filep:
+            self._html_open_table(filep, ["ipaddr", "#domains"])
+            for ipaddr, ivi in self.ipview.ipaddr.items():
+                self._html_write_table_row(
+                    filep,
+                    self._ipaddr_page_link(ipaddr),
+                    len(ivi.domain),
+                )
+
+    def generate_ipaddr_pages(self):
+        for ipaddr in self.ipview.ipaddr:
+            fname = self._ipaddr_page_filename(ipaddr)
+            with self._html_file(fname, fname) as filep:
+                self._html_open_table(filep, ["ipaddr", "domain", "count"])
+                domain = self.ipview.ipaddr[ipaddr]
+                for domain, count in domain.domain.items():
+                    self._html_write_table_row(
+                        filep,
+                        self._ipaddr_page_link(ipaddr),
+                        self._domain_page_link(domain),
+                        count,
+                    )
+
+    def generate_root_domain_page(self):
+        fname = "domain.html"
+        with self._html_file(fname, fname) as filep:
+            self._html_open_table(filep, ["domain", "dns_lookup"])
+            for domain, dvi in self.dview.domain.items():
+                for eidx, ridx in dvi.lookups:
+                    self._html_write_table_row(
+                        filep,
+                        self._domain_page_link(domain),
+                        self._dns_page_link(eidx, ridx),
+                    )
+
+    def generate_domain_pages(self):
+        """
+        for domain, dvi in self.dview.domain.items():
+            fname = self._domain_page_filename(domain)
+            with self._html_file(fname, fname) as filep:
+                self._html_open_table(filep, ["domain", "ipaddr", "count"])
+                for eidx, ridx in dvi.lookups:
+                    self._html_write_table_row(
+                        filep,
+                        self._domain_page_link(domain),
+                        self._ipaddr_page_link(eidx, ridx),
+                        count,
+                    )
+        """
+
+    def generate_root_dns_page(self):
+        fname = "dns.html"
+        with self._html_file(fname, fname) as filep:
+            filep.write("<h1>All DNS Lookups</h1>")
+            columnar = Columnar.apply(list(self.dns.select_all_records()))
+            self._html_open_table(filep, columnar.keys())
+            for row in columnar.values():
+                self._html_write_table_row(filep, *row)
+
+    @staticmethod
+    def _resolver_url(lookup: FlatDNSLookupEvent) -> str:
+        if lookup.resolver_network in ("doh", "doh3"):
+            return lookup.resolver_address
+        return f"{lookup.resolver_network}://{lookup.resolver_address}/"
+
+    @staticmethod
+    def _reformat_time(t: str) -> str:
+        pt = dateutil.parser.parse(t)
+        return pt.strftime("%Y-%m-%d %H:%M:%S.%f UTC")
+
+    def generate_dns_pages(self):
+        for eidx, ridx, rec in each_dns_lookup(self.dns):
+            fname = self._dns_page_filename(eidx, ridx)
+            with self._html_file(fname, fname) as filep:
+                filep.write("<h1>DNS Lookup</h1>")
+                self._html_open_table(filep, ["name", "value"])
+                self._html_write_table_row(
+                    filep,
+                    "time",
+                    self._dns_page_link(eidx, ridx, self._reformat_time(rec.t)),
+                )
+                self._html_write_table_row(
+                    filep, "lookup_type", rec.m.lookup.lookup_type
+                )
+                self._html_write_table_row(
+                    filep,
+                    "resolver",
+                    self._resolver_url(rec.m.lookup),
+                )
+                self._html_write_table_row(
+                    filep, "domain", self._domain_page_link(rec.m.lookup.domain)
+                )
+                self._html_write_table_row(
+                    filep,
+                    "started",
+                    self._reformat_time(rec.m.lookup.started),
+                )
+                self._html_write_table_row(
+                    filep,
+                    "finished",
+                    self._reformat_time(rec.m.lookup.finished),
+                )
+                self._html_write_table_row(
+                    filep,
+                    "duration",
+                    self._time_diff(rec.m.lookup.started, rec.m.lookup.finished),
+                )
+                self._html_write_table_row(
+                    filep, "failure", self._failure(rec.m.lookup.failure)
+                )
+                for addr in rec.m.lookup.addresses:
+                    self._html_write_table_row(
+                        filep, "address", self._ipaddr_page_link(addr)
+                    )
+                if rec.m.lookup.cname:
+                    self._html_write_table_row(filep, "cname", rec.m.lookup.cname)
+                self._html_close_table(filep)
+                for idx, dnsrt in enumerate(rec.m.round_trip):
+                    if dnsrt.query is None or dnsrt.query == "":
+                        continue
+                    filep.write(f"<h1>Query #{idx}</h1>")
+                    self._open_pre(filep)
+                    filep.write(self._decode_dns(dnsrt.query))
+                    self._close_pre(filep)
+                    if dnsrt.reply is not None and dnsrt.reply != "":
+                        self._open_pre(filep)
+                        filep.write(self._decode_dns(dnsrt.reply))
+                        self._close_pre(filep)
+
+    @staticmethod
+    def _decode_dns(b64: str) -> str:
+        d = base64.b64decode(b64)
+        rec = DNSRecord.parse(d)
+        return str(rec)
+
+    @staticmethod
+    def _open_pre(filep: TextIO):
+        filep.write('<div class="container">\n')
+        filep.write("<pre>\n")
+
+    @staticmethod
+    def _close_pre(filep: TextIO):
+        filep.write("</pre>\n")
+        filep.write("</div>\n")
+
+    @staticmethod
+    def _failure(ff: str) -> str:
+        if ff == "":
+            return "null"
+        return ff
+
+    @staticmethod
+    def _time_diff(started: str, finished: str) -> str:
+        right = dateutil.parser.parse(finished)
+        left = dateutil.parser.parse(started)
+        delta = right - left
+        return f"{delta.microseconds / 1000.0} ms"
+
+    @contextmanager
+    def _html_file(self, fname: str, title: str) -> Iterator[TextIO]:
+        filep = open(os.path.join("html", fname), "w")
+        self._html_open_body(filep, title)
+        yield filep
+        self._html_close_body(filep)
+        filep.close()
+
+    def _domain_page_link(self, domain: str) -> str:
+        return f'<a href="{self._domain_page_filename(domain)}">{domain}</a>'
+
+    @staticmethod
+    def _domain_page_id(domain: str) -> str:
+        return f"domain-{domain}"
+
+    def _domain_page_filename(self, domain: str) -> str:
+        return f"{self._domain_page_id(domain)}.html"
+
+    @staticmethod
+    def _ipinfo_link(ipaddr: str) -> str:
+        return f'<a href="https://ipinfo.io/{ipaddr}">{ipaddr}</a>'
+
+    def _dns_page_link(self, eidx: int, ridx: int, text: str = "#") -> str:
+        return f'<a href="{self._dns_page_filename(eidx, ridx)}" title="See this DNS lookup measurement">{text}</a>'
+
+    @staticmethod
+    def _dns_page_id(eidx: int, ridx: int) -> str:
+        return "-".join(["dns", f"{eidx:08d}", f"{ridx:08d}"])
+
+    def _dns_page_filename(self, eidx: int, ridx: int) -> str:
+        return self._dns_page_id(eidx, ridx) + ".html"
+
+    def _ipaddr_page_link(self, ipaddr) -> str:
+        return f'<a href="{self._ipaddr_page_filename(ipaddr)}">{ipaddr}</a>'
+
+    @staticmethod
+    def _ipaddr_page_id(ipaddr: str) -> str:
+        ipver = "v4"
+        if ":" in ipaddr:
+            ipver = "v6"
+        return "-".join(["ipaddr", ipver, ipaddr.replace(":", "_")])
+
+    def _ipaddr_page_filename(self, ipaddr: str) -> str:
+        return self._ipaddr_page_id(ipaddr) + ".html"
+
+    @staticmethod
+    def _html_open_table(filep: TextIO, headers: Optional[List[str]] = None):
+        filep.write('<div class="container">\n')
+        filep.write('<table class="styled-table">\n')
+        if headers:
+            filep.write("<thead>\n")
+            filep.write("<tr>\n")
+            for hdr in headers:
+                filep.write("<th>")
+                filep.write(hdr)
+                filep.write("</th>")
+            filep.write("</tr>\n")
+            filep.write("</thead>\n")
+        filep.write("<tbody>\n")
+
+    @staticmethod
+    def _html_close_table(filep: TextIO):
+        filep.write("</tbody>\n")
+        filep.write("</table>\n")
+        filep.write("</div>\n")
+
+    @staticmethod
+    def _html_write_table_row(filep: TextIO, *elems: Any):
+        filep.write("<tr>\n")
+        for entry in elems:
+            filep.write("<td>")
+            filep.write(str(entry))
+            filep.write("</td>\n")
+        filep.write("</tr>\n")
+
+    @staticmethod
+    def _html_open_body(filep: TextIO, title: str):
+        filep.write("<!DOCTYPE HTML>\n")
+        filep.write('<html lang="en">\n')
+        filep.write("<head>\n")
+        filep.write("<title>\n")
+        filep.write(title)
+        filep.write("</title>\n")
+        filep.write('<link href="main.css" rel="stylesheet">')
+        filep.write("</head>\n")
+        filep.write("<body>\n")
+        filep.write('<div class="container">\n')
+        filep.write('<a href="domain.html">[domain]</a>\n')
+        filep.write('<a href="dns.html">[dns]</a>\n')
+        filep.write('<a href="ipaddr.html">[ipaddr]</a>\n')
+        filep.write("</div>\n")
+
+    @staticmethod
+    def _html_close_body(filep: TextIO):
+        filep.write('<script src="main.js"></script>\n')
+        filep.write("</body>\n")
+
+
+#
+# Shell
+#
+# This section contains an interactive shell for
+# navigating the content of measurex's cache.
+#
+
+
+class Shell:
+    """Interactive shell for navigating measurex's cache."""
+
+    def __init__(self, dirpath):
+        self.dns = DNSCache(dirpath)
+        self.endpoint = EndpointCache(dirpath)
+
+    def cmd_list_dns(self):
+        """Lists available DNS entries."""
+        table = []
+        for entry_idx, entry in enumerate(self.dns.entries):
+            for record_idx, record in enumerate(entry.records):
+                table.append(
+                    [
+                        entry_idx,
+                        record_idx,
+                        record.t,
+                        record.m.lookup.lookup_type,
+                        record.m.lookup.resolver_network,
+                        record.m.lookup.resolver_address,
+                        record.m.lookup.domain,
+                        record.m.lookup.failure,
+                        sorted(record.m.lookup.addresses),
+                    ]
+                )
+        table.sort(key=lambda e: e[2])
+        columns = [
+            "#entry",
+            "#record",
+            "time",
+            "lookup_type",
+            "network",
+            "address",
+            "domain",
+            "failure",
+            "addresses",
+        ]
+        print("")
+        print("DNS:")
+        print(tabulate.tabulate(table, headers=columns, tablefmt="grid"))
+        print("")
+        print("")
+
+    def cmd_list_endpoint(self):
+        """Lists available endpoint entries."""
+        table = []
+        for entry_idx, entry in enumerate(self.endpoint.entries):
+            for record_idx, record in enumerate(entry.records):
+                table.append(
+                    [
+                        entry_idx,
+                        record_idx,
+                        record.t,
+                        record.m.url.scheme,
+                        record.m.url.host,
+                        record.m.url.path,
+                        record.m.url.raw_query,
+                        record.m.network,
+                        record.m.address,
+                        record.m.failed_operation,
+                        record.m.failure,
+                    ]
+                )
+        table.sort(key=lambda e: e[2])
+        columns = [
+            "#entry",
+            "#record",
+            "time",
+            "scheme",
+            "host",
+            "path",
+            "query",
+            "network",
+            "address",
+            "failed_operation",
+            "failure",
+        ]
+        print("")
+        print("Endpoint:")
+        print(tabulate.tabulate(table, headers=columns, tablefmt="grid"))
+        print("")
+        print("")
+
+
+#
+# Main
+#
+# This section contains the main function.
+#
+
+
+def main():
+    """Main function."""
+    cachedir = sys.argv[1]
+    outdir = sys.argv[2]
+    gen = HTMLGen(cachedir, outdir)
+    gen.generate_root_dns_page()
+    #gen.generate_dns_pages()
+    #gen.generate_root_domain_page()
+    #gen.generate_domain_pages()
+    #gen.generate_root_ipaddr_page()
+    #gen.generate_ipaddr_pages()
+
+
+if __name__ == "__main__":
+    main()

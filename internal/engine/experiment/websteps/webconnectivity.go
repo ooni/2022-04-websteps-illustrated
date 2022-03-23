@@ -6,8 +6,8 @@ import (
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -19,7 +19,7 @@ import (
 
 // dnsWebConnectivityDNSDiff is the DNSDiff algorithm originally
 // designed for Web Connectivity and now adapted to websteps.
-func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(logger model.Logger,
+func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 	pq, thq *measurex.DNSLookupMeasurement, thResp *THResponse) bool {
 
 	// we use these flags to classify who did see what
@@ -83,12 +83,12 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(logger model.Logger,
 		}
 		// 1.4. explain to the user why this lookup failed.
 		if len(suffmap) > 0 {
-			logger.Infof("🧐 [dnsDiff] reverse mapping IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
+			logcat.Infof("🧐 [dnsDiff] reverse mapping IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
 			for key, value := range suffmap {
-				logger.Infof("        - only the %s found IP addresses mapping to %s", who(value), key)
+				logcat.Infof("        - only the %s found IP addresses mapping to %s", who(value), key)
 			}
-			logger.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
-			logger.Info("")
+			logcat.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
+			logcat.Info("")
 		}
 	}
 
@@ -119,12 +119,12 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(logger model.Logger,
 		}
 	}
 	if len(asnmap) > 0 {
-		logger.Infof("🧐 [dnsDiff] comparing the ASNs of the IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
+		logcat.Infof("🧐 [dnsDiff] comparing the ASNs of the IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
 		for key, value := range asnmap {
-			logger.Infof("        - only the %s found IP addresses in AS%d", who(value), key)
+			logcat.Infof("        - only the %s found IP addresses in AS%d", who(value), key)
 		}
-		logger.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
-		logger.Info("")
+		logcat.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
+		logcat.Info("")
 	}
 
 	// 3. when ASN lookup failed (unlikely), check whether
@@ -142,7 +142,7 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(logger model.Logger,
 			return false // no diff
 		}
 	}
-	logger.Infof("😟 [dnsDiff] no common addresses in #%d and %d; looks like #dnsDiff to me", pq.ID, thq.ID)
+	logcat.Infof("😟 [dnsDiff] no common addresses in #%d and %d; looks like #dnsDiff to me", pq.ID, thq.ID)
 
 	// 3. conclude that measurement and control are inconsistent
 	return true
@@ -185,7 +185,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityBodyLengthChecks(
 // endpointWebConnectivityStatusCodeMatch is part of the HTTPDiff algorithm
 // designed for Web Connectivity and now adapted to websteps.
 func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
-	logger model.Logger, pe, the *measurex.EndpointMeasurement) (flags int64) {
+	pe, the *measurex.EndpointMeasurement) (flags int64) {
 	match := pe.StatusCode() == the.StatusCode()
 	if match {
 		// if the status codes are equal, they clearly match
@@ -210,7 +210,7 @@ func (ssm *SingleStepMeasurement) endpointWebConnectivityStatusCodeMatch(
 	// We're going to mark all these cases as "gave up analysis".
 	if !the.IsHTTPRedirect() && the.StatusCode() != 200 {
 		flags |= AnalysisGiveUp
-		logger.Warnf(
+		logcat.Warnf(
 			"😅 [analysis] give up b/c the TH response is neither redirect nor 200")
 		return
 	}

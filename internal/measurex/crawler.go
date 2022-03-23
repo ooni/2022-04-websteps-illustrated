@@ -9,7 +9,7 @@ package measurex
 import (
 	"context"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 )
 
 // Crawler starts from an input URL and visits the forest
@@ -18,9 +18,6 @@ import (
 // Please, either use NewCrawler to create a new instance or
 // ensure you initialize all this struct's fields.
 type Crawler struct {
-	// Logger is the logger.
-	Logger model.Logger
-
 	// Measurer is the measurer to use.
 	Measurer AbstractMeasurer
 
@@ -33,9 +30,8 @@ type Crawler struct {
 }
 
 // NewCrawler creates a new instance of Crawler.
-func NewCrawler(logger model.Logger, mx AbstractMeasurer) *Crawler {
+func NewCrawler(mx AbstractMeasurer) *Crawler {
 	return &Crawler{
-		Logger:   logger,
 		Measurer: mx,
 		Options:  mx.FlattenOptions(),
 		Resolvers: []*DNSResolverInfo{{
@@ -55,20 +51,20 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 	out := make(chan *URLMeasurement)
 	go func() {
 		defer close(out)
-		q := mx.NewURLRedirectDeque(c.Logger)
+		q := mx.NewURLRedirectDeque()
 		q.Append(initial)
 		for {
 			cur, found := q.PopLeft()
 			if !found {
 				break // we've emptied the queue
 			}
-			c.Logger.Infof("🧐 depth=%d; crawling %s", q.Depth(), cur.URL.String())
+			logcat.Infof("🧐 depth=%d; crawling %s", q.Depth(), cur.URL.String())
 			c.do(ctx, mx, cur)
 			q.RememberVisitedURLs(cur.Endpoint)
 			redirects, _ := mx.Redirects(cur.Endpoint, cur.Options)
 			out <- cur
 			q.Append(redirects...)
-			c.Logger.Infof("🪀 work queue: %s", q.String())
+			logcat.Infof("🪀 work queue: %s", q.String())
 		}
 	}()
 	return out, nil
@@ -76,19 +72,19 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 
 // do visits the URL described by um using mx.
 func (c *Crawler) do(ctx context.Context, mx AbstractMeasurer, um *URLMeasurement) {
-	c.Logger.Info("📡 resolving the domain name using all resolvers")
+	logcat.Info("📡 resolving the domain name using all resolvers")
 	const flags = 0 // no extra queries
 	dnsPlan := um.NewDNSLookupPlans(flags, c.Resolvers...)
 	for m := range mx.DNSLookups(ctx, dnsPlan...) {
 		um.DNS = append(um.DNS, m)
 	}
-	c.Logger.Info("📡 visiting endpoints deriving from DNS")
-	epntPlan, _ := um.NewEndpointPlan(c.Logger, 0)
+	logcat.Info("📡 visiting endpoints deriving from DNS")
+	epntPlan, _ := um.NewEndpointPlan(0)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
-	c.Logger.Info("📡 visiting extra endpoints deriving from Alt-Svc (if any)")
-	epntPlan, _ = um.NewEndpointPlan(c.Logger, EndpointPlanningOnlyHTTP3)
+	logcat.Info("📡 visiting extra endpoints deriving from Alt-Svc (if any)")
+	epntPlan, _ = um.NewEndpointPlan(EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}

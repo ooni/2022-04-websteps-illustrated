@@ -5,32 +5,32 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
 type CLI struct {
-	Backend   string   `doc:"backend URL (default: use OONI backend)" short:"b"`
-	CacheDir  string   `doc:"optional directory where to store cache (default: none)" short:"C"`
-	Deep      bool     `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
-	Fast      bool     `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
-	Help      bool     `doc:"prints this help message" short:"h"`
-	Input     []string `doc:"add URL to list of URLs to crawl" short:"i"`
-	InputFile []string `doc:"add input file containing URLs to crawl" short:"f"`
-	Output    string   `doc:"file where to write output (default: report.jsonl)" short:"o"`
-	Random    bool     `doc:"shuffle input list before running through it"`
-	Raw       bool     `doc:"emit raw websteps format rather than OONI data format"`
-	Verbose   bool     `doc:"enable verbose mode" short:"v"`
+	Backend   string          `doc:"backend URL (default: use OONI backend)" short:"b"`
+	CacheDir  string          `doc:"optional directory where to store cache (default: none)" short:"C"`
+	Deep      bool            `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
+	Fast      bool            `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
+	Help      bool            `doc:"prints this help message" short:"h"`
+	Input     []string        `doc:"add URL to list of URLs to crawl" short:"i"`
+	InputFile []string        `doc:"add input file containing URLs to crawl" short:"f"`
+	Output    string          `doc:"file where to write output (default: report.jsonl)" short:"o"`
+	Random    bool            `doc:"shuffle input list before running through it"`
+	Raw       bool            `doc:"emit raw websteps format rather than OONI data format"`
+	Verbose   getoptx.Counter `doc:"enable verbose mode" short:"v"`
 }
 
 // getopt parses command line flags.
@@ -46,7 +46,7 @@ func getopt() *CLI {
 		Output:    "report.jsonl",
 		Random:    false,
 		Raw:       false,
-		Verbose:   false,
+		Verbose:   0,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -55,10 +55,11 @@ func getopt() *CLI {
 		os.Exit(0)
 	}
 	if len(opts.Input) < 1 && len(opts.InputFile) < 1 {
-		log.Fatal("no input provided (try `./websteps --help' for more help)")
+		fmt.Fprintf(os.Stderr, "websteps: no input provided (try `./websteps --help' for more help)")
+		os.Exit(1)
 	}
-	if opts.Verbose {
-		log.SetLevel(log.DebugLevel)
+	if opts.Verbose > 0 {
+		logcat.IncrementLogLevel(int(opts.Verbose))
 	}
 	readInputFiles(opts)
 	if opts.Random {
@@ -84,9 +85,7 @@ func readInputFiles(opts *CLI) {
 // we have in probe-cli and checks also for empty files.
 func readInputFile(filepath string) (inputs []string) {
 	fp, err := os.Open(filepath)
-	if err != nil {
-		log.WithError(err).Fatal("cannot open input file")
-	}
+	runtimex.Must(err, "cannot open input file")
 	defer fp.Close()
 	// Implementation note: when you save file with vim, you have newline at
 	// end of file and you don't want to consider that an input line. While there
@@ -98,9 +97,7 @@ func readInputFile(filepath string) (inputs []string) {
 			inputs = append(inputs, line)
 		}
 	}
-	if scanner.Err() != nil {
-		log.WithError(err).Fatal("scanner error while processing input file")
-	}
+	runtimex.Must(scanner.Err(), "scanner error while processing input file")
 	return
 }
 
@@ -110,7 +107,8 @@ func measurexOptions(opts *CLI) *measurex.Options {
 		MaxCrawlerDepth:       measurex.DefaultMaxCrawlerDepth,
 	}
 	if opts.Deep && opts.Fast {
-		log.Fatal("cannot use --deep and --fast together")
+		fmt.Fprintf(os.Stderr, "websteps: cannot use --deep and --fast together")
+		os.Exit(1)
 	}
 	if opts.Deep {
 		clientOptions.MaxAddressesPerFamily = 32
@@ -128,11 +126,11 @@ func measurexOptions(opts *CLI) *measurex.Options {
 func maybeSetCache(opts *CLI, clnt *websteps.Client) {
 	if opts.CacheDir != "" {
 		cache := measurex.NewCache(opts.CacheDir)
-		clnt.MeasurerFactory = func(logger model.Logger, options *measurex.Options) (
+		clnt.MeasurerFactory = func(options *measurex.Options) (
 			measurex.AbstractMeasurer, error) {
-			library := measurex.NewDefaultLibrary(log.Log)
-			var mx measurex.AbstractMeasurer = measurex.NewMeasurer(log.Log, library)
-			mx = measurex.NewCachingMeasurer(mx, logger, cache, measurex.CachingForeverPolicy())
+			library := measurex.NewDefaultLibrary()
+			var mx measurex.AbstractMeasurer = measurex.NewMeasurer(library)
+			mx = measurex.NewCachingMeasurer(mx, cache, measurex.CachingForeverPolicy())
 			return mx, nil
 		}
 	}
@@ -141,23 +139,20 @@ func maybeSetCache(opts *CLI, clnt *websteps.Client) {
 func main() {
 	opts := getopt()
 	filep, err := os.OpenFile(opts.Output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.WithError(err).Fatal("cannot create output file")
-	}
+	runtimex.Must(err, "cannot create output file")
 	begin := time.Now()
 	ctx := context.Background()
 	clientOptions := measurexOptions(opts)
-	clnt := websteps.NewClient(log.Log, nil, nil, opts.Backend, clientOptions)
+	clnt := websteps.NewClient(nil, nil, opts.Backend, clientOptions)
 	maybeSetCache(opts, clnt)
 	go clnt.Loop(ctx)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout))
 	go submitInput(ctx, wg, clnt, opts)
 	processOutput(begin, filep, clnt, opts.Raw)
 	wg.Wait()
-	if err := filep.Close(); err != nil {
-		log.WithError(err).Fatal("cannot close output file")
-	}
+	runtimex.Must(filep.Close(), "cannot close output file")
 }
 
 func submitInput(ctx context.Context, wg *sync.WaitGroup, clnt *websteps.Client, opts *CLI) {
@@ -180,7 +175,7 @@ type result struct {
 func processOutput(begin time.Time, filep io.Writer, clnt *websteps.Client, raw bool) {
 	for tkoe := range clnt.Output {
 		if err := tkoe.Err; err != nil {
-			log.Warn(err.Error())
+			logcat.Warn(err.Error())
 			continue
 		}
 		if raw {
@@ -196,7 +191,6 @@ func store(filep io.Writer, r interface{}) {
 	data, err := json.Marshal(r)
 	runtimex.PanicOnError(err, "json.Marshal failed")
 	data = append(data, '\n')
-	if _, err := filep.Write(data); err != nil {
-		log.WithError(err).Fatal("cannot write output file")
-	}
+	_, err = filep.Write(data)
+	runtimex.Must(err, "cannot write output file")
 }

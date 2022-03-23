@@ -26,6 +26,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/rogpeppe/go-internal/lockedfile"
 )
@@ -286,9 +287,6 @@ type CachingMeasurer struct {
 	// cache is the underlying cache.
 	cache *Cache
 
-	// logger is the logger to use.
-	logger model.Logger
-
 	// measurer is the underlying measurer.
 	measurer AbstractMeasurer
 
@@ -298,11 +296,10 @@ type CachingMeasurer struct {
 
 // NewCachingMeasurer takes in input an existing measurer and the
 // cache and returns a new instance of CachingMeasurer.
-func NewCachingMeasurer(mx AbstractMeasurer, logger model.Logger,
+func NewCachingMeasurer(mx AbstractMeasurer,
 	cache *Cache, policy CachingPolicy) *CachingMeasurer {
 	cmx := &CachingMeasurer{
 		cache:    cache,
-		logger:   logger,
 		measurer: mx,
 		policy:   policy,
 	}
@@ -338,8 +335,8 @@ func (mx *CachingMeasurer) NewURLMeasurement(input string) (*URLMeasurement, err
 }
 
 // NewURLRedirectDeque implements AbstractMeasurer.NewURLRedirectDeque.
-func (mx *CachingMeasurer) NewURLRedirectDeque(logger model.Logger) *URLRedirectDeque {
-	return mx.measurer.NewURLRedirectDeque(logger)
+func (mx *CachingMeasurer) NewURLRedirectDeque() *URLRedirectDeque {
+	return mx.measurer.NewURLRedirectDeque()
 }
 
 // NextID implements AbstractMeasurer.NextID.
@@ -394,7 +391,7 @@ func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 		if mx.policy.StaleDNSLookupMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
-		mx.logger.Infof("👛 DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
+		logcat.Infof("👛 DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
@@ -480,7 +477,7 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 		if mx.policy.StaleEndpointMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
-		mx.logger.Infof("👛 endpoint entry in %v: %s", time.Since(begin), entry.M.Summary())
+		logcat.Infof("👛 endpoint entry in %v: %s", time.Since(begin), entry.M.Summary())
 		return entry.M, true
 	}
 	return nil, false

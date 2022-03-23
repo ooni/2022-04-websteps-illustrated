@@ -5,7 +5,6 @@ package archival
 //
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"sort"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
@@ -206,7 +206,7 @@ func (ev *FlatDNSLookupEvent) ToArchival(begin time.Time) []model.ArchivalDNSLoo
 	case DNSLookupTypeNS:
 		return ev.toArchivalNS(begin)
 	default:
-		log.Printf("[BUG] ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
+		logcat.Warnf("[BUG] ToArchivalDNSLookupResultList: unhandled record: %+v", ev)
 		return []model.ArchivalDNSLookupResult{}
 	}
 }
@@ -507,7 +507,7 @@ func (ev *FlatDNSRoundTripEvent) fillHostnameAndQueryType(out *model.ArchivalDNS
 	case dns.TypePTR:
 		out.QueryType = "PTR"
 	default:
-		log.Printf("[BUG] fillHostnameAndQueryType: unhandled query type: %d", q0.Qtype)
+		logcat.Warnf("[BUG] fillHostnameAndQueryType: unhandled query type: %d", q0.Qtype)
 	}
 }
 
@@ -523,7 +523,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 		switch v := answer.(type) {
 		case *dns.HTTPS:
 			// TODO(bassosimone): properly decode HTTPS replies
-			log.Printf("[BUG] decoding of HTTPSSvc replies is not implemented")
+			logcat.Warnf("[BUG] decoding of HTTPSSvc replies is not implemented")
 		case *dns.A:
 			out.Answers = append(out.Answers, model.ArchivalDNSAnswer{
 				ALPN:       "",
@@ -585,7 +585,7 @@ func (ev *FlatDNSRoundTripEvent) fillAnswers(out *model.ArchivalDNSLookupResult)
 				TTL:        ev.ttl(v.Hdr.Ttl),
 			})
 		default:
-			log.Printf("[BUG] fillAnswers: unhandled record type %T", answer)
+			logcat.Warnf("[BUG] fillAnswers: unhandled record type %T", answer)
 		}
 	}
 }

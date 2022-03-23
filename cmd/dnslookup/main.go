@@ -8,22 +8,22 @@ import (
 	"os"
 	"time"
 
-	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
 // CLI contains command line flags.
 type CLI struct {
-	EnableHTTPS    bool     `doc:"also query for HTTPSSvc records"`
-	EnableNS       bool     `doc:"also query for NS records"`
-	HTTPSResolver  []string `doc:"add HTTPS resolver URL"`
-	Help           bool     `doc:"prints this help message" short:"h"`
-	Raw            bool     `doc:"emits measurements in the internal data format"`
-	SystemResolver bool     `doc:"use the system resolver"`
-	UDPResolver    []string `doc:"add UDP resolver endpoint"`
-	Verbose        bool     `doc:"enable verbose mode" short:"v"`
+	EnableHTTPS    bool            `doc:"also query for HTTPSSvc records"`
+	EnableNS       bool            `doc:"also query for NS records"`
+	HTTPSResolver  []string        `doc:"add HTTPS resolver URL"`
+	Help           bool            `doc:"prints this help message" short:"h"`
+	Raw            bool            `doc:"emits measurements in the internal data format"`
+	SystemResolver bool            `doc:"use the system resolver"`
+	UDPResolver    []string        `doc:"add UDP resolver endpoint"`
+	Verbose        getoptx.Counter `doc:"enable verbose mode" short:"v"`
 }
 
 // getopt parses command line options.
@@ -36,7 +36,7 @@ func getopt() (*CLI, []string) {
 		Raw:            false,
 		SystemResolver: false,
 		UDPResolver:    []string{},
-		Verbose:        false,
+		Verbose:        0,
 	}
 	parser := getoptx.MustNewParser(
 		opts, getoptx.AtLeastOnePositionalArgument(),
@@ -47,8 +47,8 @@ func getopt() (*CLI, []string) {
 		parser.PrintUsage(os.Stdout)
 		os.Exit(0)
 	}
-	if opts.Verbose {
-		log.SetLevel(log.DebugLevel)
+	if opts.Verbose > 0 {
+		logcat.IncrementLogLevel(int(opts.Verbose))
 	}
 	return opts, parser.Args()
 }
@@ -69,7 +69,7 @@ func makeplans(opts *CLI, args []string) []*measurex.DNSLookupPlan {
 	resolvers = append(resolvers, measurex.NewResolversHTTPS(opts.HTTPSResolver...)...)
 	if opts.SystemResolver || len(resolvers) <= 0 {
 		if len(resolvers) <= 0 {
-			log.Info("no resolver specified; using the system resolver")
+			fmt.Println("no resolver specified; using the system resolver")
 		}
 		resolvers = append(resolvers, &measurex.DNSResolverInfo{
 			Network: "system",
@@ -96,7 +96,9 @@ func main() {
 	plans := makeplans(opts, args)
 	mx := measurex.NewMeasurerWithDefaultSettings()
 	begin := time.Now()
-	for m := range mx.DNSLookups(context.Background(), plans...) {
+	ctx := context.Background()
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout))
+	for m := range mx.DNSLookups(ctx, plans...) {
 		if opts.Raw {
 			dump(m)
 			continue

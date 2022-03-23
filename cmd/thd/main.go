@@ -6,20 +6,19 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/apex/log"
 	"github.com/bassosimone/getoptx"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
 type CLI struct {
-	Address     string `doc:"address where to listen (default: \":9876\")" short:"A"`
-	CacheDir    string `doc:"directory where to store cache (default: empty)" short:"C"`
-	Help        bool   `doc:"prints this help message" short:"h"`
-	MostlyCache bool   `doc:"never expire cache entries and keep adding to the cache"`
-	User        string `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
-	Verbose     bool   `doc:"enable verbose mode" short:"v"`
+	Address     string          `doc:"address where to listen (default: \":9876\")" short:"A"`
+	CacheDir    string          `doc:"directory where to store cache (default: empty)" short:"C"`
+	Help        bool            `doc:"prints this help message" short:"h"`
+	MostlyCache bool            `doc:"never expire cache entries and keep adding to the cache"`
+	User        string          `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
+	Verbose     getoptx.Counter `doc:"enable verbose mode" short:"v"`
 }
 
 // getopt parses command line options.
@@ -30,7 +29,7 @@ func getopt() *CLI {
 		Help:        false,
 		MostlyCache: false,
 		User:        "nobody",
-		Verbose:     false,
+		Verbose:     0,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -38,8 +37,8 @@ func getopt() *CLI {
 		parser.PrintUsage(os.Stdout)
 		os.Exit(0)
 	}
-	if opts.Verbose {
-		log.SetLevel(log.DebugLevel)
+	if opts.Verbose > 0 {
+		logcat.IncrementLogLevel(int(opts.Verbose))
 	}
 	return opts
 }
@@ -52,24 +51,19 @@ func maybeOpenCache(ctx context.Context, opts *CLI) (*measurex.Cache, context.Ca
 		return nil, cancel
 	}
 	cache := measurex.NewCache(opts.CacheDir)
-	olog := measurex.NewOperationLogger(log.Log, "trimming the cache")
-	cache.Trim()
-	olog.Stop(nil)
 	cache.StartTrimmer(ctx)
 	return cache, cancel
 }
 
 func main() {
 	opts := getopt()
-	dropprivileges(log.Log, opts.User) // must drop before touching the disk
+	dropprivileges(opts.User) // must drop before touching the disk
 	cache, cancel := maybeOpenCache(context.Background(), opts)
 	defer cancel()
 	thOptions := &websteps.THHandlerOptions{
-		Logger: log.Log,
-		MeasurerFactory: func(logger model.Logger,
-			options *measurex.Options) (measurex.AbstractMeasurer, error) {
-			lib := measurex.NewDefaultLibrary(logger)
-			mx := measurex.NewMeasurerWithOptions(logger, lib, options)
+		MeasurerFactory: func(options *measurex.Options) (measurex.AbstractMeasurer, error) {
+			lib := measurex.NewDefaultLibrary()
+			mx := measurex.NewMeasurerWithOptions(lib, options)
 			if cache == nil {
 				return mx, nil
 			}
@@ -80,14 +74,15 @@ func main() {
 			case false:
 				cpp = measurex.ReasonableCachingPolicy()
 			}
-			cmx := measurex.NewCachingMeasurer(mx, logger, cache, cpp)
+			cmx := measurex.NewCachingMeasurer(mx, cache, cpp)
 			return cmx, nil
 		},
 		Resolvers: nil,
 		Saver:     nil,
 	}
+	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr))
 	thh := websteps.NewTHHandler(thOptions)
 	http.Handle("/", thh)
-	log.Infof("Listening at: \"%s\"", opts.Address)
+	logcat.Infof("Listening at: \"%s\"", opts.Address)
 	http.ListenAndServe(opts.Address, nil)
 }

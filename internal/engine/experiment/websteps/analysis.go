@@ -8,13 +8,12 @@ package websteps
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"strings"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 )
 
@@ -179,8 +178,7 @@ func (ad *AnalysisDNS) Describe() string {
 
 // dnsAnalysis analyzes the probe's DNS lookups. This function returns
 // nil when there's no DNS lookup data to analyze.
-func (ssm *SingleStepMeasurement) dnsAnalysis(
-	mx measurex.AbstractMeasurer, logger model.Logger) (out []*AnalysisDNS) {
+func (ssm *SingleStepMeasurement) dnsAnalysis(mx measurex.AbstractMeasurer) (out []*AnalysisDNS) {
 	if ssm.ProbeInitial == nil {
 		// should not happen in practice, just a safety net.
 		return nil
@@ -192,7 +190,7 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(
 	for _, pq := range ssm.ProbeInitial.DNS {
 		switch pq.LookupType() {
 		case archival.DNSLookupTypeGetaddrinfo, archival.DNSLookupTypeHTTPS:
-			score := ssm.dnsSingleLookupAnalysis(mx, logger, pq)
+			score := ssm.dnsSingleLookupAnalysis(mx, pq)
 			score.Flags |= flags
 			out = append(out, score)
 		default:
@@ -204,7 +202,7 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(
 
 // dnsSingleLookupAnalysis analyzes a single DNS lookup.
 func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMeasurer,
-	logger model.Logger, pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
+	pq *measurex.DNSLookupMeasurement) *AnalysisDNS {
 	score := &AnalysisDNS{
 		ID:               mx.NextID(),
 		URLMeasurementID: pq.URLMeasurementID,
@@ -259,11 +257,11 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logger.Warnf("🐛 [dns] cannot find TH measurement matching #%d", pq.ID)
+		logcat.Warnf("🐛 [dns] cannot find TH measurement matching #%d", pq.ID)
 		return score
 	}
 
-	logger.Infof("🙌 [dns] matched probe #%d with TH #%d", pq.ID, thq.ID)
+	logcat.Infof("🙌 [dns] matched probe #%d with TH #%d", pq.ID, thq.ID)
 
 	score.Refs = append(score.Refs, thq.ID)
 
@@ -287,7 +285,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// strange/unexpected. We could dig in more but, for
 		// now, let's just give up for now.
 		score.Flags |= AnalysisGiveUp
-		logger.Warn("[dns] give up analysis because the TH failed")
+		logcat.Warn("[dns] give up analysis because the TH failed")
 		return score
 	}
 
@@ -306,7 +304,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 			score.Flags |= AnalysisDNSTimeout
 			dnspingID, found := ssm.dnsCanCancelTimeoutFlag(pq)
 			if found {
-				logger.Infof("🙌 timeout in #%d for %s using %s was transient (see #%d)",
+				logcat.Infof("🙌 timeout in #%d for %s using %s was transient (see #%d)",
 					pq.ID, pq.Domain(), pq.ResolverURL(), dnspingID)
 				score.Refs = append(score.Refs, dnspingID)
 				score.Flags &= ^AnalysisDNSTimeout
@@ -325,7 +323,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 	// So, now we're in the case in which both succeded. We know from
 	// the above checks that we didn't receive any bogon and the TH could
 	// not complete any HTTPS measurement with this query's results.
-	if ssm.dnsWebConnectivityDNSDiff(logger, pq, thq, ssm.TH) {
+	if ssm.dnsWebConnectivityDNSDiff(pq, thq, ssm.TH) {
 		score.Flags |= AnalysisDNSDiff
 	}
 
@@ -431,13 +429,13 @@ func (ssm *SingleStepMeasurement) dnsFindMatchingQuery(
 	switch pq.LookupType() {
 	case archival.DNSLookupTypeGetaddrinfo, archival.DNSLookupTypeHTTPS:
 	default:
-		log.Printf("[BUG] dnsFindMatchingQuery passed unexpected lookup type: %s", pq.LookupType())
+		logcat.Warnf("[BUG] dnsFindMatchingQuery passed unexpected lookup type: %s", pq.LookupType())
 		return nil, false
 	}
 	// first attempt: try to find a compatible measurement
 	for _, thq := range ssm.TH.DNS {
 		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
-			log.Printf("[BUG] unexpected resolver network in TH: %s", v)
+			logcat.Warnf("[BUG] unexpected resolver network in TH: %s", v)
 		}
 		if !pq.IsCompatibleWith(thq) {
 			continue
@@ -447,7 +445,7 @@ func (ssm *SingleStepMeasurement) dnsFindMatchingQuery(
 	// second attempt: try to find a weakly compatible measurement
 	for _, thq := range ssm.TH.DNS {
 		if v := thq.ResolverNetwork(); v != archival.NetworkTypeDoH {
-			log.Printf("[BUG] unexpected resolver network in TH: %s", v)
+			logcat.Warnf("[BUG] unexpected resolver network in TH: %s", v)
 		}
 		if !pq.IsWeaklyCompatibleWith(thq) {
 			continue
@@ -491,21 +489,20 @@ func (ad *AnalysisEndpoint) Describe() string {
 
 // endpointAnalysis analyzes the probe's endpoint measurements. This function
 // returns nil when there's no endpoint data to analyze.
-func (ssm *SingleStepMeasurement) endpointAnalysis(
-	mx measurex.AbstractMeasurer, logger model.Logger) (out []*AnalysisEndpoint) {
+func (ssm *SingleStepMeasurement) endpointAnalysis(mx measurex.AbstractMeasurer) (out []*AnalysisEndpoint) {
 	var flags int64
 	if ssm.TH == nil {
 		flags |= AnalysisTHFailure
 	}
 	if ssm.ProbeInitial != nil {
 		for _, pe := range ssm.ProbeInitial.Endpoint {
-			score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
+			score := ssm.endpointSingleMeasurementAnalysis(mx, pe)
 			score.Flags |= flags
 			out = append(out, score)
 		}
 	}
 	for _, pe := range ssm.ProbeAdditional {
-		score := ssm.endpointSingleMeasurementAnalysis(mx, logger, pe)
+		score := ssm.endpointSingleMeasurementAnalysis(mx, pe)
 		score.Flags |= flags
 		out = append(out, score)
 	}
@@ -513,8 +510,7 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(
 }
 
 // endpointSingleMeasurementAnalysis analyzes a single DNS lookup.
-func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
-	mx measurex.AbstractMeasurer, logger model.Logger,
+func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(mx measurex.AbstractMeasurer,
 	pe *measurex.EndpointMeasurement) *AnalysisEndpoint {
 	score := &AnalysisEndpoint{
 		ID:               mx.NextID(),
@@ -543,7 +539,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 	}
 
 	// Let's now see to compare with what the TH did.
-	the, found := ssm.endpointFindMatchingMeasurement(pe, logger, 0)
+	the, found := ssm.endpointFindMatchingMeasurement(pe, 0)
 	if !found {
 		// Special case: if we are using HTTPS (or HTTP3) and we
 		// succeded, then we're most likely okay, modulo sanctions.
@@ -557,15 +553,15 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 		// Because this could be a bug in matching the
 		// endpoints, let's spit out ~nice text.
 		score.Flags |= AnalysisGiveUp
-		logger.Warn("🐛 [endpoint] === BEGIN BUG INFORMATION ===")
-		logger.Warnf("🐛 [endpoint] cannot find TH measurement matching #%d", pe.ID)
-		ssm.endpointFindMatchingMeasurement(pe, logger, analysisFindVerbose)
-		logger.Warn("🐛 [endpoint] === END BUG INFORMATION ===")
-		logger.Warn("🐛 [endpoint] please, send us the information above")
+		logcat.Warn("🐛 [endpoint] === BEGIN BUG INFORMATION ===")
+		logcat.Warnf("🐛 [endpoint] cannot find TH measurement matching #%d", pe.ID)
+		ssm.endpointFindMatchingMeasurement(pe, analysisFindVerbose)
+		logcat.Warn("🐛 [endpoint] === END BUG INFORMATION ===")
+		logcat.Warn("🐛 [endpoint] please, send us the information above")
 		return score
 	}
 
-	logger.Infof("🙌 [endpoint] matched probe #%d with TH #%d", pe.ID, the.ID)
+	logcat.Infof("🙌 [endpoint] matched probe #%d with TH #%d", pe.ID, the.ID)
 
 	score.Refs = append(score.Refs, the.ID)
 
@@ -590,7 +586,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 		// the backend or some other backend-side issue, so we're
 		// just going to give up making a sense of the result.
 		score.Flags |= AnalysisGiveUp
-		logger.Warn("[endpoint] give up analysis because the TH failed")
+		logcat.Warn("[endpoint] give up analysis because the TH failed")
 		return score
 	}
 
@@ -725,7 +721,7 @@ func (ssm *SingleStepMeasurement) endpointSingleMeasurementAnalysis(
 	// http://ajax.aspnetcdn.com/ajax/4.5.2/1/MicrosoftAjax.js
 	//
 	// This set of conditions is adapted from MK v0.10.11.
-	flags := ssm.endpointWebConnectivityStatusCodeMatch(logger, pe, the)
+	flags := ssm.endpointWebConnectivityStatusCodeMatch(pe, the)
 	score.probe = pe // for reprocessing
 	score.th = the   // ditto
 	score.Flags |= flags
@@ -788,19 +784,19 @@ const (
 // endpointFindMatchingMeasurement takes in input a probe's endpoint and
 // returns in output the corresponding TH endpoint measurement.
 func (ssm *SingleStepMeasurement) endpointFindMatchingMeasurement(pe *measurex.EndpointMeasurement,
-	logger model.Logger, flags int64) (*measurex.EndpointMeasurement, bool) {
+	flags int64) (*measurex.EndpointMeasurement, bool) {
 	if ssm.TH == nil {
 		return nil, false
 	}
 	if (flags & analysisFindVerbose) != 0 {
-		logger.Infof("🔎 we're trying to match:\n\t%s", pe.Summary())
+		logcat.Infof("🔎 we're trying to match:\n\t%s", pe.Summary())
 	}
 	for _, the := range ssm.TH.Endpoint {
 		if pe.IsAnotherInstanceOf(the) {
 			return the, true
 		}
 		if (flags & analysisFindVerbose) != 0 {
-			logger.Infof("🔎 candidate #%d does not match:\n\t%s", the.ID, the.Summary())
+			logcat.Infof("🔎 candidate #%d does not match:\n\t%s", the.ID, the.Summary())
 		}
 	}
 	return nil, false

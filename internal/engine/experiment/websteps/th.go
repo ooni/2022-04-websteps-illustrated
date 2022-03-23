@@ -11,16 +11,14 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 	"github.com/gorilla/websocket"
@@ -66,7 +64,7 @@ func (r *THResponse) ToArchival(begin time.Time) ArchivalTHResponse {
 
 // th runs the test helper client in a background goroutine.
 func (c *Client) th(ctx context.Context, cur *measurex.URLMeasurement) <-chan *THResponseOrError {
-	plan, _ := cur.NewEndpointPlan(c.logger, 0)
+	plan, _ := cur.NewEndpointPlan(0)
 	out := make(chan *THResponseOrError, 1)
 	thReq := c.newTHRequest(cur, plan)
 	go c.THRequestAsync(ctx, thReq, out)
@@ -180,7 +178,7 @@ func (c *Client) websocketDial(ctx context.Context) (*websocket.Conn, error) {
 	}
 	conn, _, err := dialer.DialContext(ctx, c.thURL, http.Header{})
 	if err != nil {
-		c.logger.Warnf("websteps: cannot websocket-dial with server: %s", err.Error())
+		logcat.Warnf("websteps: cannot websocket-dial with server: %s", err.Error())
 		return nil, err
 	}
 	const timeout = 90 * time.Second
@@ -220,7 +218,7 @@ func (c *Client) websocketSend(conn *websocket.Conn, thReq *THRequest) error {
 	data, err := json.Marshal(thReq)
 	runtimex.PanicOnError(err, "json.Marshal failed")
 	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
-		c.logger.Warnf("websteps: cannot write using websocket: %s", err.Error())
+		logcat.Warnf("websteps: cannot write using websocket: %s", err.Error())
 		return err
 	}
 	return nil
@@ -232,25 +230,25 @@ func (c *Client) websocketRecvAsync(conn *websocket.Conn, out chan<- *THResponse
 	for {
 		mtype, reader, err := conn.NextReader()
 		if err != nil {
-			c.logger.Warnf("websteps: cannot read from server: %s", err.Error())
+			logcat.Warnf("websteps: cannot read from server: %s", err.Error())
 			out <- &THResponseOrError{Err: err}
 			return
 		}
 		if mtype != websocket.TextMessage {
-			c.logger.Warnf("websteps: unexpected message type: %d", mtype)
+			logcat.Warnf("websteps: unexpected message type: %d", mtype)
 			out <- &THResponseOrError{Err: err}
 			return
 		}
 		reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
 		data, err := netxlite.ReadAllContext(context.Background(), reader)
 		if err != nil {
-			c.logger.Warnf("websteps: cannot read from server: %s", err.Error())
+			logcat.Warnf("websteps: cannot read from server: %s", err.Error())
 			out <- &THResponseOrError{Err: err}
 			return
 		}
 		var thResp THResponse
 		if err := json.Unmarshal(data, &thResp); err != nil {
-			c.logger.Warnf("websteps: cannot unmarshal from server: %s", err.Error())
+			logcat.Warnf("websteps: cannot unmarshal from server: %s", err.Error())
 			out <- &THResponseOrError{Err: err}
 			return
 		}
@@ -273,14 +271,10 @@ type THHandlerSaver interface {
 }
 
 // MeasurerFactory is a factory for creating a measurer.
-type MeasurerFactory func(logger model.Logger,
-	options *measurex.Options) (measurex.AbstractMeasurer, error)
+type MeasurerFactory func(options *measurex.Options) (measurex.AbstractMeasurer, error)
 
 // THHandlerOptions contains options for the THHandler.
 type THHandlerOptions struct {
-	// Logger is the OPTIONAL logger to use.
-	Logger model.Logger
-
 	// MeasurerFactory is the OPTIONAL factory used
 	// to construct a measurer. By changing this
 	// factory, you can force the THHandler to use
@@ -359,7 +353,7 @@ func (thr *THRequestHandler) upgrade(
 	}
 	conn, err := upgrader.Upgrade(w, req, http.Header{})
 	if err != nil {
-		thr.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
+		logcat.Warnf("cannot upgrade to websocket: %s", err.Error())
 		return nil, err
 	}
 	const timeout = 90 * time.Second
@@ -373,22 +367,22 @@ func (thr *THRequestHandler) upgrade(
 func (thr *THRequestHandler) readMsg(conn *websocket.Conn) (*THRequest, error) {
 	mtype, reader, err := conn.NextReader()
 	if err != nil {
-		thr.logger().Warnf("cannot upgrade to websocket: %s", err.Error())
+		logcat.Warnf("cannot upgrade to websocket: %s", err.Error())
 		return nil, err
 	}
 	if mtype != websocket.TextMessage {
-		thr.logger().Warn("received non-text message")
+		logcat.Warn("received non-text message")
 		return nil, err
 	}
 	reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
 	data, err := netxlite.ReadAllContext(context.Background(), reader)
 	if err != nil {
-		thr.logger().Warnf("cannot read websocket message: %s", err.Error())
+		logcat.Warnf("cannot read websocket message: %s", err.Error())
 		return nil, err
 	}
 	var thReq THRequest
 	if err := json.Unmarshal(data, &thReq); err != nil {
-		thr.logger().Warnf("cannot unmarshal websocket message: %s", err.Error())
+		logcat.Warnf("cannot unmarshal websocket message: %s", err.Error())
 		return nil, err
 	}
 	return &thReq, nil
@@ -446,7 +440,7 @@ func (thr *THRequestHandler) writeToClient(conn *websocket.Conn, thResp *THRespo
 	data, err := json.Marshal(thResp)
 	runtimex.PanicOnError(err, "json.Marshal failed")
 	if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
-		thr.logger().Warnf("cannot write messsge to client: %s", err.Error())
+		logcat.Warnf("cannot write messsge to client: %s", err.Error())
 		return err
 	}
 	return nil
@@ -461,52 +455,6 @@ type THRequestHandler struct {
 	ID int64
 }
 
-// thRequestLogger is the logger for a given request.
-type thRequestLogger struct {
-	Logger model.Logger
-	ID     int64
-}
-
-var _ model.Logger = &thRequestLogger{}
-
-func (thrl *thRequestLogger) Debug(message string) {
-	message = fmt.Sprintf("<%d> %s", thrl.ID, message)
-	thrl.Logger.Debug(message)
-}
-
-func (thrl *thRequestLogger) Debugf(format string, v ...interface{}) {
-	thrl.Debug(fmt.Sprintf(format, v...))
-}
-
-func (thrl *thRequestLogger) Info(message string) {
-	message = fmt.Sprintf("<%d> %s", thrl.ID, message)
-	thrl.Logger.Info(message)
-}
-
-func (thrl *thRequestLogger) Infof(format string, v ...interface{}) {
-	thrl.Info(fmt.Sprintf(format, v...))
-}
-
-func (thrl *thRequestLogger) Warn(message string) {
-	message = fmt.Sprintf("<%d> %s", thrl.ID, message)
-	thrl.Logger.Warn(message)
-}
-
-func (thrl *thRequestLogger) Warnf(format string, v ...interface{}) {
-	thrl.Warn(fmt.Sprintf(format, v...))
-}
-
-// logger returns the model.Logger to use.
-func (thr *THRequestHandler) logger() model.Logger {
-	if thr.Options != nil && thr.Options.Logger != nil {
-		return &thRequestLogger{
-			Logger: thr.Options.Logger,
-			ID:     thr.ID,
-		}
-	}
-	return model.DiscardLogger
-}
-
 // resolvers returns the resolvers to use.
 func (thr *THRequestHandler) resolvers() []*measurex.DNSResolverInfo {
 	if thr.Options != nil && thr.Options.Resolvers != nil {
@@ -517,13 +465,13 @@ func (thr *THRequestHandler) resolvers() []*measurex.DNSResolverInfo {
 
 // measurerFactory constructs a new measurer either using the
 // thr.Option's MeasurerFactory or a default factory.
-func (thr *THRequestHandler) measurerFactory(logger model.Logger,
+func (thr *THRequestHandler) measurerFactory(
 	options *measurex.Options) (measurex.AbstractMeasurer, error) {
 	if thr.Options != nil && thr.Options.MeasurerFactory != nil {
-		return thr.Options.MeasurerFactory(logger, options)
+		return thr.Options.MeasurerFactory(options)
 	}
-	lib := measurex.NewDefaultLibrary(thr.logger())
-	mx := measurex.NewMeasurerWithOptions(thr.logger(), lib, options)
+	lib := measurex.NewDefaultLibrary()
+	mx := measurex.NewMeasurerWithOptions(lib, options)
 	return mx, nil
 }
 
@@ -534,7 +482,7 @@ func (thr *THRequestHandler) step(
 	if err != nil {
 		return nil, err
 	}
-	mx, err := thr.measurerFactory(thr.logger(), options)
+	mx, err := thr.measurerFactory(options)
 	if err != nil {
 		return nil, err
 	}
@@ -552,14 +500,14 @@ func (thr *THRequestHandler) step(
 	revch := thr.reverseDNSLookupAsync(ctx, mx, um, probeAddrs)
 	// Implementation note: of course it doesn't make sense here for the
 	// test helper to follow bogons discovered by the client :^)
-	epplan, _ := um.NewEndpointPlan(thr.logger(), measurex.EndpointPlanningExcludeBogons)
+	epplan, _ := um.NewEndpointPlan(measurex.EndpointPlanningExcludeBogons)
 	epplan = thr.patchEndpointPlan(epplan, req, probeAddrs)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
 	// second round where we follow Alt-Svc leads
-	epplan, _ = um.NewEndpointPlan(thr.logger(),
-		measurex.EndpointPlanningExcludeBogons|measurex.EndpointPlanningOnlyHTTP3)
+	epplan, _ = um.NewEndpointPlan(
+		measurex.EndpointPlanningExcludeBogons | measurex.EndpointPlanningOnlyHTTP3)
 	for m := range mx.MeasureEndpoints(ctx, epplan...) {
 		um.Endpoint = append(um.Endpoint, m)
 	}
@@ -642,13 +590,13 @@ func (thr *THRequestHandler) patchEndpointPlan(input []*measurex.EndpointPlan,
 			switch isipv6 {
 			case true:
 				if !extra6[ipaddr] && len(extra6) >= threshold {
-					thr.logger().Infof("🧐 too many extra AAAA addrs already; skipping %s", ipaddr)
+					logcat.Infof("🧐 too many extra AAAA addrs already; skipping %s", ipaddr)
 					continue // already too many extra IPv6 addresses
 				}
 				extra6[ipaddr] = true
 			case false:
 				if !extra4[ipaddr] && len(extra4) >= threshold {
-					thr.logger().Infof("🧐 too many extra A addrs already; skipping %s", ipaddr)
+					logcat.Infof("🧐 too many extra A addrs already; skipping %s", ipaddr)
 					continue // already too many IPv4 addresses
 				}
 				extra4[ipaddr] = true
@@ -713,7 +661,7 @@ func (thr *THRequestHandler) simplifyDNS(
 		// looking at the probe measurements imported by the TH.
 		if entry.ResolverNetwork() != archival.NetworkTypeDoH {
 			if v := entry.ResolverNetwork(); v != "external" {
-				log.Printf("[BUG] unexpected resolver network: %s", v)
+				logcat.Warnf("[BUG] unexpected resolver network: %s", v)
 			}
 			continue
 		}
@@ -887,7 +835,7 @@ func (thr *THRequestHandler) addProbeDNS(mx measurex.AbstractMeasurer,
 	for _, e := range plan {
 		addr, _, err := net.SplitHostPort(e.Address)
 		if err != nil {
-			thr.logger().Warnf("addProbeDNS: cannot split host and port: %s", err.Error())
+			logcat.Warnf("addProbeDNS: cannot split host and port: %s", err.Error())
 			continue
 		}
 		addrs = append(addrs, addr)

@@ -11,15 +11,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
 // NewOperationLogger creates a new logger that logs
 // about an in-progress operation.
-func NewOperationLogger(logger model.Logger, format string, v ...interface{}) *OperationLogger {
+func NewOperationLogger(format string, v ...interface{}) *OperationLogger {
 	ol := &OperationLogger{
 		sighup:  make(chan interface{}),
-		logger:  logger,
 		once:    &sync.Once{},
 		message: fmt.Sprintf(format, v...),
 		t:       time.Now(),
@@ -32,7 +32,6 @@ func NewOperationLogger(logger model.Logger, format string, v ...interface{}) *O
 
 // OperationLogger logs about an in-progress operation
 type OperationLogger struct {
-	logger  model.Logger
 	message string
 	once    *sync.Once
 	sighup  chan interface{}
@@ -46,7 +45,7 @@ func (ol *OperationLogger) logloop() {
 	defer timer.Stop()
 	select {
 	case <-timer.C:
-		ol.logger.Infof("%s... in progress", ol.message)
+		logcat.Infof("%s... in progress", ol.message)
 	case <-ol.sighup:
 		// we'll emit directly in stop
 	}
@@ -58,6 +57,6 @@ func (ol *OperationLogger) Stop(err error) {
 		ol.wg.Wait()
 		d := time.Since(ol.t)
 		es := model.ErrorToStringOrOK(err)
-		ol.logger.Infof("%s... %s (in %s)", ol.message, es, d)
+		logcat.Infof("%s... %s (in %s)", ol.message, es, d)
 	})
 }

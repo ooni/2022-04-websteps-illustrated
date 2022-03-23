@@ -9,7 +9,7 @@ package websteps
 import (
 	"strings"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 )
 
 // AnalysisDescription maps an analysis flag to information useful
@@ -129,7 +129,7 @@ type Explainable interface {
 }
 
 // ExplainFlagsWithLogging logs an explanation of the given flags.
-func ExplainFlagsWithLogging(logger model.Logger, ei Explainable, flags int64) {
+func ExplainFlagsWithLogging(ei Explainable, flags int64) {
 	tags, severity := ExplainFlagsUsingTagsAndSeverity(flags)
 	var emoji string
 	switch {
@@ -140,5 +140,5 @@ func ExplainFlagsWithLogging(logger model.Logger, ei Explainable, flags int64) {
 	default:
 		return // just show what needs the most attention
 	}
-	logger.Infof("<%s> %s: %s", emoji, ei.Describe(), strings.Join(tags, " "))
+	logcat.Infof("<%s> %s: %s", emoji, ei.Describe(), strings.Join(tags, " "))
 }

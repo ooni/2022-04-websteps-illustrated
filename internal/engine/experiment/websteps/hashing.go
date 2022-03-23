@@ -8,8 +8,8 @@ package websteps
 
 import (
 	"errors"
-	"log"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/glaslos/tlsh"
@@ -20,7 +20,7 @@ import (
 func parseStringToTlsh(in string) (*tlsh.Tlsh, error) {
 	if len(in) != 70 {
 		if len(in) != 0 {
-			log.Printf("TLSH: invalid string length: %d", len(in))
+			logcat.Warnf("TLSH: invalid string length: %d", len(in))
 		}
 		return nil, errors.New("passed an empty string hash")
 	}

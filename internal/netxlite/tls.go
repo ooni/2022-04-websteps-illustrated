@@ -9,6 +9,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	oohttp "github.com/ooni/oohttp"
 )
@@ -211,18 +212,18 @@ var _ model.TLSHandshaker = &tlsHandshakerLogger{}
 func (h *tlsHandshakerLogger) Handshake(
 	ctx context.Context, conn net.Conn, config *tls.Config,
 ) (net.Conn, tls.ConnectionState, error) {
-	h.DebugLogger.Debugf(
+	logcat.Debugf(
 		"tls {sni=%s next=%+v}...", config.ServerName, config.NextProtos)
 	start := time.Now()
 	tlsconn, state, err := h.TLSHandshaker.Handshake(ctx, conn, config)
 	elapsed := time.Since(start)
 	if err != nil {
-		h.DebugLogger.Debugf(
+		logcat.Debugf(
 			"tls {sni=%s next=%+v}... %s in %s", config.ServerName,
 			config.NextProtos, err, elapsed)
 		return nil, tls.ConnectionState{}, err
 	}
-	h.DebugLogger.Debugf(
+	logcat.Debugf(
 		"tls {sni=%s next=%+v}... ok in %s {next=%s cipher=%s v=%s}",
 		config.ServerName, config.NextProtos, elapsed, state.NegotiatedProtocol,
 		TLSCipherSuiteString(state.CipherSuite),

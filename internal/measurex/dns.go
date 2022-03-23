@@ -11,12 +11,12 @@ package measurex
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"strings"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/miekg/dns"
 )
@@ -361,7 +361,7 @@ func (dlm *DNSLookupMeasurement) UsingResolverIPv6() (usingIPv6 bool) {
 		case "tcp", "udp", "dot":
 			usingIPv6 = isEndpointIPv6(dlm.ResolverAddress())
 		default:
-			log.Printf("[BUG] UsingResolverIPv6: case %s: not implemented", v)
+			logcat.Warnf("[BUG] UsingResolverIPv6: case %s: not implemented", v)
 		}
 	}
 	return
@@ -477,7 +477,7 @@ func (dlm *DNSLookupMeasurement) ResolverURL() string {
 	case "system":
 		return "system:///"
 	default:
-		log.Printf("[BUG] ResolverURL not implemented for: %s", v)
+		logcat.Warnf("[BUG] ResolverURL not implemented for: %s", v)
 		return ""
 	}
 }
@@ -537,7 +537,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 		case archival.DNSLookupTypeGetaddrinfo:
 			output <- mx.lookupHostSystem(ctx, t)
 		default:
-			log.Printf("[BUG] asked the system resolver for %s lookup type", t.LookupType)
+			logcat.Warnf("[BUG] asked the system resolver for %s lookup type", t.LookupType)
 		}
 	case archival.NetworkTypeUDP:
 		switch t.LookupType {
@@ -548,7 +548,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 		case archival.DNSLookupTypeNS:
 			output <- mx.lookupNSUDP(ctx, t)
 		default:
-			log.Printf("[BUG] asked the UDP resolver for %s lookup type", t.LookupType)
+			logcat.Warnf("[BUG] asked the UDP resolver for %s lookup type", t.LookupType)
 		}
 	case archival.NetworkTypeDoH, archival.NetworkTypeDoH3:
 		switch t.LookupType {
@@ -561,7 +561,7 @@ func (mx *Measurer) dnsLookup(ctx context.Context,
 		case archival.DNSLookupTypeReverse:
 			output <- mx.lookupReverseDoH(ctx, t)
 		default:
-			log.Printf("[BUG] asked the HTTPS resolver for %s lookup type", t.LookupType)
+			logcat.Warnf("[BUG] asked the HTTPS resolver for %s lookup type", t.LookupType)
 		}
 	}
 }
@@ -680,7 +680,7 @@ func (mx *Measurer) lookupReverseDoH(
 // doLookupHost is the worker function to perform an A and AAAA lookup.
 func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) ([]string, error) {
-	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHost %s with %s resolver %s",
+	ol := NewOperationLogger("[#%d] LookupHost %s with %s resolver %s",
 		id, domain, r.Network(), r.Address())
 	timeout := t.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -693,7 +693,7 @@ func (mx *Measurer) doLookupHost(ctx context.Context, domain string,
 // doLookupHTTPSSvc is the worker function to perform an HTTPSSvc lookup.
 func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) (*model.HTTPSSvc, error) {
-	ol := NewOperationLogger(mx.Logger, "[#%d] LookupHTTPSvc %s with %s resolver %s",
+	ol := NewOperationLogger("[#%d] LookupHTTPSvc %s with %s resolver %s",
 		id, domain, r.Network(), r.Address())
 	timeout := t.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -706,7 +706,7 @@ func (mx *Measurer) doLookupHTTPSSvc(ctx context.Context, domain string,
 // doLookupNS is the worker function to perform a NS lookup.
 func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) ([]*net.NS, error) {
-	ol := NewOperationLogger(mx.Logger, "[#%d] LookupNS %s with %s resolver %s",
+	ol := NewOperationLogger("[#%d] LookupNS %s with %s resolver %s",
 		id, domain, r.Network(), r.Address())
 	timeout := t.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -719,7 +719,7 @@ func (mx *Measurer) doLookupNS(ctx context.Context, domain string,
 // doLookupReverse is the worker function to perform a reverse lookup.
 func (mx *Measurer) doLookupReverse(ctx context.Context, domain string,
 	r model.Resolver, t *DNSLookupPlan, id int64) ([]string, error) {
-	ol := NewOperationLogger(mx.Logger, "[#%d] LookupReverse %s with %s resolver %s",
+	ol := NewOperationLogger("[#%d] LookupReverse %s with %s resolver %s",
 		id, domain, r.Network(), r.Address())
 	timeout := t.Options.dnsLookupTimeout()
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -740,7 +740,7 @@ func (mx *Measurer) newDNSLookupMeasurement(id int64,
 		RoundTrip:        nil,
 	}
 	if len(trace.DNSLookup) != 1 {
-		log.Printf("[BUG] expected a single DNSLookup entry: %+v", trace.DNSLookup)
+		logcat.Warnf("[BUG] expected a single DNSLookup entry: %+v", trace.DNSLookup)
 	}
 	if len(trace.DNSLookup) == 1 {
 		out.Lookup = trace.DNSLookup[0]

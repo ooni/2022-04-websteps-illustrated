@@ -7,10 +7,10 @@ package websteps
 //
 
 import (
-	"log"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
@@ -67,11 +67,11 @@ type ArchivalTHResponse struct {
 // ToArchival converts test keys to the OONI archival data format.
 func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleStepMeasurement {
 	if ssm == nil {
-		log.Printf("[BUG] trying to archive an nil SingleStepMeasurement")
+		logcat.Warnf("[BUG] trying to archive an nil SingleStepMeasurement")
 		return nil
 	}
 	if ssm.ProbeInitial == nil {
-		log.Printf("[BUG] ssm.ProbeInitial should never be nil")
+		logcat.Warn("[BUG] ssm.ProbeInitial should never be nil")
 		return nil
 	}
 	// Note: we're serializing the body choosing the option to

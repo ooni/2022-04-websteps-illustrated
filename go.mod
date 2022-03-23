@@ -18,12 +18,11 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/oschwald/maxminddb-golang v1.8.0 // indirect
 	github.com/pborman/getopt/v2 v2.1.0 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
 )
 
 require (
-	github.com/apex/log v1.9.0
-	github.com/bassosimone/getoptx v0.0.0-20220130110708-c781f2d8ef4b
+	github.com/bassosimone/getoptx v0.0.0-20220323173823-a34c676e9f0a
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect

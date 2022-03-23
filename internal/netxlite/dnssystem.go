@@ -3,11 +3,11 @@ package netxlite
 import (
 	"context"
 	"errors"
-	"log"
 	"net"
 	"strings"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/miekg/dns"
 )
@@ -30,7 +30,7 @@ var _ model.Resolver = &DNSSystemResolver{}
 // using the given DNSSystemTransport instance.
 func NewDNSSystemResolver(txp model.DNSTransport) *DNSSystemResolver {
 	if txp.Network() != "system" {
-		log.Printf("BUG: using NewDNSSystemResolver with non-system transport")
+		logcat.Warnf("BUG: using NewDNSSystemResolver with non-system transport")
 	}
 	return &DNSSystemResolver{
 		decoder: &DNSDecoderMiekg{},
