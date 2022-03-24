@@ -27,6 +27,7 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/lucas-clemente/quic-go"
+	"golang.org/x/net/publicsuffix"
 )
 
 var (
@@ -249,7 +250,7 @@ func (em *EndpointMeasurement) URLDomain() string {
 // 2. if this endpoint's location is nil, return false;
 //
 // 3. otherwise returns whether the redirect domain is either equal
-// to the original domain or seems a valid sub or super domain.
+// to the original domain or has the same "public suffix".
 func (em *EndpointMeasurement) SeemsLegitimateRedirect() bool {
 	if !em.IsHTTPRedirect() {
 		return false
@@ -261,10 +262,9 @@ func (em *EndpointMeasurement) SeemsLegitimateRedirect() bool {
 	if orig == location {
 		return true // this is a legitimate redirect
 	}
-	if "www."+orig == location {
-		return true // this is also a legitimate redirect
-	}
-	return orig == "www."+location
+	origSuffix, origErr := publicsuffix.EffectiveTLDPlusOne(em.URLDomain())
+	locSuffix, locErr := publicsuffix.EffectiveTLDPlusOne(em.RedirectLocationDomain())
+	return origErr == nil && locErr == nil && origSuffix == locSuffix
 }
 
 // UsingAddressIPv6 returns true whether this specific endpoint has
