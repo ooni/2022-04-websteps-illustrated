@@ -17,6 +17,14 @@ import (
 	"time"
 )
 
+// FlatFailureToStringOrOK returns either a flat failure or ok.
+func FlatFailureToStringOrOK(ff FlatFailure) string {
+	if ff != "" {
+		return string(ff)
+	}
+	return "ok"
+}
+
 // FlatDNSLookupEvent contains the results of a DNS lookup.
 type FlatDNSLookupEvent struct {
 	ALPNs           []string `json:",omitempty"`

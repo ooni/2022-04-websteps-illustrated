@@ -14,11 +14,18 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
-// IsBogon returns whether if an IP address is bogon. Passing to this
+// IsBogon returns whether an IP address is bogon. Passing to this
 // function a non-IP address causes it to return true.
 func IsBogon(address string) bool {
 	ip := net.ParseIP(address)
 	return ip == nil || isPrivate(ip)
+}
+
+// IsLoopback returns whether an IP address is loopback. Passing to this
+// function a non-IP address causes it to return true.
+func IsLoopback(address string) bool {
+	ip := net.ParseIP(address)
+	return ip == nil || ip.IsLoopback()
 }
 
 var privateIPBlocks []*net.IPNet

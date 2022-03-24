@@ -150,6 +150,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 		return
 	}
 	q := mx.NewURLRedirectDeque()
+	logcat.NewInputf("you asked me to measure '%s' and up to %d redirects... let's go!", input, q.MaxDepth())
 	q.Append(initial)
 	tkoe := &TestKeysOrError{
 		Err: nil,
@@ -167,7 +168,7 @@ func (c *Client) steps(ctx context.Context, input string) {
 			// also leave when we reach the max crawler depth.
 			break
 		}
-		logcat.Stepf("depth=%d; crawling %s", q.Depth(), cur.URL.String())
+		logcat.Stepf("now measuring '%s'", cur.URL.String())
 		// Implementation note: here we use a background context for the
 		// measurement step because we don't want to interrupt web measurements
 		// midway. We'll stop when we enter into the next iteration.
@@ -180,8 +181,9 @@ func (c *Client) steps(ctx context.Context, input string) {
 		logcat.Infof("🪀 work queue: %s", q.String())
 	}
 	tkoe.TestKeys.Bodies = tkoe.TestKeys.buildHashingBodies(mx)
-	tkoe.TestKeys.finalReprocessingAndLogging()          // depends on hashes
+	tkoe.TestKeys.finalReprocessing()                    // depends on hashes
 	tkoe.TestKeys.Flags = tkoe.TestKeys.aggregateFlags() // depends on reprocessing
+	tkoe.TestKeys.finalLogging()                         // must be last
 	c.Output <- tkoe
 }
 
@@ -303,11 +305,11 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 	thc := c.th(ctx, cur)
 	c.measureDiscoveredEndpoints(ctx, cache, mx, cur)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
+	logcat.Substep("obtaining TH's measurements results")
 	maybeTH := c.waitForTHC(thc)
 	if maybeTH.Err == nil {
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
-		logcat.Substep("getting TH results")
 		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
 	}
 	ssm.DNSPing = c.waitForDNSPing(dc, pingRunning)
@@ -330,6 +332,7 @@ func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result, pingRunning bool) *dn
 	if !pingRunning {
 		return nil
 	}
+	logcat.Substep("obtaining dnsping measurements results")
 	ol := measurex.NewOperationLogger("waiting for dnsping to complete")
 	out := <-dc
 	ol.Stop(nil)
@@ -339,12 +342,12 @@ func (c *Client) waitForDNSPing(dc <-chan *dnsping.Result, pingRunning bool) *dn
 func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
 	dnsv, found := cache.dnsLookup(mx, cur.ID, cur.Domain())
-	logcat.Substepf("resolving the %s domain name", cur.Domain())
 	if found {
-		logcat.Infof("📡 [initial] domain %s already in dnscache", cur.Domain())
+		logcat.Substepf("no need to resolve; I already know '%s' IP addresses", cur.Domain())
 		cur.DNS = append(cur.DNS, dnsv)
 		return
 	}
+	logcat.Substepf("resolving '%s' to IP addresses", cur.Domain())
 	const flags = 0 // no extra queries
 	dnsPlans := cur.NewDNSLookupPlans(flags, c.resolvers...)
 	for m := range mx.DNSLookups(ctx, dnsPlans...) {
@@ -354,8 +357,12 @@ func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 
 func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCache,
 	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
-	logcat.Substepf("testing all the discovered IP addresses")
 	ual, _ := cur.URLAddressList()
+	if len(ual) <= 0 {
+		logcat.Shrugf("unfortunately it seems I did not discover any IP address")
+		return
+	}
+	logcat.Noticef("discovered these IP addresses: %s", measurex.URLAddressListToString(ual))
 	// Rewrite the current URLAddressList to ensure that IP addresses we've already
 	// used, even if with different domains, end up at the beginning. A test case
 	// for this is http://torproject.org, which has four A and four AAAA addrs. In the
@@ -363,6 +370,11 @@ func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCac
 	// use the same two A and two AAAA it used in the first step.
 	ual = cache.prioritizeKnownAddrs(ual)
 	plan, _ := cur.NewEndpointPlanWithAddressList(ual, 0)
+	if len(plan) <= 0 {
+		logcat.Shrugf("unfortunately, there are no valid endpoints to test here")
+		return
+	}
+	logcat.Substepf("now testing %d HTTP/HTTPS/HTTP3 endpoints deriving from the discovered IP addresses", len(plan))
 	for m := range mx.MeasureEndpoints(ctx, plan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}
@@ -370,8 +382,10 @@ func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCac
 
 func (c *Client) measureAltSvcEndpoints(ctx context.Context,
 	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
-	logcat.Substepf("possibly measuring HTTP3 endpoints discovered using Alt-Svc")
 	epntPlan, _ := cur.NewEndpointPlan(measurex.EndpointPlanningOnlyHTTP3)
+	if len(epntPlan) <= 0 {
+		return
+	}
 	for m := range mx.MeasureEndpoints(ctx, epntPlan...) {
 		cur.Endpoint = append(cur.Endpoint, m)
 	}
@@ -408,7 +422,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			},
 			RoundTrip: c.importDNSRoundTripEvent(now, e.RoundTrip),
 		}
-		logcat.Infof("import %s", dns.Describe())
+		logcat.Noticef("import %s... %s", dns.Describe(), archival.FlatFailureToStringOrOK(dns.Failure()))
 		out.DNS = append(out.DNS, dns)
 	}
 	for _, e := range in.Endpoint {
@@ -430,7 +444,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			QUICTLSHandshake: nil,
 			HTTPRoundTrip:    c.importHTTPRoundTripEvent(now, e.HTTPRoundTrip),
 		}
-		logcat.Infof("import %s", nem.Describe())
+		logcat.Noticef("import %s... %s", nem.Describe(), archival.FlatFailureToStringOrOK(nem.Failure))
 		out.Endpoint = append(out.Endpoint, nem)
 	}
 	return
@@ -487,11 +501,13 @@ func (thm *THResponse) URLAddressList(domain string) (o []*measurex.URLAddress, 
 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 	mx measurex.AbstractMeasurer, ssm *SingleStepMeasurement) {
-	logcat.Substep("checking for and testing additional addresses in TH/dnsping results")
 	addrslist, _ := c.expandProbeKnowledge(mx, ssm)
 	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(addrslist, 0)
-	for m := range mx.MeasureEndpoints(ctx, plan...) {
-		ssm.ProbeAdditional = append(ssm.ProbeAdditional, m)
+	if len(plan) > 0 {
+		logcat.Substep("checking for and testing additional addresses in TH/dnsping results")
+		for m := range mx.MeasureEndpoints(ctx, plan...) {
+			ssm.ProbeAdditional = append(ssm.ProbeAdditional, m)
+		}
 	}
 }
 

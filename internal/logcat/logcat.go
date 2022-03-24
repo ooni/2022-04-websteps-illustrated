@@ -268,7 +268,7 @@ func hasEmojis() bool {
 
 var bugemoji = map[bool]string{
 	true:  "🐛 ",
-	false: "BUG: ",
+	false: "BUG:      ",
 }
 
 // Bug is a convenience function for emitting a log message about a bug. By default
@@ -285,7 +285,7 @@ func Bugf(format string, value ...interface{}) {
 
 var cacheemoji = map[bool]string{
 	true:  "👛 ",
-	false: "CACHE: ",
+	false: "CACHE:    ",
 }
 
 // Cache is a convenience function for emitting messages related to the cache. The user
@@ -297,12 +297,12 @@ func Cache(message string) {
 
 // Cachef is like Cache but allows formatting a message.
 func Cachef(format string, value ...interface{}) {
-	Warnf(cacheemoji[hasEmojis()]+format, value...)
+	Infof(cacheemoji[hasEmojis()]+format, value...)
 }
 
 var shrugemoji = map[bool]string{
 	true:  "🤷 ",
-	false: "WTF: ",
+	false: "WTF:      ",
 }
 
 // Shrug is a convenience function for emitting log messages detailing that something
@@ -317,43 +317,9 @@ func Shrugf(format string, value ...interface{}) {
 	Warnf(shrugemoji[hasEmojis()]+format, value...)
 }
 
-var completeemoji = map[bool]string{
-	true:  "   ",
-	false: "DONE: ",
-}
-
-// Complete is a convenience function for emitting log messages related to user
-// visible operations that may require some time for finishing and are now complete.
-// This kind of log messages is of NOTICE level and help to indicate progress.
-func Complete(message string) {
-	Notice(completeemoji[hasEmojis()] + message)
-}
-
-// Completef is like Complete but allows formatting a message.
-func Completef(format string, value ...interface{}) {
-	Noticef(completeemoji[hasEmojis()]+format, value...)
-}
-
-var pendingemoji = map[bool]string{
-	true:  "   ",
-	false: "PENDING: ",
-}
-
-// Pending is a convenience function for emitting log messages related to user
-// visible operations that may require some time for finishing and are still
-// pending after some time. This kind of messages is a NOTICE.
-func Pending(message string) {
-	Notice(pendingemoji[hasEmojis()] + message)
-}
-
-// Pendingf is like Pending but allows formatting messages.
-func Pendingf(format string, value ...interface{}) {
-	Noticef(pendingemoji[hasEmojis()]+format, value...)
-}
-
 var stepemoji = map[bool]string{
 	true:  "📌 ",
-	false: "STEP: ",
+	false: "STEP:     ",
 }
 
 // Step is a convenience function for emitting log messages related to one
@@ -369,7 +335,7 @@ func Stepf(format string, value ...interface{}) {
 
 var substepemoji = map[bool]string{
 	true:  "📎 ",
-	false: "SUBSTEP: ",
+	false: "SUBSTEP:  ",
 }
 
 // Substep is a convenience function for emitting log messages related to one
@@ -381,4 +347,20 @@ func Substep(message string) {
 // Substepf is like Substep but allows formatting messages.
 func Substepf(format string, value ...interface{}) {
 	Noticef(substepemoji[hasEmojis()]+format, value...)
+}
+
+var newinputemoji = map[bool]string{
+	true:  "✨ ",
+	false: "NEWINPUT: ",
+}
+
+// NewInput is the function to call when you are an experiment and you
+// receive new input. This is also part of the NOTICEs.
+func NewInput(message string) {
+	Notice(newinputemoji[hasEmojis()] + message)
+}
+
+// NewInputf is like NewInput but allows formatting messages.
+func NewInputf(format string, value ...interface{}) {
+	Noticef(newinputemoji[hasEmojis()]+format, value...)
 }

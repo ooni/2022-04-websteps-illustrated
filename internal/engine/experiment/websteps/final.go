@@ -10,19 +10,33 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 )
 
-// finalReprocessingAndLogging performs the final reprocessing. Once each
-// piece of analysis is final, the code will log it.
-func (tk *TestKeys) finalReprocessingAndLogging() {
-	for _, step := range tk.Steps {
-		if step.Analysis == nil {
-			continue // no analysis? nothing to do
+// finalLogging logs the overall results.
+func (tk *TestKeys) finalLogging() {
+	if tk.Flags != 0 {
+		logcat.Stepf("summary of anomalous findings for %s:", tk.URL)
+		for _, step := range tk.Steps {
+			if step.Analysis == nil {
+				continue // already logged in finalReprocessing
+			}
+			for _, dns := range step.Analysis.DNS {
+				ExplainFlagsWithLogging(dns, dns.Flags)
+			}
+			for _, epnt := range step.Analysis.Endpoint {
+				ExplainFlagsWithLogging(epnt, epnt.Flags)
+			}
 		}
-		for _, dns := range step.Analysis.DNS {
-			ExplainFlagsWithLogging(dns, dns.Flags)
+	}
+}
+
+// finalReprocessingAndLogging performs the final reprocessing.
+func (tk *TestKeys) finalReprocessing() {
+	for idx, step := range tk.Steps {
+		if step.Analysis == nil {
+			logcat.Bugf("missing analysis for step %d of URL %s", idx, tk.URL)
+			continue
 		}
 		for _, epnt := range step.Analysis.Endpoint {
 			tk.finalReprocessingHTTPStatusDiff(epnt)
-			ExplainFlagsWithLogging(epnt, epnt.Flags)
 		}
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -225,6 +226,16 @@ type URLAddress struct {
 
 	// Flags contains URL flags.
 	Flags int64
+}
+
+// URLAddressListToString transforms an URLAddressList to a
+// flat list of IP addresses, which is useful for logging.
+func URLAddressListToString(ual []*URLAddress) string {
+	v := []string{}
+	for _, ua := range ual {
+		v = append(v, ua.Address)
+	}
+	return strings.Join(v, ", ")
 }
 
 // Clone creates a clone of this URLAddressList.
@@ -463,6 +474,11 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 			continue
 		}
 
+		if netxlite.IsLoopback(addr.Address) {
+			logcat.Infof("[mx] excluding loopback addresses such as %s by default", addr.Address)
+			continue
+		}
+
 		family := "A"
 		ipv6, err := netxlite.IsIPv6(addr.Address)
 		if err != nil {
@@ -678,6 +694,11 @@ func (r *URLRedirectDeque) RememberVisitedURLs(epnts []*EndpointMeasurement) {
 	for _, epnt := range epnts {
 		r.mem[CanonicalURLString(epnt.URL)] = true
 	}
+}
+
+// MaxDepth returns the maximum depth.
+func (r *URLRedirectDeque) MaxDepth() int64 {
+	return r.options.maxCrawlerDepth()
 }
 
 // PopLeft removes the first element in the redirect deque. Returns true

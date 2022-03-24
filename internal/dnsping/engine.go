@@ -317,9 +317,10 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 // received is called when recvfrom returns successfully.
 func (e *Engine) received(sourceAddress string,
 	result *SinglePingResult, rr *netxlite.DNSOverUDPRawReply) {
+	id := e.IDGenerator.NextID()
 	if rr.Error != nil {
 		result.Replies = append(result.Replies, &SinglePingReply{
-			ID:            e.IDGenerator.NextID(),
+			ID:            id,
 			SourceAddress: sourceAddress,
 			Reply:         []byte{},
 			Error:         archival.NewFlatFailure(rr.Error),
@@ -333,7 +334,7 @@ func (e *Engine) received(sourceAddress string,
 	reply, err := e.Decoder.ParseReplyForQueryID(rr.RawReply, result.QueryID)
 	if err != nil {
 		result.Replies = append(result.Replies, &SinglePingReply{
-			ID:            e.IDGenerator.NextID(),
+			ID:            id,
 			SourceAddress: sourceAddress,
 			Reply:         rr.RawReply,
 			Error:         archival.NewFlatFailure(err),
@@ -346,7 +347,7 @@ func (e *Engine) received(sourceAddress string,
 	}
 	if !rr.ValidSourceAddr {
 		result.Replies = append(result.Replies, &SinglePingReply{
-			ID:            e.IDGenerator.NextID(),
+			ID:            id,
 			SourceAddress: sourceAddress,
 			Reply:         rr.RawReply,
 			Error:         archival.FlatFailure(netxlite.FailureDNSReplyFromUnexpectedServer),
@@ -357,8 +358,8 @@ func (e *Engine) received(sourceAddress string,
 		})
 		return
 	}
-	logcat.Completef("%s [dnsping] %s for %s/%s from %s in %s with dns.id %d",
-		dns.RcodeToString[reply.Rcode], result.Domain,
+	logcat.Noticef("[#%d] dnsping %s for %s/%s from %s in %s with dns.id %d",
+		id, dns.RcodeToString[reply.Rcode], result.Domain,
 		result.QueryTypeAsString(), sourceAddress,
 		rr.Received.Sub(result.Started), reply.Id)
 	addrs, alpns, err := e.finishParsing(result.QueryType, reply)

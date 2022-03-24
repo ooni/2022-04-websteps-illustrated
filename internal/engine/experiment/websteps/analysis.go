@@ -126,6 +126,9 @@ const (
 	AnalysisUnused63            = 1 << 63
 )
 
+// AnalysisPublicMask is the mask to omit reserved flags.
+const AnalysisPublicMask = (1 << 52) - 1
+
 //
 // URL
 //
@@ -172,8 +175,7 @@ func analysisPrettyRefs(refs []int64) string {
 
 // Describes this analysis.
 func (ad *AnalysisDNS) Describe() string {
-	return fmt.Sprintf("dns analysis in #%d comparing %s",
-		ad.URLMeasurementID, analysisPrettyRefs(ad.Refs))
+	return fmt.Sprintf("dns analysis #%d for %s", ad.ID, analysisPrettyRefs(ad.Refs))
 }
 
 // dnsAnalysis analyzes the probe's DNS lookups. This function returns
@@ -192,6 +194,7 @@ func (ssm *SingleStepMeasurement) dnsAnalysis(mx measurex.AbstractMeasurer) (out
 		case archival.DNSLookupTypeGetaddrinfo, archival.DNSLookupTypeHTTPS:
 			score := ssm.dnsSingleLookupAnalysis(mx, pq)
 			score.Flags |= flags
+			score.Flags &= AnalysisPublicMask
 			out = append(out, score)
 		default:
 			// Ignore this specific lookup type
@@ -218,7 +221,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 	case netxlite.FailureHostUnreachable,
 		netxlite.FailureNetworkUnreachable:
 		if pq.UsingResolverIPv6() {
-			score.Flags |= AnalysisBrokenIPv6
+			logcat.Noticef("[#%d] ignoring #%d because it fails due to missing IPv6 support", score.ID, pq.ID)
 			return score
 		}
 	}
@@ -227,6 +230,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 	// IP address, which happens with, e.g., https://1.1.1.1/,
 	// then the case is immediately closed.
 	if net.ParseIP(pq.Domain()) != nil {
+		logcat.Noticef("[#%d] #%d is good because it refers to an IP address", score.ID, pq.ID)
 		return score
 	}
 
@@ -236,16 +240,18 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 	if pq.Failure() == "" {
 		// Countries like Iran censor returning bogon addresses.
 		if ssm.dnsBogonsCheck(pq) {
-			score.Flags |= AnalysisBogon
 			// TODO(bassosimone): here we can double down on the bogon
 			// analysis by checking for injection in dnsping.
+			score.Flags |= AnalysisBogon
+			logcat.Noticef("[#%d] #%d is confirmed anomaly because it contains a bogon", score.ID, pq.ID)
 			return score
 		}
 		// If we could use any of the IP addresses returned by this query
 		// for establishing TLS connections, we're ~confident that we've
 		// been given legitimate IP addresses by the resolver.
-		if ssm.dnsAnyIPAddrWorksWithHTTPS(pq) {
+		if ssm.dnsAnyIPAddrWorksWithHTTPS(pq.ID, pq) {
 			score.Flags |= AnalysisDNSNotLying
+			// We've already printed information about this specific case
 			return score
 		}
 		// We cannot yet reach a conclusion, let's continue.
@@ -257,11 +263,9 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// Without having additional data we cannot really
 		// continue the analysis and reach a conclusion.
 		score.Flags |= AnalysisGiveUp
-		logcat.Bugf("[dns] cannot find TH measurement matching #%d", pq.ID)
+		logcat.Bugf("[#%d] cannot find TH measurement matching #%d", score.ID, pq.ID)
 		return score
 	}
-
-	logcat.Infof("🙌 [dns] matched probe #%d with TH #%d", pq.ID, thq.ID)
 
 	score.Refs = append(score.Refs, thq.ID)
 
@@ -269,6 +273,8 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 	if pq.Failure() != "" && thq.Failure() != "" {
 		if pq.Failure() == thq.Failure() {
 			score.Flags |= AnalysisConsistent
+			logcat.Noticef("[#%d] #%d is good because also #%d fails with %s",
+				score.ID, pq.ID, thq.ID, pq.Failure())
 			return score
 		}
 		// Because the resolvers failed differently, we
@@ -276,6 +282,8 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// in getaddrinfo implementation leading to this
 		// result (see, e.g., https://github.com/ooni/probe/issues/2029).
 		score.Flags |= AnalysisInconsistent
+		logcat.Shrugf("[#%d] #%d, which fails with %d, is inconclusive because #%d fails with %s",
+			score.ID, pq.ID, pq.Failure(), thq.ID, thq.Failure())
 		return score
 	}
 
@@ -284,8 +292,8 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// If only the TH failed, then this is also quite
 		// strange/unexpected. We could dig in more but, for
 		// now, let's just give up for now.
+		logcat.Shrugf("[#%d] give up analysis #%d succeded and #%d failed", score.ID, pq.ID, thq.ID)
 		score.Flags |= AnalysisGiveUp
-		logcat.Shrug("[dns] give up analysis because the TH failed")
 		return score
 	}
 
@@ -295,26 +303,33 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 		// A probe failure without a TH failure is unexpected.
 		switch failure {
 		case netxlite.FailureDNSNXDOMAINError:
-			score.Flags |= AnalysisNXDOMAIN
 			// TODO(bassosimone): here we can double down on the NXDOMAIN
 			// analysis by checking for injection in dnsping.
+			logcat.Noticef("[#%d] #%d succeeds and #%d fails with NXDOMAIN", score.ID, thq.ID, pq.ID)
+			score.Flags |= AnalysisNXDOMAIN
 		case netxlite.FailureDNSRefusedError:
+			logcat.Noticef("[#%d] #%d succeeds and #%d fails with Refused", score.ID, thq.ID, pq.ID)
 			score.Flags |= AnalysisDNSRefused
 		case netxlite.FailureGenericTimeoutError:
-			score.Flags |= AnalysisDNSTimeout
 			dnspingID, found := ssm.dnsCanCancelTimeoutFlag(pq)
 			if found {
-				logcat.Infof("🙌 timeout in #%d for %s using %s was transient (see #%d)",
-					pq.ID, pq.Domain(), pq.ResolverURL(), dnspingID)
+				logcat.Infof(
+					"[#%d] #%d succeeds and #%d fails with timeout but #%d shows it was transient",
+					score.ID, thq.ID, pq.ID, dnspingID)
 				score.Refs = append(score.Refs, dnspingID)
-				score.Flags &= ^AnalysisDNSTimeout
 				score.Flags |= AnalysisDNSCanceledTimeout
+			} else {
+				logcat.Noticef("[#%d] #%d succeeds and #%d fails with timeout", score.ID, thq.ID, pq.ID)
+				score.Flags |= AnalysisDNSTimeout
 			}
 		case netxlite.FailureDNSNoAnswer:
+			logcat.Noticef("[#%d] #%d succeeds and #%d fails with no_answer", score.ID, thq.ID, pq.ID)
 			score.Flags |= AnalysisDNSNoAnswer
 		case netxlite.FailureDNSServfailError:
+			logcat.Noticef("[#%d] #%d succeeds and #%d fails with Servfail", score.ID, thq.ID, pq.ID)
 			score.Flags |= AnalysisDNSServfail
 		default:
+			logcat.Shrugf("[#%d] #%d succeeds and #%d fails with %s (which is an umapped error)", score.ID, thq.ID, pq.ID)
 			score.Flags |= AnalysisDNSOther
 		}
 		return score
@@ -323,7 +338,7 @@ func (ssm *SingleStepMeasurement) dnsSingleLookupAnalysis(mx measurex.AbstractMe
 	// So, now we're in the case in which both succeded. We know from
 	// the above checks that we didn't receive any bogon and the TH could
 	// not complete any HTTPS measurement with this query's results.
-	if ssm.dnsWebConnectivityDNSDiff(pq, thq, ssm.TH) {
+	if ssm.dnsWebConnectivityDNSDiff(score.ID, pq, thq, ssm.TH) {
 		score.Flags |= AnalysisDNSDiff
 	}
 
@@ -378,35 +393,101 @@ func (ssm *SingleStepMeasurement) dnsBogonsCheck(pq *measurex.DNSLookupMeasureme
 	return false
 }
 
-// dnsAnyIPAddrWorksWithHTTPS checks whether the TH could use one of the
-// IP addrs returned by the probe to perform any HTTPS measurement.
-func (ssm *SingleStepMeasurement) dnsAnyIPAddrWorksWithHTTPS(
-	pq *measurex.DNSLookupMeasurement) bool {
-	if ssm.TH == nil || pq.Failure() != "" {
-		// Just in case there's some bug
-		return false
+// joinMeasurementIDs takes in input a list of measurement IDs and returns
+// in output a string representation of such a list.
+func joinMeasurementIDs(ids []int64) string {
+	v := []string{}
+	for _, id := range ids {
+		v = append(v, fmt.Sprintf("#%d", id))
 	}
-	var count int64
-	for _, prAddr := range pq.Addresses() {
-		for _, epnt := range ssm.TH.Endpoint {
-			thAddr := epnt.IPAddress()
-			if thAddr == "" {
-				// This also seems a bug or an edge case
-				continue
-			}
-			if prAddr != thAddr || epnt.Scheme() != "https" {
-				// Not the droids we were looking for
-				continue
-			}
-			if epnt.Failure != "" {
-				// If at least a single IP address works we assume that
-				// the DNS is not returning us lies.
-				continue
-			}
-			count++
+	return strings.Join(v, ", ")
+}
+
+// dnsNoIPAddrWorksWithHTTPS double checks that neither the probe nor the TH could
+// use none of the IP addrs in pq to perform successful HTTPS measurements.
+func (ssm *SingleStepMeasurement) dnsNoIPAddrWorksWithHTTPS(
+	dnsScoreID int64, pq *measurex.DNSLookupMeasurement) bool {
+	badaddrs := []string{}
+	for _, probeAddr := range pq.Addresses() {
+		var v []int64
+		if ssm.TH != nil {
+			v = append(v, ssm.findMatchingHTTPSFailures(probeAddr, ssm.TH.Endpoint)...)
+		}
+		if ssm.ProbeInitial != nil {
+			v = append(v, ssm.findMatchingHTTPSFailures(probeAddr, ssm.ProbeInitial.Endpoint)...)
+		}
+		if len(v) > 0 {
+			badaddrs = append(badaddrs, probeAddr)
+			logcat.Noticef("[#%d] address %s in #%d does not work with HTTPS in %+v",
+				dnsScoreID, probeAddr, pq.ID, joinMeasurementIDs(v))
 		}
 	}
-	return count > 0 // be sure we did run the loop
+	return len(badaddrs) > 0 // ensure we have seen at least one address
+}
+
+// findMatchingHTTPSFailures returns the HTTPS failures for a given
+// IP address using a list of endpoints as the reference.
+func (ssm *SingleStepMeasurement) findMatchingHTTPSFailures(
+	targetAddr string, endpoints []*measurex.EndpointMeasurement) (bad []int64) {
+	for _, epnt := range endpoints {
+		otherAddr := epnt.IPAddress()
+		if otherAddr == "" {
+			logcat.Bugf("empty address returned bby #%d", epnt.ID)
+			continue
+		}
+		if targetAddr != otherAddr || epnt.Scheme() != "https" {
+			// Not the droids we were looking for
+			continue
+		}
+		if epnt.Failure == "" {
+			continue
+		}
+		bad = append(bad, epnt.ID)
+	}
+	return bad
+}
+
+// dnsAnyIPAddrWorksWithHTTPS checks whether the TH or the probe could use one of the
+// IP addrs in pq to perform any successful HTTPS measurements.
+func (ssm *SingleStepMeasurement) dnsAnyIPAddrWorksWithHTTPS(
+	dnsScoreID int64, pq *measurex.DNSLookupMeasurement) bool {
+	for _, probeAddr := range pq.Addresses() {
+		var v []int64
+		if ssm.TH != nil {
+			v = append(v, ssm.findMatchingHTTPSSuccesses(probeAddr, ssm.TH.Endpoint)...)
+		}
+		if ssm.ProbeInitial != nil {
+			v = append(v, ssm.findMatchingHTTPSSuccesses(probeAddr, ssm.ProbeInitial.Endpoint)...)
+		}
+		if len(v) > 0 {
+			logcat.Noticef("[#%d] address %s in #%d is legit because it works with HTTPS in %+v",
+				dnsScoreID, probeAddr, pq.ID, joinMeasurementIDs(v))
+			return true
+		}
+	}
+	return false
+}
+
+// findMatchingHTTPSuccesses returns the HTTPS successes for a given
+// IP address using a list of endpoints as the reference.
+func (ssm *SingleStepMeasurement) findMatchingHTTPSSuccesses(
+	targetAddr string, endpoints []*measurex.EndpointMeasurement) (good []int64) {
+	for _, epnt := range endpoints {
+		otherAddr := epnt.IPAddress()
+		if otherAddr == "" {
+			logcat.Bugf("empty address returned bby #%d", epnt.ID)
+			continue
+		}
+		if targetAddr != otherAddr || epnt.Scheme() != "https" {
+			// Not the droids we were looking for
+			continue
+		}
+		if epnt.Failure != "" {
+			continue
+		}
+		good = append(good, epnt.ID)
+	}
+	return good
 }
 
 // dnsFindMatchingQuery takes in input a probe's query and
@@ -483,8 +564,7 @@ type AnalysisEndpoint struct {
 
 // Describes this analysis.
 func (ad *AnalysisEndpoint) Describe() string {
-	return fmt.Sprintf("endpoint analysis in #%d comparing %s",
-		ad.URLMeasurementID, analysisPrettyRefs(ad.Refs))
+	return fmt.Sprintf("endpoint analysis #%d for %s", ad.ID, analysisPrettyRefs(ad.Refs))
 }
 
 // endpointAnalysis analyzes the probe's endpoint measurements. This function
@@ -498,12 +578,14 @@ func (ssm *SingleStepMeasurement) endpointAnalysis(mx measurex.AbstractMeasurer)
 		for _, pe := range ssm.ProbeInitial.Endpoint {
 			score := ssm.endpointSingleMeasurementAnalysis(mx, pe)
 			score.Flags |= flags
+			score.Flags &= AnalysisPublicMask
 			out = append(out, score)
 		}
 	}
 	for _, pe := range ssm.ProbeAdditional {
 		score := ssm.endpointSingleMeasurementAnalysis(mx, pe)
 		score.Flags |= flags
+		score.Flags &= AnalysisPublicMask
 		out = append(out, score)
 	}
 	return out
@@ -789,14 +871,14 @@ func (ssm *SingleStepMeasurement) endpointFindMatchingMeasurement(pe *measurex.E
 		return nil, false
 	}
 	if (flags & analysisFindVerbose) != 0 {
-		logcat.Infof("🔎 we're trying to match:\n\t%s", pe.Summary())
+		logcat.Bugf("🔎 we're trying to match: %s", pe.Summary())
 	}
 	for _, the := range ssm.TH.Endpoint {
 		if pe.IsAnotherInstanceOf(the) {
 			return the, true
 		}
 		if (flags & analysisFindVerbose) != 0 {
-			logcat.Infof("🔎 candidate #%d does not match:\n\t%s", the.ID, the.Summary())
+			logcat.Bugf("🔎 candidate #%d does not match: %s", the.ID, the.Summary())
 		}
 	}
 	return nil, false

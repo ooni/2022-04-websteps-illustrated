@@ -64,6 +64,7 @@ func (r *THResponse) ToArchival(begin time.Time) ArchivalTHResponse {
 
 // th runs the test helper client in a background goroutine.
 func (c *Client) th(ctx context.Context, cur *measurex.URLMeasurement) <-chan *THResponseOrError {
+	logcat.Substepf("while continuing to measure, I'll query the test helper (TH) in the background")
 	plan, _ := cur.NewEndpointPlan(0)
 	out := make(chan *THResponseOrError, 1)
 	thReq := c.newTHRequest(cur, plan)
@@ -590,18 +591,20 @@ func (thr *THRequestHandler) patchEndpointPlan(input []*measurex.EndpointPlan,
 			switch isipv6 {
 			case true:
 				if !extra6[ipaddr] && len(extra6) >= threshold {
-					logcat.Infof("🧐 too many extra AAAA addrs already; skipping %s", ipaddr)
+					logcat.Infof("patchEndpointPlan: too many extra AAAA addrs already; skipping %s", ipaddr)
 					continue // already too many extra IPv6 addresses
 				}
 				extra6[ipaddr] = true
 			case false:
 				if !extra4[ipaddr] && len(extra4) >= threshold {
-					logcat.Infof("🧐 too many extra A addrs already; skipping %s", ipaddr)
+					logcat.Infof("patchEndpointPlan: too many extra A addrs already; skipping %s", ipaddr)
 					continue // already too many IPv4 addresses
 				}
 				extra4[ipaddr] = true
 			}
 			// fallthrough
+		} else {
+			logcat.Infof("patchEndpointPlan: include %s provided by the probe", ipaddr)
 		}
 		out = append(out, &measurex.EndpointPlan{
 			URLMeasurementID: e.URLMeasurementID,

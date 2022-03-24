@@ -58,5 +58,5 @@ func dropprivileges(user string) {
 	pwent := getpwent(user)
 	dropgid(getgid(pwent))
 	dropuid(getuid(pwent))
-	fmt.Fprintf(os.Stderr, "dropped privileges to %+v", pwent)
+	fmt.Fprintf(os.Stderr, "dropped privileges to %+v\n", pwent)
 }

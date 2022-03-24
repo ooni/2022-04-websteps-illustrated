@@ -51,7 +51,7 @@ func (c *Client) dnsPingFollowUp(ctx context.Context, mx measurex.AbstractMeasur
 	}
 	// The dnsping codebase does not emit this information but it's useful
 	// when reading the logs to know it has started.
-	logcat.Substep("starting dnsping in the background to validate lookups")
+	logcat.Substep("starting dnsping in the background...")
 	engine := dnsping.NewEngine(mx)
 	engine.QueryTimeout = mx.FlattenOptions().DNSLookupTimeout
 	return engine.RunAsync(overall), true
@@ -75,13 +75,15 @@ func (c *Client) dnsPingSelectQueries(in []*measurex.DNSLookupMeasurement) (
 			logcat.Bugf("UDP query w/o resolver address")
 			continue // should not happen but #safetyNet
 		}
-		switch entry.Failure() {
+		switch v := entry.Failure(); v {
 		case netxlite.FailureGenericTimeoutError,
 			netxlite.FailureDNSNXDOMAINError:
+			logcat.Noticef("query #%d failed with %s; I will investigate using dnsping", entry.ID, v)
 			out = append(out, entry)
 		case "":
 			for _, addr := range entry.Addresses() {
 				if netxlite.IsBogon(addr) {
+					logcat.Noticef("query #%d contains bogons; I will investigate using dnsping", entry.ID)
 					out = append(out, entry)
 					break // one bogon is enough to warrant a retry
 				}

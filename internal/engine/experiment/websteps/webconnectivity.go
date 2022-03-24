@@ -19,7 +19,7 @@ import (
 
 // dnsWebConnectivityDNSDiff is the DNSDiff algorithm originally
 // designed for Web Connectivity and now adapted to websteps.
-func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
+func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(scoreID int64,
 	pq, thq *measurex.DNSLookupMeasurement, thResp *THResponse) bool {
 
 	// we use these flags to classify who did see what
@@ -29,21 +29,23 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 		inBoth        = inMeasurement | inControl
 	)
 
-	// who is an helper function for printing log messages
-	who := func(flags int64) string {
-		if (flags & inBoth) == inBoth {
-			return "both"
-		}
-		if (flags & inControl) != 0 {
-			return "th"
-		}
-		if (flags & inMeasurement) != 0 {
-			return "probe"
-		}
-		return "none"
+	// 1. check whether there is overlap in the returned IP addresses
+	ipmap := make(map[string]int)
+	for _, addr := range pq.Addresses() {
+		ipmap[addr] |= inMeasurement
 	}
+	for _, addr := range thq.Addresses() {
+		ipmap[addr] |= inControl
+	}
+	for key, value := range ipmap {
+		// just in case an empty string slipped through
+		if key != "" && (value&inBoth) == inBoth {
+			return false // no diff
+		}
+	}
+	logcat.Noticef("[#%d] #%d and #%d do not have overlapping IP addresses (maybe #dnsDiff?)", scoreID, pq.ID, thq.ID)
 
-	// 1. check whether we can find common "public suffix" for any of
+	// 2. check whether we can find common "public suffix" for any of
 	// the IP addresses returned by the probe and the TH.
 	//
 	// This check was not in MK. A simpler version of this check
@@ -83,16 +85,11 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 		}
 		// 1.4. explain to the user why this lookup failed.
 		if len(suffmap) > 0 {
-			logcat.Infof("🧐 [dnsDiff] reverse mapping IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
-			for key, value := range suffmap {
-				logcat.Infof("        - only the %s found IP addresses mapping to %s", who(value), key)
-			}
-			logcat.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
-			logcat.Info("")
+			logcat.Noticef("[#%d] #%d and #%d do not have overlapping reverse DNS lookups (maybe #dnsDiff?)", scoreID, pq.ID, thq.ID)
 		}
 	}
 
-	// 2. stop if measurement and control returned IP addresses
+	// 3. stop if measurement and control returned IP addresses
 	// that belong to the same Autonomous System(s).
 	//
 	// This specific check is present in MK's implementation.
@@ -119,32 +116,25 @@ func (ssm *SingleStepMeasurement) dnsWebConnectivityDNSDiff(
 		}
 	}
 	if len(asnmap) > 0 {
-		logcat.Infof("🧐 [dnsDiff] comparing the ASNs of the IPs resolved by #%d and #%d, I noticed that:", pq.ID, thq.ID)
-		for key, value := range asnmap {
-			logcat.Infof("        - only the %s found IP addresses in AS%d", who(value), key)
-		}
-		logcat.Info("   This may be a #dnsDiff, but let me try other heuristics first.")
-		logcat.Info("")
+		logcat.Noticef("[#%d] #%d and #%d do not have overlapping ASNs (maybe #dnsDiff?)", scoreID, pq.ID, thq.ID)
 	}
 
-	// 3. when ASN lookup failed (unlikely), check whether
-	// there is overlap in the returned IP addresses
-	ipmap := make(map[string]int)
-	for _, addr := range pq.Addresses() {
-		ipmap[addr] |= inMeasurement
+	// 4. check whether addresses returned by the TH work with HTTPS. This check is a
+	// very conservative one that privileges false negative over false positives.
+	if !ssm.dnsAnyIPAddrWorksWithHTTPS(scoreID, thq) {
+		logcat.Noticef("[#%d] no IP addresses in #%d work with HTTPS", scoreID, thq.ID)
+		logcat.Noticef("[#%d] this may be #dnsDiff but I'll leave this case to the pipeline to analyze", scoreID)
+		return false
 	}
-	for _, addr := range thq.Addresses() {
-		ipmap[addr] |= inControl
+	if !ssm.dnsNoIPAddrWorksWithHTTPS(scoreID, pq) {
+		logcat.Bugf("[#%d] I thought I previously determined no addr in #%d worked with HTTPS", scoreID, pq.ID)
+		logcat.Bugf("[#%d] because this does not seem to be the case now, I think there's a bug", scoreID)
+		logcat.Noticef("[#%d] this may be #dnsDiff but I'll leave this case to the pipeline to analyze", scoreID)
+		return false
 	}
-	for key, value := range ipmap {
-		// just in case an empty string slipped through
-		if key != "" && (value&inBoth) == inBoth {
-			return false // no diff
-		}
-	}
-	logcat.Infof("😟 [dnsDiff] no common addresses in #%d and %d; looks like #dnsDiff to me", pq.ID, thq.ID)
 
-	// 3. conclude that measurement and control are inconsistent
+	// 5. conclude that measurement and control are inconsistent
+	logcat.Noticef("[#%d] considering all the above, I am going to conclude #%d and #%d are #dnsDiff", scoreID, pq.ID, thq.ID)
 	return true
 }
 

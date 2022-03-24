@@ -140,5 +140,5 @@ func ExplainFlagsWithLogging(ei Explainable, flags int64) {
 	default:
 		return // just show what needs the most attention
 	}
-	logcat.Infof("<%s> %s: %s", emoji, ei.Describe(), strings.Join(tags, " "))
+	logcat.Noticef("<%s> %s: %s", emoji, ei.Describe(), strings.Join(tags, " "))
 }
