@@ -604,7 +604,7 @@ func (thr *THRequestHandler) patchEndpointPlan(input []*measurex.EndpointPlan,
 			}
 			// fallthrough
 		} else {
-			logcat.Infof("patchEndpointPlan: include %s provided by the probe", ipaddr)
+			logcat.Infof("patchEndpointPlan: include %s provided by the probe", e.Address)
 		}
 		out = append(out, &measurex.EndpointPlan{
 			URLMeasurementID: e.URLMeasurementID,

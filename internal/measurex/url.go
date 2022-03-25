@@ -345,6 +345,10 @@ const (
 	// URLAddressAlreadyTestedHTTP3 indicates that this address has already
 	// been tested using the encrypted HTTP3 protocol.
 	URLAddressAlreadyTestedHTTP3
+
+	// URLAddressSystemResolver indicates that this entry has been
+	// discovered through the system resolver.
+	URLAddressSystemResolver
 )
 
 // SupportsHTTP3 returns whether we think this address supports HTTP3.
@@ -374,7 +378,7 @@ func (ua *URLAddress) AlreadyTestedHTTP3() bool {
 func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 	endpoint []*EndpointMeasurement) ([]*URLAddress, bool) {
 	uniq := make(map[string]int64)
-	// start searching into the DNS lookup results.
+	// 1. start searching into the DNS lookup results.
 	for _, dns := range dns {
 		if domain != dns.Domain() {
 			continue // we're not including unrelated domains
@@ -383,16 +387,19 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 		if dns.SupportsHTTP3() {
 			flags |= URLAddressSupportsHTTP3
 		}
+		if dns.ResolverNetwork() == archival.NetworkTypeSystem {
+			flags |= URLAddressSystemResolver
+		}
 		for _, addr := range dns.Addresses() {
 			if net.ParseIP(addr) == nil {
 				// Skip CNAMEs in case they slip through.
-				logcat.Shrugf("[mx] NewURLAddressList: cannot parse IP: %s", addr)
+				logcat.Bugf("[mx] NewURLAddressList: cannot parse IP: %s", addr)
 				continue
 			}
 			uniq[addr] |= flags
 		}
 	}
-	// continue searching into HTTP responses.
+	// 2. continue searching into HTTP responses.
 	for _, epnt := range endpoint {
 		if domain != epnt.URLDomain() {
 			continue // we're not including unrelated domains
@@ -400,7 +407,7 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 		ipAddr := epnt.IPAddress()
 		if ipAddr == "" {
 			// This may actually be an IPv6 address with explicit scope
-			logcat.Shrugf("[mx] NewURLAddressList: cannot parse IP: %s", ipAddr)
+			logcat.Bugf("[mx] NewURLAddressList: cannot parse IP: %s", ipAddr)
 			continue
 		}
 		if epnt.IsHTTPMeasurement() {
@@ -416,7 +423,7 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 			uniq[ipAddr] |= URLAddressSupportsHTTP3
 		}
 	}
-	// finally build the result.
+	// 3. finally build the result.
 	out := make([]*URLAddress, 0, 8)
 	for addr, flags := range uniq {
 		out = append(out, &URLAddress{
@@ -426,7 +433,49 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 			Flags:            flags,
 		})
 	}
+	// 4. rearrange and return
+	out = rearrangeAddresses(out)
 	return out, len(out) > 0
+}
+
+// rearrangeAddresses splits the set of known IP addresses into two sets: the one
+// discovered using the system resolver and the others. Then, it returns in output
+// a new set of IP addresses where we intermix entries from the system resolver
+// with other entries. This ensures we test at least one entry from the system resolver
+// and one other entry if we have at least two addresses per family.
+//
+// This spreading algorithm is important to ensure that:
+//
+// 1. we test at least one IP address from the system resolver, which may be
+// the only censored resolver in a bunch of cases;
+//
+// 2. we test at least another address, because we want to give a chance to
+// other resolvers and see what they return.
+func rearrangeAddresses(ual []*URLAddress) []*URLAddress {
+	// 1. divide the input in two sets
+	system := []*URLAddress{}
+	other := []*URLAddress{}
+	for _, entry := range ual {
+		if (entry.Flags & URLAddressSystemResolver) != 0 {
+			system = append(system, entry)
+		} else {
+			other = append(other, entry)
+		}
+	}
+	// 2. zip the two sets together
+	out := []*URLAddress{}
+	for si, oi := 0, 0; len(out) < len(system)+len(other); {
+		if si < len(system) {
+			out = append(out, system[si])
+			si++
+		}
+		if oi < len(other) {
+			out = append(out, other[oi])
+			oi++
+		}
+	}
+	// 3. return to the caller
+	return out
 }
 
 // URLAddressList calls NewURLAddressList using um.ID, um.DNS, and um.Endpoint.
@@ -446,6 +495,10 @@ const (
 	// addresses per domain. This flag is used to ensure the TH receives the
 	// whole list of IP addresses discovered by the client.
 	EndpointPlanningIncludeAll
+
+	// EndpointPlanningMeasureAgain ensures that we include endpoints that
+	// we have already measured into the plan.
+	EndpointPlanningMeasureAgain
 )
 
 // NewEndpointPlan is a convenience function that calls um.URLAddressList and passes the
@@ -495,7 +548,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 		counted := false
 
 		if (flags & EndpointPlanningOnlyHTTP3) == 0 {
-			if um.IsHTTP() && !addr.AlreadyTestedHTTP() {
+			if um.IsHTTP() && (!addr.AlreadyTestedHTTP() || (flags&EndpointPlanningMeasureAgain) != 0) {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "http")
 				if err != nil {
 					logcat.Shrugf("[mx] cannot make plan: %s", err.Error())
@@ -504,7 +557,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 				out = append(out, plan)
 			}
 
-			if um.IsHTTPS() && !addr.AlreadyTestedHTTPS() {
+			if um.IsHTTPS() && (!addr.AlreadyTestedHTTPS() || (flags&EndpointPlanningMeasureAgain) != 0) {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeTCP, addr.Address, "https")
 				if err != nil {
 					logcat.Shrugf("[mx] cannot make plan: %s", err.Error())
@@ -519,7 +572,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 		}
 
 		if um.IsHTTPS() && addr.SupportsHTTP3() {
-			if !addr.AlreadyTestedHTTP3() {
+			if !addr.AlreadyTestedHTTP3() || (flags&EndpointPlanningMeasureAgain) != 0 {
 				plan, err := um.newEndpointPlan(archival.NetworkTypeQUIC, addr.Address, "https")
 				if err != nil {
 					logcat.Shrugf("[mx] cannot make plan: %s", err.Error())

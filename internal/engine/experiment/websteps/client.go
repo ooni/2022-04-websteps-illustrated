@@ -503,7 +503,11 @@ func (c *Client) importHTTPRoundTripEvent(now time.Time,
 // value is a nil list and false. Otherwise, a valid list and true.
 func (thm *THResponse) URLAddressList(domain string) (o []*measurex.URLAddress, v bool) {
 	if thm != nil {
-		o, v = measurex.NewURLAddressList(thm.URLMeasurementID, domain, thm.DNS, thm.Endpoint)
+		// Important: here we need to exclude the DNS results from the TH
+		// from the planning and only focus on its endpoints results otherwise
+		// we may pick up an IP addr that the TH _has not_ tested.
+		o, v = measurex.NewURLAddressList(
+			thm.URLMeasurementID, domain, []*measurex.DNSLookupMeasurement{}, thm.Endpoint)
 	}
 	return
 }
@@ -511,7 +515,10 @@ func (thm *THResponse) URLAddressList(domain string) (o []*measurex.URLAddress, 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 	mx measurex.AbstractMeasurer, ssm *SingleStepMeasurement) {
 	addrslist, _ := c.expandProbeKnowledge(mx, ssm)
-	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(addrslist, 0)
+	// Here we need to specify "measure again" because the addresses appear to be
+	// already tested though it's the TH that has tested them, not us.
+	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(
+		addrslist, measurex.EndpointPlanningMeasureAgain)
 	if len(plan) > 0 {
 		logcat.Substep("checking for and testing additional addresses in TH/dnsping results")
 		for m := range mx.MeasureEndpoints(ctx, plan...) {
@@ -521,18 +528,13 @@ func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 }
 
 // expandProbeKnowledge returns a list of URL addresses that extends
-// the original list known to the probe by:
+// the original list known to the probe by adding IP addresses that the
+// TH/dnsping discovered and the probe didn't know about.
 //
-// 1. adding information about HTTP3 support to each address known to
-// the probe for which the probe didn't know about HTTP3 support;
-//
-// 2. appending at the end of the list any address that was discovered
-// using TH/dnsping and the probe didn't previously know.
-//
-// The returned list will always containg everything the probe already
-// knew at the beginning, following by newly discovered addresses. This
-// sorting allows us to prevent the probe from testing more than the
-// configured maximum number of IP addresses per family.
+// Because we return more IP addresses, this means we'll exceed the
+// budget for the maximum number of addresses. However, doing that is
+// important when there's local DNS censorship, so it makes sense to
+// do that and ensure we also test those extra addrs.
 //
 // The boolean returned value is true if we have at least one IP address
 // to return and false otherwise. Beware that returning a non-empty
@@ -543,21 +545,12 @@ func (c *Client) expandProbeKnowledge(mx measurex.AbstractMeasurer,
 	// 1. gather the lists for the probe and the th
 	pal, _ := ssm.probeInitialURLAddressList()
 	thal, _ := ssm.testHelperOrDNSPingURLAddressList()
-	// 2. merge the two lists making sure that we specify the probe
-	// list before the other lists.
-	o := measurex.MergeURLAddressListStable(pal, thal)
-	// 3. compute the diff between the new list and the probe's
-	// list, so we can log the changes.
-	diff := measurex.NewURLAddressListDiff(o, pal)
-	for _, e := range diff.ModifiedFlags {
-		if (e.Flags & measurex.URLAddressSupportsHTTP3) != 0 {
-			logcat.Infof("🙌 discovered that %s supports HTTP3", e.Address)
-		}
-	}
+	// 2. only keep new addresses
+	diff := measurex.NewURLAddressListDiff(thal, pal)
 	for _, e := range diff.NewEntries {
 		logcat.Infof("🙌 discovered new %s address for %s", e.Address, e.Domain)
 	}
-	return o, len(o) > 0
+	return diff.NewEntries, len(diff.NewEntries) > 0
 }
 
 func (ssm *SingleStepMeasurement) probeInitialURLAddressList() (

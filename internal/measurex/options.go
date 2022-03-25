@@ -119,7 +119,15 @@ const (
 	// DefaultHTTPGETTimeout is the default Options.HTTPGETTimeout value.
 	DefaultHTTPGETTimeout = 15 * time.Second
 
-	// DefaultMaxAddressPerFamily is the default value of Options.MaxAddressesPerFamily.
+	// DefaultMaxAddressPerFamily is the default value of Options.MaxAddressesPerFamily. For
+	// experiments like websteps, where we have a TH, we're actually going to test twice this
+	// number when there are many IP addresses per domain, because we're also going to take
+	// into account some TH-tested addresses. Going below the recommended value of 2 here
+	// is not recommended for websteps. Because websteps uses more than one resolver and
+	// because measurex tries to arrange addresses so that we intermix system-resolver and
+	// non-system-resolver resolutions, if you use less than two here you are going to
+	// only test the first IP address returned by the system resolver, which means you're
+	// probably going to miss part of the censorship that's there.
 	DefaultMaxAddressPerFamily = 2
 
 	// DefaultMaxCrawlerDepth is the default value of Options.MaxCrawlerDepth.

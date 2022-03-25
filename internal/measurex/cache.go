@@ -391,7 +391,7 @@ func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 		if mx.policy.StaleDNSLookupMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
-		logcat.Cachef("DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
+		logcat.Cachef("cache: DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
 		return entry.M, true
 	}
 	return nil, false
@@ -477,7 +477,7 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 		if mx.policy.StaleEndpointMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
-		logcat.Cachef("endpoint entry in %v: %s", time.Since(begin), entry.M.Summary())
+		logcat.Cachef("cache: endpoint entry in %v: %s", time.Since(begin), entry.M.Summary())
 		return entry.M, true
 	}
 	return nil, false
