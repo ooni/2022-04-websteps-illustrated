@@ -520,7 +520,7 @@ func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(
 		addrslist, measurex.EndpointPlanningMeasureAgain)
 	if len(plan) > 0 {
-		logcat.Substep("checking for and testing additional addresses in TH/dnsping results")
+		logcat.Substep("checking for and testing additional addresses in TH results")
 		for m := range mx.MeasureEndpoints(ctx, plan...) {
 			ssm.ProbeAdditional = append(ssm.ProbeAdditional, m)
 		}
@@ -529,7 +529,7 @@ func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 
 // expandProbeKnowledge returns a list of URL addresses that extends
 // the original list known to the probe by adding IP addresses that the
-// TH/dnsping discovered and the probe didn't know about.
+// TH discovered and the probe didn't know about.
 //
 // Because we return more IP addresses, this means we'll exceed the
 // budget for the maximum number of addresses. However, doing that is
@@ -544,7 +544,7 @@ func (c *Client) expandProbeKnowledge(mx measurex.AbstractMeasurer,
 	ssm *SingleStepMeasurement) ([]*measurex.URLAddress, bool) {
 	// 1. gather the lists for the probe and the th
 	pal, _ := ssm.probeInitialURLAddressList()
-	thal, _ := ssm.testHelperOrDNSPingURLAddressList()
+	thal, _ := ssm.testHelperURLAddressList()
 	// 2. only keep new addresses
 	diff := measurex.NewURLAddressListDiff(thal, pal)
 	for _, e := range diff.NewEntries {
@@ -561,12 +561,16 @@ func (ssm *SingleStepMeasurement) probeInitialURLAddressList() (
 	return nil, false
 }
 
-func (ssm *SingleStepMeasurement) testHelperOrDNSPingURLAddressList() (
+func (ssm *SingleStepMeasurement) testHelperURLAddressList() (
 	out []*measurex.URLAddress, good bool) {
 	if ssm.TH != nil {
-		data, _ := ssm.TH.URLAddressList(ssm.ProbeInitialDomain())
-		out = append(out, data...)
+		return ssm.TH.URLAddressList(ssm.ProbeInitialDomain())
 	}
+	return nil, false
+}
+
+func (ssm *SingleStepMeasurement) testHelperOrDNSPingURLAddressList() ([]*measurex.URLAddress, bool) {
+	out, _ := ssm.testHelperURLAddressList()
 	if ssm.DNSPing != nil {
 		id := ssm.ProbeInitialURLMeasurementID()
 		// Note: we're filtering by domain here because potentially the
