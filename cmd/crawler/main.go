@@ -113,7 +113,7 @@ func main() {
 	opts := getopt()
 	amx := newMeasurer(opts)
 	ctx := context.Background()
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout))
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), false)
 	for _, input := range opts.Input {
 		crawler := newCrawler(opts, amx)
 		mchan, err := crawler.Crawl(ctx, input)

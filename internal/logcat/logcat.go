@@ -12,6 +12,9 @@
 // automatically de-register the consumer. The logcat will buffer messages
 // to consumers in case they're not reading them fast enough. When the
 // buffer is full, we'll discard new messages.
+//
+// This package supports emitting log messages containing emojis, which
+// you can configure on a per-consumer-specific basis.
 package logcat
 
 import (
@@ -19,7 +22,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"math"
 	"sync"
 	"time"
 
@@ -27,6 +29,7 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
+// These values control the log level.
 const (
 	// WARNING is only emitted when a specific operation fails and
 	// this fact may have implications on subsequent operations.
@@ -49,22 +52,40 @@ const (
 	TRACE
 )
 
-var (
-	// gq is the global messages queue.
-	gq *queue = newqueue()
+// VERBOSITY_MASK extracts verbosity information from a log message and
+// separates this information from extra information.
+const VERBOSITY_MASK = WARNING | NOTICE | INFO | DEBUG | TRACE
 
-	// emojis controls whether we're using emojis.
-	emojis = atomicx.NewInt32(0)
+// These values allow to attach extra meaning to log messages, which is
+// used to generate output containing emojis (if they're enabled).
+const (
+	// BUG indicates that this log message refers to a bug.
+	BUG = (1 + iota) << 3
+
+	// CACHE indicates a message from the cache.
+	CACHE
+
+	// STEP is the beginning of a measurement step.
+	STEP
+
+	// SUBSTEP is the beginning of a measurement substep.
+	SUBSTEP
+
+	// NEW_INPUT is a message indicating we're starting a new run of
+	// an experiment with the provided input.
+	NEW_INPUT
+
+	// SHRUG is a message about an unexpected situation that is out of our
+	// control (as opposed to BUG, which is under our control.)
+	SHRUG
 )
 
-// SetEnableEmojis allows to enable or disable emojis usage.
-func SetEnableEmojis(enabled bool) {
-	if enabled {
-		emojis.Swap(1)
-	} else {
-		emojis.Swap(0)
-	}
-}
+// EXTRA_FLAGS_MASK extracts extra flags from a log message. The extra
+// flags typically contains information for emojis.
+const EXTRA_FLAGS_MASK = ^VERBOSITY_MASK
+
+// gq is the global messages queue.
+var gq *queue = newqueue()
 
 // subscriber is a subscriber for streaming messages.
 type subscriber struct {
@@ -74,7 +95,7 @@ type subscriber struct {
 // queue is the queue containing log messages.
 type queue struct {
 	// lvl is the log verbosity level.
-	lvl *atomicx.Int32
+	lvl *atomicx.Int64
 
 	// mu provides mutual exclusion.
 	mu sync.Mutex
@@ -92,7 +113,7 @@ const logbuf = 1 << 12
 
 func newqueue() *queue {
 	return &queue{
-		lvl:  atomicx.NewInt32(NOTICE),
+		lvl:  atomicx.NewInt64(NOTICE),
 		mu:   sync.Mutex{},
 		r:    ring.New(logbuf),
 		subs: nil,
@@ -101,22 +122,24 @@ func newqueue() *queue {
 
 // Msg contains a log message.
 type Msg struct {
-	// time is the time when we collected the message.
-	time time.Time
+	// Time is the Time when we collected the message.
+	Time time.Time
 
-	// level is the message level.
-	level int32
+	// Level is the message Level. It may also encode emoji
+	// related information, so you need to be prepared to
+	// separate the log Level from extra information.
+	Level int64
 
-	// message is the actual message.
-	message string
+	// Message is the actual Message.
+	Message string
 }
 
 // asMsg is an utility function for creating a asMsg of a *Msg to a Msg.
 func (m *Msg) asMsg() Msg {
 	return Msg{
-		time:    m.time,
-		level:   m.level,
-		message: m.message,
+		Time:    m.Time,
+		Level:   m.Level,
+		Message: m.Message,
 	}
 }
 
@@ -129,42 +152,47 @@ func IncrementLogLevel(increment int) {
 // incrementLogLevel increments the log level the specified number of times. Use a
 // negative increment value to decrement the log level.
 func (q *queue) incrementLogLevel(increment int) {
-	if int64(increment) <= math.MinInt32 {
-		increment = math.MaxInt32
-	} else if int64(increment) >= math.MaxInt32 {
-		increment = math.MaxInt32
+	// Implementation note: multiple callers of this function will not cause data
+	// races but we may nonetheless end up with inconsistent results. Because we are
+	// not planning on racing in incrementing the verbosity level, this is fine.
+	v := q.lvl.Load()
+	v += int64(increment)
+	if v <= WARNING {
+		v = WARNING
+	} else if v >= TRACE {
+		v = TRACE
 	}
-	q.lvl.Add(int32(increment))
+	q.lvl.Swap(v)
 }
 
 // Emit emits a log message to the logcat using the given level.
-func Emit(level int32, message string) {
+func Emit(level int64, message string) {
 	gq.emit(level, message)
 }
 
-func (q *queue) emit(level int32, message string) {
-	if level <= q.lvl.Load() {
+func (q *queue) emit(level int64, message string) {
+	if (level & VERBOSITY_MASK) <= q.lvl.Load() {
 		q.pub(level, message)
 	}
 }
 
 // Emitf is a variation of Emit that allows you to format a message.
-func Emitf(level int32, format string, values ...interface{}) {
+func Emitf(level int64, format string, values ...interface{}) {
 	gq.emitf(level, format, values...)
 }
 
-func (q *queue) emitf(level int32, format string, values ...interface{}) {
-	if level <= q.lvl.Load() {
+func (q *queue) emitf(level int64, format string, values ...interface{}) {
+	if (level & VERBOSITY_MASK) <= q.lvl.Load() {
 		q.pub(level, fmt.Sprintf(format, values...))
 	}
 }
 
 // pub publishes a message to the queue.
-func (q *queue) pub(level int32, message string) {
+func (q *queue) pub(level int64, message string) {
 	m := &Msg{
-		time:    time.Now(),
-		level:   level,
-		message: message,
+		Time:    time.Now(),
+		Level:   level,
+		Message: message,
 	}
 	q.mu.Lock()
 	// 1. store the message into the ring
@@ -221,10 +249,19 @@ func (q *queue) unsubscribe(s *subscriber) {
 	q.mu.Unlock()
 }
 
+var emojimap = map[int64]string{
+	BUG:       "🐛 ",
+	CACHE:     "👛 ",
+	SHRUG:     "🤷 ",
+	STEP:      "📌 ",
+	SUBSTEP:   "📎 ",
+	NEW_INPUT: "✨ ",
+}
+
 // StartConsumer starts a consumer that consumes log messages
 // and dispatches them to the given logger. The consumer
 // will gracefully exit when the provided context expires.
-func StartConsumer(ctx context.Context, logger model.Logger) {
+func StartConsumer(ctx context.Context, logger model.Logger, emojis bool) {
 	go func() {
 		s := &subscriber{
 			ch: make(chan *Msg, logbuf),
@@ -236,13 +273,20 @@ func StartConsumer(ctx context.Context, logger model.Logger) {
 			case <-ctx.Done():
 				return
 			case m := <-s.ch:
-				switch m.level {
+				var prefix string
+				if emojis {
+					prefix = emojimap[m.Level&EXTRA_FLAGS_MASK]
+					if prefix == "" {
+						prefix = "   "
+					}
+				}
+				switch m.Level & VERBOSITY_MASK {
 				case WARNING:
-					logger.Warn(m.message)
+					logger.Warn(prefix + m.Message)
 				case INFO, NOTICE:
-					logger.Info(m.message)
+					logger.Info(prefix + m.Message)
 				default:
-					logger.Debug(m.message)
+					logger.Debug(prefix + m.Message)
 				}
 			}
 		}
@@ -342,105 +386,71 @@ func (dl *defaultLogger) Warnf(format string, v ...interface{}) {
 	fmt.Fprintf(dl.w, format+"\n", v...)
 }
 
-func hasEmojis() bool {
-	return emojis.Load() != 0
-}
-
-var bugemoji = map[bool]string{
-	true:  "🐛 ",
-	false: "BUG:      ",
-}
-
 // Bug is a convenience function for emitting a log message about a bug. By default
-// this log message will be at WARN level. We may be continuing to run after we notice
+// this log message will be at WARNING level. We may be continuing to run after we notice
 // there's a bug, but subsequent results may be influenced by that.
 func Bug(message string) {
-	Warn(bugemoji[hasEmojis()] + message)
+	Emit(WARNING|BUG, message)
 }
 
 // Bugf is like Bug but allows formatting a message.
 func Bugf(format string, value ...interface{}) {
-	Warnf(bugemoji[hasEmojis()]+format, value...)
-}
-
-var cacheemoji = map[bool]string{
-	true:  "👛 ",
-	false: "CACHE:    ",
+	Emitf(WARNING|BUG, format, value...)
 }
 
 // Cache is a convenience function for emitting messages related to the cache. The user
 // should not see these messages by default unless they want more details. For this
 // reason we emit this kind of messages at the INFO level.
 func Cache(message string) {
-	Info(cacheemoji[hasEmojis()] + message)
+	Emit(INFO|CACHE, message)
 }
 
 // Cachef is like Cache but allows formatting a message.
 func Cachef(format string, value ...interface{}) {
-	Infof(cacheemoji[hasEmojis()]+format, value...)
-}
-
-var shrugemoji = map[bool]string{
-	true:  "🤷 ",
-	false: "WTF:      ",
+	Emitf(INFO|CACHE, format, value...)
 }
 
 // Shrug is a convenience function for emitting log messages detailing that something
 // not under our control went wrong and we don't know what to do about this. We emit
 // these messaeges as warnings because we users to let us know about these errors.
 func Shrug(message string) {
-	Warn(shrugemoji[hasEmojis()] + message)
+	Emit(WARNING|SHRUG, message)
 }
 
 // Shrugf is like Shrug but allows formatting a message,
 func Shrugf(format string, value ...interface{}) {
-	Warnf(shrugemoji[hasEmojis()]+format, value...)
-}
-
-var stepemoji = map[bool]string{
-	true:  "📌 ",
-	false: "STEP:     ",
+	Emitf(WARNING|SHRUG, format, value...)
 }
 
 // Step is a convenience function for emitting log messages related to one
 // of several steps within an experiment. These are NOTICEs.
 func Step(message string) {
-	Notice(stepemoji[hasEmojis()] + message)
+	Emitf(NOTICE|STEP, message)
 }
 
 // Stepf is like Step but allows formatting messages.
 func Stepf(format string, value ...interface{}) {
-	Noticef(stepemoji[hasEmojis()]+format, value...)
-}
-
-var substepemoji = map[bool]string{
-	true:  "📎 ",
-	false: "SUBSTEP:  ",
+	Emitf(NOTICE|STEP, format, value...)
 }
 
 // Substep is a convenience function for emitting log messages related to one
 // of several substeps within a step. These are NOTICEs.
 func Substep(message string) {
-	Notice(substepemoji[hasEmojis()] + message)
+	Emitf(NOTICE|SUBSTEP, message)
 }
 
 // Substepf is like Substep but allows formatting messages.
 func Substepf(format string, value ...interface{}) {
-	Noticef(substepemoji[hasEmojis()]+format, value...)
-}
-
-var newinputemoji = map[bool]string{
-	true:  "✨ ",
-	false: "NEWINPUT: ",
+	Emitf(NOTICE|SUBSTEP, format, value...)
 }
 
 // NewInput is the function to call when you are an experiment and you
 // receive new input. This is also part of the NOTICEs.
 func NewInput(message string) {
-	Notice(newinputemoji[hasEmojis()] + message)
+	Emit(NOTICE|NEW_INPUT, message)
 }
 
 // NewInputf is like NewInput but allows formatting messages.
 func NewInputf(format string, value ...interface{}) {
-	Noticef(newinputemoji[hasEmojis()]+format, value...)
+	Emitf(NOTICE|NEW_INPUT, format, value...)
 }

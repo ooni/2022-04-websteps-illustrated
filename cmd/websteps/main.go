@@ -63,7 +63,6 @@ func getopt() *CLI {
 	if opts.Verbose > 0 {
 		logcat.IncrementLogLevel(int(opts.Verbose))
 	}
-	logcat.SetEnableEmojis(opts.Emoji)
 	readInputFiles(opts)
 	if opts.Random {
 		rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -151,7 +150,7 @@ func main() {
 	go clnt.Loop(ctx)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout))
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), opts.Emoji)
 	go submitInput(ctx, wg, clnt, opts)
 	processOutput(begin, filep, clnt, opts.Raw)
 	wg.Wait()

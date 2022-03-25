@@ -80,7 +80,7 @@ func main() {
 		Resolvers: nil,
 		Saver:     nil,
 	}
-	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr))
+	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr), false)
 	thh := websteps.NewTHHandler(thOptions)
 	http.Handle("/", thh)
 	logcat.Infof("Listening at: \"%s\"", opts.Address)

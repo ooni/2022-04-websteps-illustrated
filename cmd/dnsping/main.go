@@ -57,7 +57,7 @@ func main() {
 	}
 	begin := time.Now()
 	engine := dnsping.NewEngine(measurex.NewIDGenerator())
-	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr))
+	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr), false)
 	ch := engine.RunAsync(plans)
 	result := <-ch
 	data, err := json.Marshal(result.ToArchival(begin))
