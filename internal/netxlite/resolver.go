@@ -65,11 +65,23 @@ func WrapResolver(logger model.DebugLogger, resolver model.Resolver) model.Resol
 
 // resolverLogger is a resolver that emits events
 type resolverLogger struct {
-	model.Resolver
-	Logger model.DebugLogger
+	Resolver model.Resolver
+	Logger   model.DebugLogger
 }
 
 var _ model.Resolver = &resolverLogger{}
+
+func (r *resolverLogger) CloseIdleConnections() {
+	r.Resolver.CloseIdleConnections()
+}
+
+func (r *resolverLogger) Network() string {
+	return r.Resolver.Network()
+}
+
+func (r *resolverLogger) Address() string {
+	return r.Resolver.Address()
+}
 
 func (r *resolverLogger) LookupHost(ctx context.Context, hostname string) ([]string, error) {
 	prefix := fmt.Sprintf("resolve[A,AAAA] %s with %s (%s)", hostname, r.Network(), r.Address())
@@ -118,11 +130,38 @@ func (r *resolverLogger) LookupNS(
 	return ns, nil
 }
 
+func (r *resolverLogger) LookupPTR(
+	ctx context.Context, domain string) ([]string, error) {
+	prefix := fmt.Sprintf("resolve[PTR] %s with %s (%s)", domain, r.Network(), r.Address())
+	logcat.Tracef("%s...", prefix)
+	start := time.Now()
+	domains, err := r.Resolver.LookupPTR(ctx, domain)
+	elapsed := time.Since(start)
+	if err != nil {
+		logcat.Tracef("%s... %s in %s", prefix, err, elapsed)
+		return nil, err
+	}
+	logcat.Tracef("%s... %+v in %s", prefix, domains, elapsed)
+	return domains, nil
+}
+
 // resolverIDNA supports resolving Internationalized Domain Names.
 //
 // See RFC3492 for more information.
 type resolverIDNA struct {
-	model.Resolver
+	Resolver model.Resolver
+}
+
+func (r *resolverIDNA) Network() string {
+	return r.Resolver.Network()
+}
+
+func (r *resolverIDNA) Address() string {
+	return r.Resolver.Address()
+}
+
+func (r *resolverIDNA) CloseIdleConnections() {
+	r.Resolver.CloseIdleConnections()
 }
 
 func (r *resolverIDNA) LookupHost(ctx context.Context, hostname string) ([]string, error) {
@@ -151,10 +190,31 @@ func (r *resolverIDNA) LookupNS(
 	return r.Resolver.LookupNS(ctx, host)
 }
 
+func (r *resolverIDNA) LookupPTR(
+	ctx context.Context, domain string) ([]string, error) {
+	host, err := idna.ToASCII(domain)
+	if err != nil {
+		return nil, err
+	}
+	return r.Resolver.LookupPTR(ctx, host)
+}
+
 // resolverShortCircuitIPAddr recognizes when the input hostname is an
 // IP address and returns it immediately to the caller.
 type resolverShortCircuitIPAddr struct {
-	model.Resolver
+	Resolver model.Resolver
+}
+
+func (r *resolverShortCircuitIPAddr) Network() string {
+	return r.Resolver.Network()
+}
+
+func (r *resolverShortCircuitIPAddr) Address() string {
+	return r.Resolver.Address()
+}
+
+func (r *resolverShortCircuitIPAddr) CloseIdleConnections() {
+	r.Resolver.CloseIdleConnections()
 }
 
 func (r *resolverShortCircuitIPAddr) LookupHost(ctx context.Context, hostname string) ([]string, error) {
@@ -206,6 +266,11 @@ func (r *resolverShortCircuitIPAddr) LookupNS(
 	return r.Resolver.LookupNS(ctx, hostname)
 }
 
+func (r *resolverShortCircuitIPAddr) LookupPTR(
+	ctx context.Context, domain string) ([]string, error) {
+	return r.Resolver.LookupPTR(ctx, domain)
+}
+
 // ErrNoResolver is the type of error returned by "without resolver"
 // dialer when asked to dial for and endpoint containing a domain name,
 // since they can only dial for endpoints containing IP addresses.
@@ -248,10 +313,22 @@ func (r *nullResolver) LookupPTR(
 
 // resolverErrWrapper is a Resolver that knows about wrapping errors.
 type resolverErrWrapper struct {
-	model.Resolver
+	Resolver model.Resolver
 }
 
 var _ model.Resolver = &resolverErrWrapper{}
+
+func (r *resolverErrWrapper) Network() string {
+	return r.Resolver.Network()
+}
+
+func (r *resolverErrWrapper) Address() string {
+	return r.Resolver.Address()
+}
+
+func (r *resolverErrWrapper) CloseIdleConnections() {
+	r.Resolver.CloseIdleConnections()
+}
 
 func (r *resolverErrWrapper) LookupHost(ctx context.Context, hostname string) ([]string, error) {
 	addrs, err := r.Resolver.LookupHost(ctx, hostname)
@@ -273,6 +350,15 @@ func (r *resolverErrWrapper) LookupHTTPS(
 func (r *resolverErrWrapper) LookupNS(
 	ctx context.Context, domain string) ([]*net.NS, error) {
 	out, err := r.Resolver.LookupNS(ctx, domain)
+	if err != nil {
+		return nil, NewErrWrapper(ClassifyResolverError, ResolveOperation, err)
+	}
+	return out, nil
+}
+
+func (r *resolverErrWrapper) LookupPTR(
+	ctx context.Context, domain string) ([]string, error) {
+	out, err := r.Resolver.LookupPTR(ctx, domain)
 	if err != nil {
 		return nil, NewErrWrapper(ClassifyResolverError, ResolveOperation, err)
 	}

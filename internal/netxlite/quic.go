@@ -311,7 +311,7 @@ func NewSingleUseQUICDialer(sess quic.EarlySession) model.QUICDialer {
 
 // quicDialerSingleUse is the QUICDialer returned by NewSingleQUICDialer.
 type quicDialerSingleUse struct {
-	sync.Mutex
+	mu   sync.Mutex
 	sess quic.EarlySession
 }
 
@@ -322,8 +322,8 @@ func (s *quicDialerSingleUse) DialContext(
 	ctx context.Context, network, addr string, tlsCfg *tls.Config,
 	cfg *quic.Config) (quic.EarlySession, error) {
 	var sess quic.EarlySession
-	defer s.Unlock()
-	s.Lock()
+	defer s.mu.Unlock()
+	s.mu.Lock()
 	if s.sess == nil {
 		return nil, ErrNoConnReuse
 	}

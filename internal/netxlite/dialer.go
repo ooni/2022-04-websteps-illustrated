@@ -97,8 +97,8 @@ func (d *dialerSystem) CloseIdleConnections() {
 
 // dialerResolver combines dialing with domain name resolution.
 type dialerResolver struct {
-	model.Dialer
-	model.Resolver
+	Dialer   model.Dialer
+	Resolver model.Resolver
 }
 
 var _ model.Dialer = &dialerResolver{}
@@ -145,10 +145,10 @@ func (d *dialerResolver) CloseIdleConnections() {
 // dialerLogger is a Dialer with logging.
 type dialerLogger struct {
 	// Dialer is the underlying dialer.
-	model.Dialer
+	Dialer model.Dialer
 
-	// Logger is the underlying logger.
-	model.DebugLogger
+	// DebugLogger is the underlying logger.
+	DebugLogger model.DebugLogger
 
 	// operationSuffix is appended to the operation name.
 	//
@@ -195,15 +195,15 @@ func NewSingleUseDialer(conn net.Conn) model.Dialer {
 
 // dialerSingleUse is the Dialer returned by NewSingleDialer.
 type dialerSingleUse struct {
-	sync.Mutex
+	mu   sync.Mutex
 	conn net.Conn
 }
 
 var _ model.Dialer = &dialerSingleUse{}
 
 func (s *dialerSingleUse) DialContext(ctx context.Context, network string, addr string) (net.Conn, error) {
-	defer s.Unlock()
-	s.Lock()
+	defer s.mu.Unlock()
+	s.mu.Lock()
 	if s.conn == nil {
 		return nil, ErrNoConnReuse
 	}
@@ -219,7 +219,7 @@ func (s *dialerSingleUse) CloseIdleConnections() {
 // dialerErrWrapper is a dialer that performs error wrapping. The connection
 // returned by the DialContext function will also perform error wrapping.
 type dialerErrWrapper struct {
-	model.Dialer
+	Dialer model.Dialer
 }
 
 var _ model.Dialer = &dialerErrWrapper{}
@@ -230,6 +230,10 @@ func (d *dialerErrWrapper) DialContext(ctx context.Context, network, address str
 		return nil, NewErrWrapper(classifyGenericError, ConnectOperation, err)
 	}
 	return &dialerErrWrapperConn{Conn: conn}, nil
+}
+
+func (d *dialerErrWrapper) CloseIdleConnections() {
+	d.Dialer.CloseIdleConnections()
 }
 
 // dialerErrWrapperConn is a net.Conn that performs error wrapping.

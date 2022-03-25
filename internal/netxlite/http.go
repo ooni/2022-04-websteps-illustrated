@@ -14,7 +14,7 @@ import (
 
 // httpTransportErrWrapper is an HTTPTransport with error wrapping.
 type httpTransportErrWrapper struct {
-	model.HTTPTransport
+	HTTPTransport model.HTTPTransport
 }
 
 func (txp *httpTransportErrWrapper) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -25,10 +25,18 @@ func (txp *httpTransportErrWrapper) RoundTrip(req *http.Request) (*http.Response
 	return resp, nil
 }
 
+func (txp *httpTransportErrWrapper) CloseIdleConnections() {
+	txp.HTTPTransport.CloseIdleConnections()
+}
+
+func (txp *httpTransportErrWrapper) Network() string {
+	return txp.HTTPTransport.Network()
+}
+
 // httpTransportLogger is an HTTPTransport with logging.
 type httpTransportLogger struct {
 	// HTTPTransport is the underlying HTTP transport.
-	model.HTTPTransport
+	HTTPTransport model.HTTPTransport
 
 	// Logger is the underlying logger.
 	Logger model.DebugLogger
@@ -63,12 +71,24 @@ func (txp *httpTransportLogger) CloseIdleConnections() {
 	txp.HTTPTransport.CloseIdleConnections()
 }
 
+func (txp *httpTransportLogger) Network() string {
+	return txp.HTTPTransport.Network()
+}
+
 // httpTransportConnectionsCloser is an HTTPTransport that
 // correctly forwards CloseIdleConnections calls.
 type httpTransportConnectionsCloser struct {
-	model.HTTPTransport
-	model.Dialer
-	model.TLSDialer
+	HTTPTransport model.HTTPTransport
+	Dialer        model.Dialer
+	TLSDialer     model.TLSDialer
+}
+
+func (txp *httpTransportConnectionsCloser) RoundTrip(req *http.Request) (*http.Response, error) {
+	return txp.HTTPTransport.RoundTrip(req)
+}
+
+func (txp *httpTransportConnectionsCloser) Network() string {
+	return txp.HTTPTransport.Network()
 }
 
 // CloseIdleConnections forwards the CloseIdleConnections calls.
