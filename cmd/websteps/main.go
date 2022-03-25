@@ -147,7 +147,7 @@ func main() {
 	clientOptions := measurexOptions(opts)
 	clnt := websteps.NewClient(nil, nil, opts.Backend, clientOptions)
 	maybeSetCache(opts, clnt)
-	go clnt.Loop(ctx)
+	go clnt.Loop(ctx, websteps.LoopFlagGreedy)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), opts.Emoji)

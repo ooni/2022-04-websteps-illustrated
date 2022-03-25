@@ -108,14 +108,21 @@ func NewClient(dialer model.Dialer, tlsDialer model.TLSDialer, thURL string,
 	}
 }
 
+const (
+	// LoopFlagGreedy makes websteps stop following redirects as soon
+	// as it has found signs of censorship. This flag allows a user to
+	// control whether to prioritize depth or breadth.
+	LoopFlagGreedy = 1 << iota
+)
+
 // Loop is the client Loop.
-func (c *Client) Loop(ctx context.Context) {
+func (c *Client) Loop(ctx context.Context, flags int64) {
 	for input := range c.Input {
 		// Implementation note: with a cancelled context, continue to
 		// loop and drain the input channel. The client will eventually
 		// notice the context is cancelled and close our input.
 		if ctx.Err() == nil {
-			c.steps(ctx, input)
+			c.steps(ctx, input, flags)
 		}
 	}
 	close(c.Output)
@@ -130,7 +137,7 @@ func (c *Client) newMeasurer(options *measurex.Options) (measurex.AbstractMeasur
 }
 
 // steps performs all the steps.
-func (c *Client) steps(ctx context.Context, input string) {
+func (c *Client) steps(ctx context.Context, input string, flags int64) {
 	mx, err := c.newMeasurer(c.options)
 	if err != nil {
 		logcat.Bugf("[websteps] cannot create a new measurer: %s", err.Error())
@@ -161,11 +168,9 @@ func (c *Client) steps(ctx context.Context, input string) {
 	}
 	cache := newStepsCache()
 	for ctx.Err() == nil { // know that a user has requested to stop
-		cur, found := q.PopLeft()
-		if !found {
-			// TODO(bassosimone): here we should record whether
-			// we are leaving with an empty queue or not. We may
-			// also leave when we reach the max crawler depth.
+		cur, err := q.PopLeft()
+		if err != nil {
+			logcat.Noticef("crawler: %s", err.Error())
 			break
 		}
 		logcat.Stepf("now measuring '%s'", cur.URL.String())
@@ -178,6 +183,10 @@ func (c *Client) steps(ctx context.Context, input string) {
 		redirects, _ := ssm.redirects(mx)
 		tkoe.TestKeys.Steps = append(tkoe.TestKeys.Steps, ssm)
 		q.Append(redirects...)
+		if ssm.Flags != 0 && (flags&LoopFlagGreedy) != 0 {
+			logcat.Notice("greedy mode: stopping early because I detected some censorship")
+			break
+		}
 		logcat.Infof("🪀 work queue: %s", q.String())
 	}
 	tkoe.TestKeys.Bodies = tkoe.TestKeys.buildHashingBodies(mx)

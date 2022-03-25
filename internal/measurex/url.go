@@ -1,6 +1,7 @@
 package measurex
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -754,26 +755,36 @@ func (r *URLRedirectDeque) MaxDepth() int64 {
 	return r.options.maxCrawlerDepth()
 }
 
+var (
+	// ErrCrawlerDepth indicates we have reached the maximum crawler depth
+	ErrCrawlerDepth = errors.New("reached maximum crawler depth")
+
+	// ErrCrawlerEOF indicates we have measured all URLs.
+	ErrCrawlerEOF = errors.New("measured all the provided URLs")
+)
+
 // PopLeft removes the first element in the redirect deque. Returns true
 // if we returned an element and false when the deque is empty.
-func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, bool) {
+func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, error) {
 	defer r.mu.Unlock()
 	r.mu.Lock()
 	if r.depth >= r.options.maxCrawlerDepth() {
 		logcat.Info("👋 reached maximum crawler depth")
-		return nil, false
+		return nil, ErrCrawlerDepth
 	}
 	for len(r.q) > 0 {
 		um := r.q[0]
 		r.q = r.q[1:]
+		// TODO(bassosimone): we should also consider cookies to determine
+		// whether we've already visited an URL or not.
 		if repr := CanonicalURLString(um.URL); r.mem[repr] {
 			logcat.Infof("🧐 skip already visited URL: %s", repr)
 			continue
 		}
 		r.depth++ // we increment the depth when we _remove_ and measure
-		return um, true
+		return um, nil
 	}
-	return nil, false
+	return nil, ErrCrawlerEOF
 }
 
 // Depth returns the number or redirects we followed so far.

@@ -54,9 +54,10 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 		q := mx.NewURLRedirectDeque()
 		q.Append(initial)
 		for {
-			cur, found := q.PopLeft()
-			if !found {
-				break // we've emptied the queue
+			cur, err := q.PopLeft()
+			if err != nil {
+				logcat.Noticef("crawler: %s", err.Error())
+				break
 			}
 			logcat.Stepf("depth=%d; crawling %s", q.Depth(), cur.URL.String())
 			c.do(ctx, mx, cur)
