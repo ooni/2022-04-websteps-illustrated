@@ -1,21 +1,27 @@
-// Package logcat implements a logcat like functionality for ooniprobe.
+// Package logcat implements a logcat-like functionality for ooniprobe.
 //
 // The logcat dispatches log messages emitted by the OONI engine. We
-// internally use a buffered channel where we emit them.
+// internally store log messages on a ring buffer that mobile apps will
+// be able to access in order to get recent logs. To get recent logs,
+// use the Read public function, which returns them.
 //
-// If you do not start any consumer using StartConsumer, we will
-// eventually fill the channel and start discarding messages.
-//
-// Otherwise, we'll dispatch messages to the given consumer. Because
-// the consumer is compatible with apex/log, it should be possible
-// to just use apex/log.Log's singleton as the consumer.
+// We also allow streaming logs to apex/log-like loggers. To this end,
+// you need to call StartConsumer. The consumer is a background goroutine
+// that extracts and dispatches logger to an apex/log-like logger. You
+// provide StartConsumer with a context. When the context is done, we'll
+// automatically de-register the consumer. The logcat will buffer messages
+// to consumers in case they're not reading them fast enough. When the
+// buffer is full, we'll discard new messages.
 package logcat
 
 import (
+	"container/ring"
 	"context"
 	"fmt"
 	"io"
 	"math"
+	"sync"
+	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/atomicx"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
@@ -60,32 +66,58 @@ func SetEnableEmojis(enabled bool) {
 	}
 }
 
+// subscriber is a subscriber for streaming messages.
+type subscriber struct {
+	ch chan *Msg
+}
+
 // queue is the queue containing log messages.
 type queue struct {
 	// lvl is the log verbosity level.
 	lvl *atomicx.Int32
 
-	// q is the real queue.
-	q chan *msg
+	// mu provides mutual exclusion.
+	mu sync.Mutex
+
+	// r is the ring for messages.
+	r *ring.Ring
+
+	// subs cntains the subscribers.
+	subs []*subscriber
 }
 
-// logbuf is the maximum number of messages we could buffer.
-const logbuf = 4096
+// logbuf is the maximum number of messages we could buffer. Assuming that
+// each message is 1024 bytes in size, the queue will occupy 4 MiB.
+const logbuf = 1 << 12
 
 func newqueue() *queue {
 	return &queue{
-		lvl: atomicx.NewInt32(NOTICE),
-		q:   make(chan *msg, logbuf),
+		lvl:  atomicx.NewInt32(NOTICE),
+		mu:   sync.Mutex{},
+		r:    ring.New(logbuf),
+		subs: nil,
 	}
 }
 
-// msg contains a log message.
-type msg struct {
+// Msg contains a log message.
+type Msg struct {
+	// time is the time when we collected the message.
+	time time.Time
+
 	// level is the message level.
 	level int32
 
 	// message is the actual message.
 	message string
+}
+
+// asMsg is an utility function for creating a asMsg of a *Msg to a Msg.
+func (m *Msg) asMsg() Msg {
+	return Msg{
+		time:    m.time,
+		level:   m.level,
+		message: m.message,
+	}
 }
 
 // IncrementLogLevel increments the log level the specified number of times. Use a
@@ -105,12 +137,11 @@ func (q *queue) incrementLogLevel(increment int) {
 	q.lvl.Add(int32(increment))
 }
 
-// Emit emits a log message to the logcat using the given granularity.
+// Emit emits a log message to the logcat using the given level.
 func Emit(level int32, message string) {
 	gq.emit(level, message)
 }
 
-// emit emits a log message to the queue using the given granularity.
 func (q *queue) emit(level int32, message string) {
 	if level <= q.lvl.Load() {
 		q.pub(level, message)
@@ -122,7 +153,6 @@ func Emitf(level int32, format string, values ...interface{}) {
 	gq.emitf(level, format, values...)
 }
 
-// emitf is a variation of emit that allows you to format a message.
 func (q *queue) emitf(level int32, format string, values ...interface{}) {
 	if level <= q.lvl.Load() {
 		q.pub(level, fmt.Sprintf(format, values...))
@@ -131,20 +161,64 @@ func (q *queue) emitf(level int32, format string, values ...interface{}) {
 
 // pub publishes a message to the queue.
 func (q *queue) pub(level int32, message string) {
-	m := &msg{
+	m := &Msg{
+		time:    time.Now(),
 		level:   level,
 		message: message,
 	}
-	select {
-	case q.q <- m:
-	default:
-		// just ignore this message, as documented
+	q.mu.Lock()
+	// 1. store the message into the ring
+	q.r.Value = m
+	q.r = q.r.Next()
+	// 2. dispatch the message to consumers
+	for _, s := range q.subs {
+		select {
+		case s.ch <- m:
+		default:
+			// could not deliver message
+		}
 	}
+	q.mu.Unlock()
 }
 
-// queue returns the message queue to wait on.
-func (q *queue) queue() <-chan *msg {
-	return q.q
+// Read reads all the buffered log messages.
+func Read() []Msg {
+	return gq.read()
+}
+
+func (q *queue) read() []Msg {
+	q.mu.Lock()
+	out := []Msg{}
+	q.r.Do(func(i interface{}) {
+		if i == nil {
+			return
+		}
+		msg, good := i.(*Msg)
+		if !good {
+			return
+		}
+		out = append(out, msg.asMsg())
+	})
+	q.mu.Unlock()
+	return out
+}
+
+func (q *queue) subscribe(s *subscriber) {
+	q.mu.Lock()
+	q.subs = append(q.subs, s)
+	q.mu.Unlock()
+}
+
+func (q *queue) unsubscribe(s *subscriber) {
+	q.mu.Lock()
+	ns := []*subscriber{}
+	for _, rs := range q.subs {
+		if s != rs {
+			ns = append(ns, rs)
+		}
+	}
+	q.subs = ns
+	q.mu.Unlock()
 }
 
 // StartConsumer starts a consumer that consumes log messages
@@ -152,11 +226,16 @@ func (q *queue) queue() <-chan *msg {
 // will gracefully exit when the provided context expires.
 func StartConsumer(ctx context.Context, logger model.Logger) {
 	go func() {
+		s := &subscriber{
+			ch: make(chan *Msg, logbuf),
+		}
+		gq.subscribe(s)
+		defer gq.unsubscribe(s)
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case m := <-gq.queue():
+			case m := <-s.ch:
 				switch m.level {
 				case WARNING:
 					logger.Warn(m.message)
@@ -220,7 +299,8 @@ func Tracef(format string, values ...interface{}) {
 	Emitf(TRACE, format, values...)
 }
 
-// DefaultLogger returns the default model.Logger.
+// DefaultLogger returns the default model.Logger. This logger will just
+// print the provided messages to the given io.Writer.
 func DefaultLogger(w io.Writer) model.Logger {
 	return &defaultLogger{
 		w: w,
