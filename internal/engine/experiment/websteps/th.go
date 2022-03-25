@@ -63,11 +63,9 @@ func (r *THResponse) ToArchival(begin time.Time) ArchivalTHResponse {
 }
 
 // th runs the test helper client in a background goroutine.
-func (c *Client) th(ctx context.Context, cur *measurex.URLMeasurement) <-chan *THResponseOrError {
+func (c *Client) th(ctx context.Context, cur *measurex.URLMeasurement,
+	plan []*measurex.EndpointPlan) <-chan *THResponseOrError {
 	logcat.Substepf("while continuing to measure, I'll query the test helper (TH) in the background")
-	// Implementation note: we must include all the endpoints in this plan because the TH
-	// must know about _all_ the endpoints that we've discovered.
-	plan, _ := cur.NewEndpointPlan(measurex.EndpointPlanningIncludeAll)
 	out := make(chan *THResponseOrError, 1)
 	thReq := c.newTHRequest(cur, plan)
 	go c.THRequestAsync(ctx, thReq, out)

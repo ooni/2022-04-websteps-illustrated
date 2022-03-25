@@ -302,8 +302,9 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 	c.dnsLookup(ctx, cache, mx, cur)
 	dc, pingRunning := c.dnsPingFollowUp(ctx, mx, cur)
 	ssm := newSingleStepMeasurement(cur)
-	thc := c.th(ctx, cur)
-	c.measureDiscoveredEndpoints(ctx, cache, mx, cur)
+	epplan := c.newEndpointPlan(cur, cache)
+	thc := c.th(ctx, cur, epplan)
+	c.measureDiscoveredEndpoints(ctx, mx, cur, epplan)
 	c.measureAltSvcEndpoints(ctx, mx, cur)
 	logcat.Substep("obtaining TH's measurements results")
 	maybeTH := c.waitForTHC(thc)
@@ -355,12 +356,15 @@ func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 	}
 }
 
-func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCache,
-	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement) {
+// newEndpointPlan computes the endpoint plan taking into account the
+// IP addresses we have just resolved and ensuring that we stick to the known
+// ones, so subsequent redirects use consistent addresses.
+func (c *Client) newEndpointPlan(
+	cur *measurex.URLMeasurement, cache *stepsCache) []*measurex.EndpointPlan {
 	ual, _ := cur.URLAddressList()
 	if len(ual) <= 0 {
 		logcat.Shrugf("unfortunately it seems I did not discover any IP address")
-		return
+		return []*measurex.EndpointPlan{}
 	}
 	logcat.Noticef("discovered these IP addresses: %s", measurex.URLAddressListToString(ual))
 	// Rewrite the current URLAddressList to ensure that IP addresses we've already
@@ -370,6 +374,11 @@ func (c *Client) measureDiscoveredEndpoints(ctx context.Context, cache *stepsCac
 	// use the same two A and two AAAA it used in the first step.
 	ual = cache.prioritizeKnownAddrs(ual)
 	plan, _ := cur.NewEndpointPlanWithAddressList(ual, 0)
+	return plan
+}
+
+func (c *Client) measureDiscoveredEndpoints(ctx context.Context,
+	mx measurex.AbstractMeasurer, cur *measurex.URLMeasurement, plan []*measurex.EndpointPlan) {
 	if len(plan) <= 0 {
 		logcat.Shrugf("unfortunately, there are no valid endpoints to test here")
 		return
