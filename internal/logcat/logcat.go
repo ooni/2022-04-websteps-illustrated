@@ -77,6 +77,18 @@ const (
 	// INSPECT is a message indicating that we're questioning or inspecting
 	// something and is usually emitted during analysis.
 	INSPECT
+
+	// CELEBRATE is a message emitted when we're happy about something
+	// we discovered or about a result that looks accessible.
+	CELEBRATE
+
+	// UNEXPECTED is a message emitted when we see something surprising
+	// for example an unexpected timeout or other soft anomalies.
+	UNEXPECTED
+
+	// CONFIRMED is a message emitted when we see something really
+	// interesting and wrong, e.g., a bogon IP address.
+	CONFIRMED
 )
 
 // gq is the global messages queue.
@@ -248,13 +260,16 @@ func (q *queue) unsubscribe(s *subscriber) {
 }
 
 var emojimap = map[int64]string{
-	BUG:       "🐛 ",
-	CACHE:     "👛 ",
-	SHRUG:     "🤷 ",
-	STEP:      "📌 ",
-	SUBSTEP:   "📎 ",
-	NEW_INPUT: "✨ ",
-	INSPECT:   "🧐 ",
+	BUG:        "🐛 ",
+	CACHE:      "👛 ",
+	SHRUG:      "🤷 ",
+	STEP:       "📌 ",
+	SUBSTEP:    "📎 ",
+	NEW_INPUT:  "✨ ",
+	INSPECT:    "🧐 ",
+	CELEBRATE:  "🙌 ",
+	UNEXPECTED: "❓ ",
+	CONFIRMED:  "🔥 ",
 }
 
 // StartConsumer starts a consumer that consumes log messages
@@ -464,4 +479,35 @@ func Inspect(message string) {
 // Inspectf is like Inspect but allows formatting a log message.
 func Inspectf(format string, value ...interface{}) {
 	Emitf(INFO, INSPECT, format, value...)
+}
+
+// Celebrate is the function to call when you discover something interesting
+// and positive (e.g., that a website is accessible).
+func Celebrate(message string) {
+	Emit(INFO, CELEBRATE, message)
+}
+
+// Celebratef is like Celebrate but with log message formatting.
+func Celebratef(format string, value ...interface{}) {
+	Emitf(INFO, CELEBRATE, format, value...)
+}
+
+// Unexpected is the function to call when you see some soft anomaly.
+func Unexpected(message string) {
+	Emit(NOTICE, UNEXPECTED, message)
+}
+
+// Unexpectedf is like Unexpected but with message formatting.
+func Unexpectedf(format string, value ...interface{}) {
+	Emitf(NOTICE, UNEXPECTED, format, value...)
+}
+
+// Confirmed is the function to call with serious anomalies (e.g. bogon).
+func Confirmed(message string) {
+	Emit(NOTICE, CONFIRMED, message)
+}
+
+// Confirmedf is like Confirmed but with message formatting.
+func Confirmedf(format string, value ...interface{}) {
+	Emitf(NOTICE, CONFIRMED, format, value...)
 }
