@@ -52,15 +52,10 @@ const (
 	TRACE
 )
 
-// VERBOSITY_MASK extracts verbosity information from a log message and
-// separates this information from extra information.
-const VERBOSITY_MASK = WARNING | NOTICE | INFO | DEBUG | TRACE
-
-// These values allow to attach extra meaning to log messages, which is
-// used to generate output containing emojis (if they're enabled).
+// These values control which emoji to display.
 const (
 	// BUG indicates that this log message refers to a bug.
-	BUG = (1 + iota) << 3
+	BUG = iota + 1
 
 	// CACHE indicates a message from the cache.
 	CACHE
@@ -79,10 +74,6 @@ const (
 	// control (as opposed to BUG, which is under our control.)
 	SHRUG
 )
-
-// EXTRA_FLAGS_MASK extracts extra flags from a log message. The extra
-// flags typically contains information for emojis.
-const EXTRA_FLAGS_MASK = ^VERBOSITY_MASK
 
 // gq is the global messages queue.
 var gq *queue = newqueue()
@@ -122,24 +113,26 @@ func newqueue() *queue {
 
 // Msg contains a log message.
 type Msg struct {
-	// Time is the Time when we collected the message.
-	Time time.Time
-
-	// Level is the message Level. It may also encode emoji
-	// related information, so you need to be prepared to
-	// separate the log Level from extra information.
+	// Level is the message Level.
 	Level int64
+
+	// Emoji is the emoji.
+	Emoji int64
 
 	// Message is the actual Message.
 	Message string
+
+	// Time is the Time when we collected the message.
+	Time time.Time
 }
 
 // asMsg is an utility function for creating a asMsg of a *Msg to a Msg.
 func (m *Msg) asMsg() Msg {
 	return Msg{
-		Time:    m.Time,
 		Level:   m.Level,
+		Emoji:   m.Emoji,
 		Message: m.Message,
+		Time:    m.Time,
 	}
 }
 
@@ -166,33 +159,34 @@ func (q *queue) incrementLogLevel(increment int) {
 }
 
 // Emit emits a log message to the logcat using the given level.
-func Emit(level int64, message string) {
-	gq.emit(level, message)
+func Emit(level, emoji int64, message string) {
+	gq.emit(level, emoji, message)
 }
 
-func (q *queue) emit(level int64, message string) {
-	if (level & VERBOSITY_MASK) <= q.lvl.Load() {
-		q.pub(level, message)
+func (q *queue) emit(level, emoji int64, message string) {
+	if level <= q.lvl.Load() {
+		q.pub(level, emoji, message)
 	}
 }
 
 // Emitf is a variation of Emit that allows you to format a message.
-func Emitf(level int64, format string, values ...interface{}) {
-	gq.emitf(level, format, values...)
+func Emitf(level, emoji int64, format string, values ...interface{}) {
+	gq.emitf(level, emoji, format, values...)
 }
 
-func (q *queue) emitf(level int64, format string, values ...interface{}) {
-	if (level & VERBOSITY_MASK) <= q.lvl.Load() {
-		q.pub(level, fmt.Sprintf(format, values...))
+func (q *queue) emitf(level, emoji int64, format string, values ...interface{}) {
+	if level <= q.lvl.Load() {
+		q.pub(level, emoji, fmt.Sprintf(format, values...))
 	}
 }
 
 // pub publishes a message to the queue.
-func (q *queue) pub(level int64, message string) {
+func (q *queue) pub(level, emoji int64, message string) {
 	m := &Msg{
-		Time:    time.Now(),
+		Emoji:   emoji,
 		Level:   level,
 		Message: message,
+		Time:    time.Now(),
 	}
 	q.mu.Lock()
 	// 1. store the message into the ring
@@ -275,12 +269,12 @@ func StartConsumer(ctx context.Context, logger model.Logger, emojis bool) {
 			case m := <-s.ch:
 				var prefix string
 				if emojis {
-					prefix = emojimap[m.Level&EXTRA_FLAGS_MASK]
+					prefix = emojimap[m.Emoji]
 					if prefix == "" {
 						prefix = "   "
 					}
 				}
-				switch m.Level & VERBOSITY_MASK {
+				switch m.Level {
 				case WARNING:
 					logger.Warn(prefix + m.Message)
 				case INFO, NOTICE:
@@ -295,52 +289,52 @@ func StartConsumer(ctx context.Context, logger model.Logger, emojis bool) {
 
 // Warn emits a WARNING message.
 func Warn(message string) {
-	Emit(WARNING, message)
+	Emit(WARNING, 0, message)
 }
 
 // Warnf formats and emits a WARNING message.
 func Warnf(format string, values ...interface{}) {
-	Emitf(WARNING, format, values...)
+	Emitf(WARNING, 0, format, values...)
 }
 
 // Notice emits a NOTICE message.
 func Notice(message string) {
-	Emit(NOTICE, message)
+	Emit(NOTICE, 0, message)
 }
 
 // Noticef formats and emits a NOTICE message.
 func Noticef(format string, values ...interface{}) {
-	Emitf(NOTICE, format, values...)
+	Emitf(NOTICE, 0, format, values...)
 }
 
 // Info emits an INFO message.
 func Info(message string) {
-	Emit(INFO, message)
+	Emit(INFO, 0, message)
 }
 
 // Infof formats and emits an INFO message.
 func Infof(format string, values ...interface{}) {
-	Emitf(INFO, format, values...)
+	Emitf(INFO, 0, format, values...)
 }
 
 // Debug emits a DEBUG message.
 func Debug(message string) {
-	Emit(DEBUG, message)
+	Emit(DEBUG, 0, message)
 }
 
 // Debugf formats and emits a DEBUG message.
 func Debugf(format string, values ...interface{}) {
-	Emitf(DEBUG, format, values...)
+	Emitf(DEBUG, 0, format, values...)
 }
 
 // Trace emits a TRACE message.
 func Trace(message string) {
-	Emit(TRACE, message)
+	Emit(TRACE, 0, message)
 }
 
 // Tracef formats and emits a TRACE message.
 func Tracef(format string, values ...interface{}) {
-	Emitf(TRACE, format, values...)
+	Emitf(TRACE, 0, format, values...)
 }
 
 // DefaultLogger returns the default model.Logger. This logger will just
@@ -390,67 +384,67 @@ func (dl *defaultLogger) Warnf(format string, v ...interface{}) {
 // this log message will be at WARNING level. We may be continuing to run after we notice
 // there's a bug, but subsequent results may be influenced by that.
 func Bug(message string) {
-	Emit(WARNING|BUG, message)
+	Emit(WARNING, BUG, message)
 }
 
 // Bugf is like Bug but allows formatting a message.
 func Bugf(format string, value ...interface{}) {
-	Emitf(WARNING|BUG, format, value...)
+	Emitf(WARNING, BUG, format, value...)
 }
 
 // Cache is a convenience function for emitting messages related to the cache. The user
 // should not see these messages by default unless they want more details. For this
 // reason we emit this kind of messages at the INFO level.
 func Cache(message string) {
-	Emit(INFO|CACHE, message)
+	Emit(INFO, CACHE, message)
 }
 
 // Cachef is like Cache but allows formatting a message.
 func Cachef(format string, value ...interface{}) {
-	Emitf(INFO|CACHE, format, value...)
+	Emitf(INFO, CACHE, format, value...)
 }
 
 // Shrug is a convenience function for emitting log messages detailing that something
 // not under our control went wrong and we don't know what to do about this. We emit
 // these messaeges as warnings because we users to let us know about these errors.
 func Shrug(message string) {
-	Emit(WARNING|SHRUG, message)
+	Emit(WARNING, SHRUG, message)
 }
 
 // Shrugf is like Shrug but allows formatting a message,
 func Shrugf(format string, value ...interface{}) {
-	Emitf(WARNING|SHRUG, format, value...)
+	Emitf(WARNING, SHRUG, format, value...)
 }
 
 // Step is a convenience function for emitting log messages related to one
 // of several steps within an experiment. These are NOTICEs.
 func Step(message string) {
-	Emitf(NOTICE|STEP, message)
+	Emitf(NOTICE, STEP, message)
 }
 
 // Stepf is like Step but allows formatting messages.
 func Stepf(format string, value ...interface{}) {
-	Emitf(NOTICE|STEP, format, value...)
+	Emitf(NOTICE, STEP, format, value...)
 }
 
 // Substep is a convenience function for emitting log messages related to one
 // of several substeps within a step. These are NOTICEs.
 func Substep(message string) {
-	Emitf(NOTICE|SUBSTEP, message)
+	Emitf(NOTICE, SUBSTEP, message)
 }
 
 // Substepf is like Substep but allows formatting messages.
 func Substepf(format string, value ...interface{}) {
-	Emitf(NOTICE|SUBSTEP, format, value...)
+	Emitf(NOTICE, SUBSTEP, format, value...)
 }
 
 // NewInput is the function to call when you are an experiment and you
 // receive new input. This is also part of the NOTICEs.
 func NewInput(message string) {
-	Emit(NOTICE|NEW_INPUT, message)
+	Emit(NOTICE, NEW_INPUT, message)
 }
 
 // NewInputf is like NewInput but allows formatting messages.
 func NewInputf(format string, value ...interface{}) {
-	Emitf(NOTICE|NEW_INPUT, format, value...)
+	Emitf(NOTICE, NEW_INPUT, format, value...)
 }
