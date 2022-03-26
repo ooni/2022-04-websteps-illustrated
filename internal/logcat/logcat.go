@@ -74,9 +74,9 @@ const (
 	// control (as opposed to BUG, which is under our control.)
 	SHRUG
 
-	// INSPECT is a message indicating that we're questioning or inspecting
-	// something and is usually emitted during analysis.
-	INSPECT
+	// SCRUTINIZE is a message indicating that we're questioning or inspecting
+	// something or taking optimizing decisions.
+	SCRUTINIZE
 
 	// CELEBRATE is a message emitted when we're happy about something
 	// we discovered or about a result that looks accessible.
@@ -89,6 +89,11 @@ const (
 	// CONFIRMED is a message emitted when we see something really
 	// interesting and wrong, e.g., a bogon IP address.
 	CONFIRMED
+
+	// INSPECT is emitted when you start inspecting something. The difference
+	// with scrutinize is that INSPECT is just informationl and does not
+	// imply taking any kind of weighted decision.
+	INSPECT
 )
 
 // gq is the global messages queue.
@@ -266,10 +271,11 @@ var emojimap = map[int64]string{
 	STEP:       "📌 ",
 	SUBSTEP:    "📎 ",
 	NEW_INPUT:  "✨ ",
-	INSPECT:    "🧐 ",
+	SCRUTINIZE: "🧐 ",
 	CELEBRATE:  "🙌 ",
 	UNEXPECTED: "❓ ",
 	CONFIRMED:  "🔥 ",
+	INSPECT:    "👀 ",
 }
 
 // StartConsumer starts a consumer that consumes log messages
@@ -469,16 +475,16 @@ func NewInputf(format string, value ...interface{}) {
 	Emitf(NOTICE, NEW_INPUT, format, value...)
 }
 
-// Inspect is the function to call when you're performing a specific
-// substep inside the analysis and/or performing comparisons or choosing
-// not to perform some measurements due to optimizations.
-func Inspect(message string) {
-	Emit(INFO, INSPECT, message)
+// Scrutinize is the function to call when we're looking deeply into
+// something or questioning the truth of something or choosing not to
+// perform measurements due to optimizations.
+func Scrutinize(message string) {
+	Emit(INFO, SCRUTINIZE, message)
 }
 
-// Inspectf is like Inspect but allows formatting a log message.
-func Inspectf(format string, value ...interface{}) {
-	Emitf(INFO, INSPECT, format, value...)
+// Scrutinizef is like Inspect but allows formatting a log message.
+func Scrutinizef(format string, value ...interface{}) {
+	Emitf(INFO, SCRUTINIZE, format, value...)
 }
 
 // Celebrate is the function to call when you discover something interesting
@@ -510,4 +516,14 @@ func Confirmed(message string) {
 // Confirmedf is like Confirmed but with message formatting.
 func Confirmedf(format string, value ...interface{}) {
 	Emitf(NOTICE, CONFIRMED, format, value...)
+}
+
+// Inspect informs the user we're starting to look into something.
+func Inspect(message string) {
+	Emit(INFO, INSPECT, message)
+}
+
+// Inspectf is like Inspect but with formatting.
+func Inspectf(format string, value ...interface{}) {
+	Emitf(INFO, INSPECT, format, value...)
 }
