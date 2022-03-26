@@ -243,22 +243,6 @@ type DNSLookupMeasurement struct {
 	RoundTrip []*archival.FlatDNSRoundTripEvent `json:",omitempty"`
 }
 
-// SeparateSystemDNSLookupsFromOtherLookups takes in input a list of DNSLookupMeasurement
-// and returns in output two (possibly empty) lists. The first list will only contain
-// lookups performed using the system resolver. The second one contains all the other lookups.
-func SeparateSystemDNSLookupsFromOtherLookups(
-	in []*DNSLookupMeasurement) (system, other []*DNSLookupMeasurement) {
-	for _, dns := range in {
-		switch dns.ResolverNetwork() {
-		case archival.NetworkTypeSystem:
-			system = append(system, dns)
-		default:
-			other = append(other, dns)
-		}
-	}
-	return
-}
-
 // NewDNSReverseLookupPlans generates a []*DNSLookupPlan for performing
 // a reverse lookup for the given list of addresses and the given resolvers.
 func (um *URLMeasurement) NewDNSReverseLookupPlans(
