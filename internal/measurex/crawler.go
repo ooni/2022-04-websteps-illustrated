@@ -65,7 +65,7 @@ func (c *Crawler) Crawl(ctx context.Context, URL string) (<-chan *URLMeasurement
 			redirects, _ := mx.Redirects(cur.Endpoint, cur.Options)
 			out <- cur
 			q.Append(redirects...)
-			logcat.Infof("🪀 work queue: %s", q.String())
+			logcat.Infof("work queue: %s", q.String())
 		}
 	}()
 	return out, nil

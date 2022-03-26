@@ -187,7 +187,7 @@ func (c *Client) steps(ctx context.Context, input string, flags int64) {
 			logcat.Notice("greedy mode: stopping early because I detected some censorship")
 			break
 		}
-		logcat.Infof("🪀 work queue: %s", q.String())
+		logcat.Infof("work queue: %s", q.String())
 	}
 	tkoe.TestKeys.Bodies = tkoe.TestKeys.buildHashingBodies(mx)
 	tkoe.TestKeys.finalReprocessing()                    // depends on hashes
