@@ -73,6 +73,10 @@ const (
 	// SHRUG is a message about an unexpected situation that is out of our
 	// control (as opposed to BUG, which is under our control.)
 	SHRUG
+
+	// INSPECT is a message indicating that we're questioning or inspecting
+	// something and is usually emitted during analysis.
+	INSPECT
 )
 
 // gq is the global messages queue.
@@ -250,6 +254,7 @@ var emojimap = map[int64]string{
 	STEP:      "📌 ",
 	SUBSTEP:   "📎 ",
 	NEW_INPUT: "✨ ",
+	INSPECT:   "🧐 ",
 }
 
 // StartConsumer starts a consumer that consumes log messages
@@ -447,4 +452,16 @@ func NewInput(message string) {
 // NewInputf is like NewInput but allows formatting messages.
 func NewInputf(format string, value ...interface{}) {
 	Emitf(NOTICE, NEW_INPUT, format, value...)
+}
+
+// Inspect is the function to call when you're performing a specific
+// substep inside the analysis and/or performing comparisons or choosing
+// not to perform some measurements due to optimizations.
+func Inspect(message string) {
+	Emit(INFO, INSPECT, message)
+}
+
+// Inspectf is like Inspect but allows formatting a log message.
+func Inspectf(format string, value ...interface{}) {
+	Emitf(INFO, INSPECT, format, value...)
 }

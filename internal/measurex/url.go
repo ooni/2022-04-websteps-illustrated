@@ -524,7 +524,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 	familyCounter := make(map[string]int64)
 	for _, addr := range addrs {
 		if (flags&EndpointPlanningExcludeBogons) != 0 && netxlite.IsBogon(addr.Address) {
-			logcat.Infof("🧐 excluding bogon %s as requested", addr.Address)
+			logcat.Inspectf("excluding bogon %s as requested", addr.Address)
 			continue
 		}
 
@@ -543,7 +543,7 @@ func (um *URLMeasurement) NewEndpointPlanWithAddressList(
 		}
 		if (flags&EndpointPlanningIncludeAll) == 0 &&
 			familyCounter[family] >= um.Options.maxAddressesPerFamily() {
-			logcat.Infof("🧐 too many %s addresses already, skipping %s", family, addr.Address)
+			logcat.Inspectf("too many %s addresses already, skipping %s", family, addr.Address)
 			continue
 		}
 		counted := false
@@ -778,7 +778,7 @@ func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, error) {
 		// TODO(bassosimone): we should also consider cookies to determine
 		// whether we've already visited an URL or not.
 		if repr := CanonicalURLString(um.URL); r.mem[repr] {
-			logcat.Infof("🧐 skip already visited URL: %s", repr)
+			logcat.Inspectf("skip already visited URL: %s", repr)
 			continue
 		}
 		r.depth++ // we increment the depth when we _remove_ and measure
