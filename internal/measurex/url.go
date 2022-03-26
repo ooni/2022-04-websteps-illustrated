@@ -769,7 +769,6 @@ func (r *URLRedirectDeque) PopLeft() (*URLMeasurement, error) {
 	defer r.mu.Unlock()
 	r.mu.Lock()
 	if r.depth >= r.options.maxCrawlerDepth() {
-		logcat.Info("👋 reached maximum crawler depth")
 		return nil, ErrCrawlerDepth
 	}
 	for len(r.q) > 0 {
