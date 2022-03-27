@@ -282,12 +282,14 @@ var emojimap = map[int64]string{
 // and dispatches them to the given logger. The consumer
 // will gracefully exit when the provided context expires.
 func StartConsumer(ctx context.Context, logger model.Logger, emojis bool) {
+	ready := make(chan interface{})
 	go func() {
 		s := &subscriber{
 			ch: make(chan *Msg, logbuf),
 		}
 		gq.subscribe(s)
 		defer gq.unsubscribe(s)
+		close(ready)
 		for {
 			select {
 			case <-ctx.Done():
@@ -311,6 +313,7 @@ func StartConsumer(ctx context.Context, logger model.Logger, emojis bool) {
 			}
 		}
 	}()
+	<-ready // synchronize with log processor
 }
 
 // Warn emits a WARNING message.
