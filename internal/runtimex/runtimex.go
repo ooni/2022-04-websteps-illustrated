@@ -34,7 +34,7 @@ func PanicIfNil(v interface{}, message string) {
 // Must is like PanicOnError but calls os.Exit(1) instead of panic.
 func Must(err error, message string) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s", message, err.Error())
+		fmt.Fprintf(os.Stderr, "%s: %s\n", message, err.Error())
 		os.Exit(1)
 	}
 }

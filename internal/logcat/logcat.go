@@ -366,24 +366,40 @@ func Tracef(format string, values ...interface{}) {
 	Emitf(TRACE, 0, format, values...)
 }
 
+// DefaultLoggerWriteTimestamps tells the default logger
+// that we would like absolute timestamps in the log.
+const DefaultLoggerWriteTimestamps = 1 << iota
+
 // DefaultLogger returns the default model.Logger. This logger will just
 // print the provided messages to the given io.Writer.
-func DefaultLogger(w io.Writer) model.Logger {
+func DefaultLogger(w io.Writer, flags int64) model.Logger {
 	return &defaultLogger{
-		w: w,
+		f: flags,
 		t: time.Now(),
+		w: w,
 	}
 }
 
 // defaultLogger is the default model.Logger.
 type defaultLogger struct {
-	w io.Writer
+	f int64
 	t time.Time
+	w io.Writer
 }
+
+// logformat is the format we use for logging absolute timestamps.
+//
+// See https://www.geeksforgeeks.org/time-formatting-in-golang/
+const logformat = "2006-01-02T15:04:05.999999999Z07:00"
 
 // writeLog writes a log entry.
 func (dl *defaultLogger) writeLog(level, msg string) {
-	s := fmt.Sprintf("[%14.6f] <%s> %s\n", time.Since(dl.t).Seconds(), level, msg)
+	var s string
+	if (dl.f & DefaultLoggerWriteTimestamps) == 0 {
+		s = fmt.Sprintf("[%14.6f] <%s> %s\n", time.Since(dl.t).Seconds(), level, msg)
+	} else {
+		s = fmt.Sprintf("[%s] <%s> %s\n", time.Now().Format(logformat), level, msg)
+	}
 	fmt.Fprint(dl.w, s)
 }
 

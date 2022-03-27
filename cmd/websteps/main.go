@@ -187,9 +187,9 @@ func main() {
 			err := logfile.Close()
 			runtimex.Must(err, "cannot close log file")
 		}()
-		logcat.StartConsumer(ctx, logcat.DefaultLogger(logfile), false)
+		logcat.StartConsumer(ctx, logcat.DefaultLogger(logfile, 0), opts.Emoji)
 	}
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), opts.Emoji)
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), opts.Emoji)
 	clientOptions := measurexOptions(parser, opts)
 	clnt := websteps.NewClient(nil, nil, opts.Backend, clientOptions)
 	maybeSetCaches(opts, clnt)

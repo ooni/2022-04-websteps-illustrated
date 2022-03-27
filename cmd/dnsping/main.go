@@ -62,7 +62,7 @@ func main() {
 		cache := dnsping.NewCache(opts.Cache)
 		engine = dnsping.NewCachingMeasurer(engine, cache)
 	}
-	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr), false)
+	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr, 0), false)
 	ch := engine.RunAsync(plans)
 	result := <-ch
 	data, err := json.Marshal(result.ToArchival(begin))

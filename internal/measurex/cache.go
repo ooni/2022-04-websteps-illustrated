@@ -214,7 +214,7 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 		meas, found := mx.cache.FindDNSLookupMeasurement(plan, mx.policy)
 		if !found {
 			if mx.cache.DisableNetwork {
-				logcat.Shrugf("measurex: cache configured not to hit the network")
+				logcat.Shrugf("measurex: cache miss for: %s", plan.Summary())
 				out <- &DNSLookupMeasurement{
 					ID:               0,
 					URLMeasurementID: 0,
@@ -246,20 +246,27 @@ type CachedDNSLookupMeasurement struct {
 func (c *Cache) FindDNSLookupMeasurement(
 	plan *DNSLookupPlan, policy CachingPolicy) (*DNSLookupMeasurement, bool) {
 	begin := time.Now()
+	logcat.Emitf(logcat.DEBUG, logcat.CACHE, "cache: searching for %s", plan.Summary())
 	elist, _ := c.readDNSLookupEntry(plan.Domain)
 	for _, entry := range elist {
 		if entry.M == nil {
+			logcat.Emit(logcat.DEBUG, logcat.CACHE, "cache: entry.M is nil")
 			continue // probably a corrupted entry
 		}
 		if !entry.M.CouldDeriveFrom(plan) {
+			logcat.Emitf(logcat.DEBUG, logcat.CACHE,
+				"cache: entry %s does not derive from plan", entry.M.Summary())
 			continue // this entry has been generated from another plan
 		}
 		if policy.StaleDNSLookupMeasurement(&entry) {
+			logcat.Emitf(
+				logcat.DEBUG, logcat.CACHE, "cache: entry %s is stale", entry.M.Summary())
 			continue // stale entry we should eventually remove
 		}
 		logcat.Cachef("cache: DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
 		return entry.M, true
 	}
+	logcat.Emitf(logcat.DEBUG, logcat.CACHE, "cache: no entry for %s", plan.Summary())
 	return nil, false
 }
 
@@ -313,7 +320,7 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 		meas, found := mx.cache.FindEndpointMeasurement(plan, mx.policy)
 		if !found {
 			if mx.cache.DisableNetwork {
-				logcat.Shrugf("measurex: cache configured not to hit the network")
+				logcat.Shrugf("measurex: cache miss for: %s", plan.Summary())
 				out <- &EndpointMeasurement{
 					ID:               0,
 					URLMeasurementID: 0,
@@ -356,20 +363,27 @@ type CachedEndpointMeasurement struct {
 func (c *Cache) FindEndpointMeasurement(
 	plan *EndpointPlan, policy CachingPolicy) (*EndpointMeasurement, bool) {
 	begin := time.Now()
+	logcat.Emitf(logcat.DEBUG, logcat.CACHE, "cache: searching for %s", plan.Summary())
 	elist, _ := c.readEndpointEntry(plan.Summary())
 	for _, entry := range elist {
 		if entry.M == nil {
+			logcat.Emit(logcat.DEBUG, logcat.CACHE, "cache: entry.M is nil")
 			continue // probably a corrupted entry
 		}
 		if !entry.M.CouldDeriveFrom(plan) {
+			logcat.Emitf(logcat.DEBUG, logcat.CACHE,
+				"cache: entry %s does not derive from plan", entry.M.Summary())
 			continue // this entry has been generated from another plan
 		}
 		if policy.StaleEndpointMeasurement(&entry) {
+			logcat.Emitf(
+				logcat.DEBUG, logcat.CACHE, "cache: entry %s is stale", entry.M.Summary())
 			continue // stale entry we should eventually remove
 		}
 		logcat.Cachef("cache: endpoint entry in %v: %s", time.Since(begin), entry.M.Summary())
 		return entry.M, true
 	}
+	logcat.Emitf(logcat.DEBUG, logcat.CACHE, "cache: no entry for %s", plan.Summary())
 	return nil, false
 }
 

@@ -97,7 +97,7 @@ func main() {
 	mx := measurex.NewMeasurerWithDefaultSettings()
 	begin := time.Now()
 	ctx := context.Background()
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), false)
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), false)
 	for m := range mx.DNSLookups(ctx, plans...) {
 		if opts.Raw {
 			dump(m)

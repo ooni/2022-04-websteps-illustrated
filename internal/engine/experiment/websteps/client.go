@@ -204,7 +204,7 @@ func (c *Client) steps(ctx context.Context, input string, flags int64) {
 		q.Append(redirects...)
 		ssm.Flags = ssm.aggregateFlags()
 		if ssm.Flags != 0 && (flags&LoopFlagGreedy) != 0 {
-			logcat.Notice("greedy mode: stopping early because I detected some censorship")
+			logcat.Notice("greedy mode: stop as soon as we see anomalies")
 			break
 		}
 		logcat.Infof("work queue: %s", q.String())

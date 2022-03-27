@@ -85,7 +85,7 @@ func main() {
 	dump(request)
 	begin := time.Now()
 	ctx := context.Background()
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stderr), false)
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stderr, 0), false)
 	resp, err := clnt.THRequest(ctx, request)
 	runtimex.Must(err, "TH failed")
 	if opts.Archival {
