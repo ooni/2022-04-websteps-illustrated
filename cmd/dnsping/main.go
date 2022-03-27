@@ -17,6 +17,7 @@ import (
 )
 
 type CLI struct {
+	Cache    string          `doc:"directory with dnsping cache" short:"C"`
 	Count    int             `doc:"number of repetitions" short:"c"`
 	Help     bool            `doc:"prints this help message" short:"h"`
 	Resolver []string        `doc:"resolver to use (default: 8.8.4.4:53)" short:"r"`
@@ -45,7 +46,7 @@ func main() {
 	if len(opts.Resolver) < 1 {
 		opts.Resolver = append(opts.Resolver, "8.8.4.4:53")
 	}
-	qtypes := []uint16{dns.TypeA, dns.TypeAAAA, dns.TypeHTTPS}
+	qtypes := []uint16{dns.TypeA, dns.TypeAAAA}
 	var plans []*dnsping.SinglePingPlan
 	for _, reso := range opts.Resolver {
 		for _, domain := range parser.Args() {
@@ -56,7 +57,11 @@ func main() {
 		}
 	}
 	begin := time.Now()
-	engine := dnsping.NewEngine(measurex.NewIDGenerator())
+	var engine dnsping.AbstractEngine = dnsping.NewEngine(measurex.NewIDGenerator(), 4*time.Second)
+	if opts.Cache != "" {
+		cache := dnsping.NewCache(opts.Cache)
+		engine = dnsping.NewCachingMeasurer(engine, cache)
+	}
 	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr), false)
 	ch := engine.RunAsync(plans)
 	result := <-ch

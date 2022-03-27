@@ -54,6 +54,13 @@ type Client struct {
 	// set it before starting any background worker.
 	MeasurerFactory MeasurerFactory
 
+	// NewDNSPingEngine is the MANDATORY factory for creating
+	// new instances of the dnsping engine. You should set this
+	// field before starting any background worker. You may
+	// want to use this field for caching dnsping results.
+	NewDNSPingEngine func(
+		idgen dnsping.IDGenerator, queryTimeout time.Duration) dnsping.AbstractEngine
+
 	// Output is the MANDATORY channel for emitting measurements.
 	Output chan *TestKeysOrError
 
@@ -105,6 +112,10 @@ func NewClient(dialer model.Dialer, tlsDialer model.TLSDialer, thURL string,
 	return &Client{
 		Input:           make(chan string),
 		MeasurerFactory: nil, // meaning that we'll use a default factory
+		NewDNSPingEngine: func(
+			idgen dnsping.IDGenerator, queryTimeout time.Duration) dnsping.AbstractEngine {
+			return dnsping.NewEngine(idgen, queryTimeout)
+		},
 		Output:          make(chan *TestKeysOrError),
 		dialerCleartext: dialer,
 		dialerTLS:       tlsDialer,
@@ -301,6 +312,9 @@ func PredictableDNSResolvers() []*measurex.DNSResolverInfo {
 	}, {
 		Network: "udp",
 		Address: "[2001:4860:4860::8888]:53",
+	}, {
+		Network: "system",
+		Address: "",
 	}}
 }
 

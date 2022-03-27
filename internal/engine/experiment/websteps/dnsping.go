@@ -52,8 +52,7 @@ func (c *Client) dnsPingFollowUp(ctx context.Context, mx measurex.AbstractMeasur
 	// The dnsping codebase does not emit this information but it's useful
 	// when reading the logs to know it has started.
 	logcat.Substep("starting dnsping in the background...")
-	engine := dnsping.NewEngine(mx)
-	engine.QueryTimeout = mx.FlattenOptions().DNSLookupTimeout
+	engine := c.NewDNSPingEngine(mx, mx.FlattenOptions().DNSLookupTimeout)
 	return engine.RunAsync(overall), true
 }
 

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/bassosimone/getoptx"
+	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
@@ -133,13 +134,19 @@ func measurexOptions(parser getoptx.Parser, opts *CLI) *measurex.Options {
 
 func maybeSetCaches(opts *CLI, clnt *websteps.Client) {
 	if opts.ProbeCacheDir != "" {
-		cache := measurex.NewCache(opts.ProbeCacheDir)
+		mxCache := measurex.NewCache(opts.ProbeCacheDir)
 		clnt.MeasurerFactory = func(options *measurex.Options) (
 			measurex.AbstractMeasurer, error) {
 			library := measurex.NewDefaultLibrary()
 			var mx measurex.AbstractMeasurer = measurex.NewMeasurer(library)
-			mx = measurex.NewCachingMeasurer(mx, cache, measurex.CachingForeverPolicy())
+			mx = measurex.NewCachingMeasurer(mx, mxCache, measurex.CachingForeverPolicy())
 			return mx, nil
+		}
+		dnspingCache := dnsping.NewCache(opts.ProbeCacheDir)
+		clnt.NewDNSPingEngine = func(
+			idgen dnsping.IDGenerator, queryTimeout time.Duration) dnsping.AbstractEngine {
+			e := dnsping.NewEngine(idgen, queryTimeout)
+			return dnsping.NewCachingMeasurer(e, dnspingCache)
 		}
 	}
 	if opts.THCacheDir != "" {

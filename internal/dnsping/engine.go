@@ -7,7 +7,9 @@ package dnsping
 //
 
 import (
+	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,6 +40,26 @@ type SinglePingPlan struct {
 	// QueryType is the type of query to send. We accept the
 	// following query types: `dns.Type{A,AAAA,HTTPS}`.
 	QueryType uint16
+
+	// absoluteDelay is the absolute delay of this single ping
+	// computed for correct scheduling by the sender.
+	absoluteDelay time.Duration
+}
+
+// summary returns a summary of the plan. The summary is meant to uniquely
+// identify this plan inside the dnsping cache.
+func (spp *SinglePingPlan) summary() string {
+	return planOrResultSummary(spp.ResolverAddress, spp.Delay, spp.Domain, spp.QueryType)
+}
+
+func planOrResultSummary(
+	resolver string, delay time.Duration, domain string, queryType uint16) string {
+	var out []string
+	out = append(out, resolver)
+	out = append(out, fmt.Sprintf("%d", delay))
+	out = append(out, domain)
+	out = append(out, fmt.Sprintf("%d", queryType))
+	return strings.Join(out, " ")
 }
 
 // NewDefaultPlans creates plans with the given number of repetitions.
@@ -49,6 +71,7 @@ func NewDefaultPlans(domain string, queryType uint16,
 			Delay:           time.Duration(idx) * time.Second,
 			Domain:          domain,
 			QueryType:       queryType,
+			absoluteDelay:   0,
 		})
 	}
 	return out
@@ -99,6 +122,9 @@ type SinglePingResult struct {
 	// ResolverAddress is the resolver's address (e.g., 8.8.8.8:53).
 	ResolverAddress string
 
+	// Delay is the original delay.
+	Delay time.Duration
+
 	// Domain is the domain we queried. If the domain is not
 	// a FQDN, we'll convert it to FQDN form. For example, this
 	// means that we'll convert `x.org` to `x.org.`.
@@ -122,6 +148,21 @@ type SinglePingResult struct {
 	// will contain just one entry. It may contain more than one
 	// entry in case of censorship or packet duplication.
 	Replies []*SinglePingReply
+}
+
+// summary returns a summary used for caching.
+func (spr *SinglePingResult) summary() string {
+	return planOrResultSummary(spr.ResolverAddress, spr.Delay, spr.Domain, spr.QueryType)
+}
+
+// couldDeriveFrom returns where a result could derive from a plan.
+func (spr *SinglePingResult) couldDeriveFrom(spp *SinglePingPlan) bool {
+	return spr.summary() == spp.summary()
+}
+
+// isAnotherInstanceOf returns whether a result could be another instance of another result.
+func (spr *SinglePingResult) isAnotherInstanceOf(other *SinglePingResult) bool {
+	return spr.summary() == other.summary()
 }
 
 // QueryTypeAsString returns the QueryType as string.
@@ -155,6 +196,12 @@ type Engine struct {
 	QueryTimeout time.Duration
 }
 
+// AbstractEngine is an abstract version of the Engine type.
+type AbstractEngine interface {
+	// RunAsync behaves like Engine.RunAsync
+	RunAsync(plans []*SinglePingPlan) <-chan *Result
+}
+
 // IDGenerator is a generic unique-IDs generator.
 type IDGenerator interface {
 	NextID() int64
@@ -162,13 +209,13 @@ type IDGenerator interface {
 
 // NewEngine creates a new  engine instance using the given
 // generator, and typical values for other fields.
-func NewEngine(idgen IDGenerator) *Engine {
+func NewEngine(idgen IDGenerator, queryTimeout time.Duration) *Engine {
 	return &Engine{
 		Decoder:      &netxlite.DNSDecoderMiekg{},
 		Encoder:      &netxlite.DNSEncoderMiekg{},
 		IDGenerator:  idgen,
 		Listener:     netxlite.NewUDPListener(),
-		QueryTimeout: 4 * time.Second,
+		QueryTimeout: queryTimeout,
 	}
 }
 
@@ -185,6 +232,7 @@ func (e *Engine) RunAsync(plans []*SinglePingPlan) <-chan *Result {
 
 // worker is the Engine worker. It emits the result on c.
 func (e *Engine) worker(plans []*SinglePingPlan, c chan<- *Result) {
+	defer close(c) // synchronize with parent
 	if len(plans) < 1 {
 		c <- &Result{} // shortcut
 		return
@@ -208,6 +256,7 @@ func (e *Engine) createSchedule(in []*SinglePingPlan) (out *schedule) {
 			Delay:           plan.Delay,
 			Domain:          plan.Domain,
 			QueryType:       plan.QueryType,
+			absoluteDelay:   plan.absoluteDelay,
 		})
 	}
 	// 2. now we can safely mutate.
@@ -219,7 +268,7 @@ func (e *Engine) createSchedule(in []*SinglePingPlan) (out *schedule) {
 	for _, plan := range out.p {
 		delta := plan.Delay - prevDelay
 		prevDelay = plan.Delay
-		plan.Delay = delta
+		plan.absoluteDelay = delta
 	}
 	return
 }
@@ -231,7 +280,7 @@ func (e *Engine) stickToTheSchedule(s *schedule, c chan<- *Result) {
 	wg := &sync.WaitGroup{}
 	pings := make(chan *resultWrapper, len(s.p)) // all writes nonblocking
 	for _, plan := range s.p {
-		time.Sleep(plan.Delay) // wait for our turn to run
+		time.Sleep(plan.absoluteDelay) // wait for our turn to run
 		wg.Add(1)
 		deadline := time.Now().Add(e.QueryTimeout)
 		go e.singlePinger(wg, plan, deadline, pings)
@@ -297,6 +346,7 @@ func (e *Engine) singlePinger(wg *sync.WaitGroup, plan *SinglePingPlan,
 	result := &SinglePingResult{
 		ID:              e.IDGenerator.NextID(),
 		ResolverAddress: plan.ResolverAddress,
+		Delay:           plan.Delay,
 		Domain:          plan.Domain,
 		QueryType:       plan.QueryType,
 		QueryID:         qid,

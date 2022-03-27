@@ -40,6 +40,7 @@ func (spr *SinglePingReply) ToArchival(begin time.Time) *ArchivalSinglePingReply
 
 // ArchivalSinglePingResult is the archival format of SinglePingResult.
 type ArchivalSinglePingResult struct {
+	Delay           float64                    `json:"delay"`
 	Hostname        string                     `json:"hostname"`
 	ID              int64                      `json:"id"`
 	Query           *model.ArchivalBinaryData  `json:"query"`
@@ -53,6 +54,7 @@ type ArchivalSinglePingResult struct {
 // ToArchival returns the archival representation
 func (spr *SinglePingResult) ToArchival(begin time.Time) *ArchivalSinglePingResult {
 	out := &ArchivalSinglePingResult{
+		Delay:           spr.Delay.Seconds(),
 		Hostname:        spr.Domain,
 		ID:              spr.ID,
 		Query:           model.NewArchivalBinaryData(spr.Query),
