@@ -26,8 +26,8 @@ type CLI struct {
 	Emoji     bool            `doc:"enable emitting messages with emojis" short:"e"`
 	Fast      bool            `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
 	Help      bool            `doc:"prints this help message" short:"h"`
-	Input     []string        `doc:"add URL to list of URLs to crawl" short:"i"`
-	InputFile []string        `doc:"add input file containing URLs to crawl" short:"f"`
+	Input     []string        `doc:"add URL to list of URLs to crawl. You must provide input using this option or -f." short:"i"`
+	InputFile []string        `doc:"add input file containing URLs to crawl. You must provide input using this option or -i." short:"f"`
 	Output    string          `doc:"file where to write output (default: report.jsonl)" short:"o"`
 	Random    bool            `doc:"shuffle input list before running through it"`
 	Raw       bool            `doc:"emit raw websteps format rather than OONI data format"`
@@ -57,7 +57,8 @@ func getopt() *CLI {
 		os.Exit(0)
 	}
 	if len(opts.Input) < 1 && len(opts.InputFile) < 1 {
-		fmt.Fprintf(os.Stderr, "websteps: no input provided (try `./websteps --help' for more help)")
+		fmt.Fprintf(os.Stderr, "websteps: you need to provide input using -i or -f.\n")
+		parser.PrintUsage(os.Stderr)
 		os.Exit(1)
 	}
 	if opts.Verbose > 0 {
