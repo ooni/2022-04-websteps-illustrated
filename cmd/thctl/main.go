@@ -18,7 +18,7 @@ import (
 
 type CLI struct {
 	Archival     bool            `doc:"show results in the OONI archival data format"`
-	Backend      string          `doc:"test helper server URL (default: \"ws://127.0.0.1:9876\")" short:"b"`
+	Backend      string          `doc:"test helper server URL (default: use OONI backend)" short:"b"`
 	Both         bool            `doc:"ask the test helper to test both HTTP and HTTPS"`
 	Help         bool            `doc:"prints this help message" short:"h"`
 	Input        string          `doc:"URL to submit to the test helper" short:"i" required:"true"`
@@ -31,7 +31,7 @@ type CLI struct {
 func getopt() *CLI {
 	opts := &CLI{
 		Archival:     false,
-		Backend:      "ws://127.0.0.1:9876",
+		Backend:      "wss://0.th.ooni.org/websteps/v1/th",
 		Both:         false,
 		Help:         false,
 		Input:        "",
