@@ -27,9 +27,6 @@ type TestKeys struct {
 	// Steps contains all the steps.
 	Steps []*SingleStepMeasurement
 
-	// Bodies contains information about the bodies.
-	Bodies *HashingBodies `json:"-"`
-
 	// Flags contains the analysis flags.
 	Flags int64
 }
@@ -183,16 +180,15 @@ func (c *Client) steps(ctx context.Context, input string, flags int64) {
 		redirects, _ := ssm.redirects(mx)
 		tkoe.TestKeys.Steps = append(tkoe.TestKeys.Steps, ssm)
 		q.Append(redirects...)
+		ssm.Flags = ssm.aggregateFlags()
 		if ssm.Flags != 0 && (flags&LoopFlagGreedy) != 0 {
 			logcat.Notice("greedy mode: stopping early because I detected some censorship")
 			break
 		}
 		logcat.Infof("work queue: %s", q.String())
 	}
-	tkoe.TestKeys.Bodies = tkoe.TestKeys.buildHashingBodies(mx)
-	tkoe.TestKeys.finalReprocessing()                    // depends on hashes
-	tkoe.TestKeys.Flags = tkoe.TestKeys.aggregateFlags() // depends on reprocessing
-	tkoe.TestKeys.finalLogging()                         // must be last
+	tkoe.TestKeys.Flags = tkoe.TestKeys.aggregateFlags()
+	tkoe.TestKeys.finalLogging() // must be last
 	c.Output <- tkoe
 }
 
@@ -200,7 +196,6 @@ func (c *Client) steps(ctx context.Context, input string, flags int64) {
 // and then aggregates each SingleStep into TestKeys flags.
 func (tk *TestKeys) aggregateFlags() (flags int64) {
 	for _, step := range tk.Steps {
-		step.Flags = step.aggregateFlags()
 		flags |= step.Flags
 	}
 	return flags
@@ -324,10 +319,11 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 	}
 	ssm.DNSPing = c.waitForDNSPing(dc, pingRunning)
 	c.measureAdditionalEndpoints(ctx, mx, ssm)
-	logcat.Substep("analyzing the probe and the TH results")
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx)
 	ssm.Analysis.Endpoint = ssm.endpointAnalysis(mx)
-	// TODO(bassosimone): run follow-up experiments
+	ssm.Analysis.TH = ssm.analyzeTHResults(mx)
+	ssm.analysisClearInternalFlags()
+	// TODO(bassosimone): run follow-up experiments (e.g., SNI blocking)
 	return ssm
 }
 
@@ -557,7 +553,7 @@ func (c *Client) expandProbeKnowledge(mx measurex.AbstractMeasurer,
 	// 2. only keep new addresses
 	diff := measurex.NewURLAddressListDiff(thal, pal)
 	for _, e := range diff.NewEntries {
-		logcat.Infof("🙌 discovered new %s address for %s", e.Address, e.Domain)
+		logcat.Celebratef("discovered new %s address for %s", e.Address, e.Domain)
 	}
 	return diff.NewEntries, len(diff.NewEntries) > 0
 }

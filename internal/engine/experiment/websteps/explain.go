@@ -25,89 +25,111 @@ type AnalysisDescription struct {
 	Severity int64
 }
 
-const (
-	// AnalysisSeverityConfirmed is used when see anomalies that
-	// are most likely symptoms of censorship.
-	AnalysisSeverityConfirmed = 1 << iota
-
-	// AnalysisSeverityUnexpected is used when we see anomalies that
-	// may be symptoms of censorship but are less conclusive.
-	AnalysisSeverityUnexpected
-)
-
 // analysisDescriptions contains all the analysis flags descriptions.
 var analysisDescriptions = []*AnalysisDescription{{
 	Flag:     AnalysisNXDOMAIN,
 	Hashtag:  "#nxdomain",
-	Severity: AnalysisSeverityConfirmed,
+	Severity: logcat.CONFIRMED,
 }, {
 	Flag:     AnalysisDNSTimeout,
 	Hashtag:  "#dnsTimeout",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
 }, {
 	Flag:     AnalysisBogon,
 	Hashtag:  "#bogon",
-	Severity: AnalysisSeverityConfirmed,
+	Severity: logcat.CONFIRMED,
+}, {
+	Flag:     AnalysisDNSNoAnswer,
+	Hashtag:  "#dnsNoAnswer",
+	Severity: logcat.UNEXPECTED,
+}, {
+	Flag:     AnalysisDNSRefused,
+	Hashtag:  "#dnsRefused",
+	Severity: logcat.CONFIRMED,
 }, {
 	Flag:     AnalysisDNSDiff,
 	Hashtag:  "#dnsDiff",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
+}, {
+	Flag:     AnalysisDNSServfail,
+	Hashtag:  "#dnsServfail",
+	Severity: logcat.CONFIRMED,
 }, {
 	Flag:     AnalysisTCPTimeout,
 	Hashtag:  "#tcpTimeout",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
 }, {
 	Flag:     AnalysisTCPRefused,
 	Hashtag:  "#tcpRefused",
-	Severity: AnalysisSeverityConfirmed,
+	Severity: logcat.CONFIRMED,
 }, {
 	Flag:     AnalysisQUICTimeout,
 	Hashtag:  "#quicTimeout",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
 }, {
 	Flag:     AnalysisTLSTimeout,
 	Hashtag:  "#tlsTimeout",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
 }, {
 	Flag:     AnalysisTLSEOF,
 	Hashtag:  "#tlsEOF",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
 }, {
 	Flag:     AnalysisTLSReset,
 	Hashtag:  "#tlsReset",
-	Severity: AnalysisSeverityConfirmed,
+	Severity: logcat.CONFIRMED,
 }, {
 	Flag:     AnalysisCertificate,
 	Hashtag:  "#certificate",
-	Severity: AnalysisSeverityConfirmed,
+	Severity: logcat.CONFIRMED,
+}, {
+	Flag:     AnalysisHTTPDiff,
+	Hashtag:  "#httpDiff",
+	Severity: logcat.UNEXPECTED,
 }, {
 	Flag:     AnalysisHTTPTimeout,
 	Hashtag:  "#httpTimeout",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
 }, {
 	Flag:     AnalysisHTTPReset,
 	Hashtag:  "#httpReset",
-	Severity: AnalysisSeverityConfirmed,
+	Severity: logcat.CONFIRMED,
 }, {
 	Flag:     AnalysisHTTPEOF,
 	Hashtag:  "#httpEOF",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: logcat.UNEXPECTED,
+}, {
+	Flag:     AnalysisInconclusive,
+	Hashtag:  "#inconclusive",
+	Severity: logcat.SHRUG,
+}, {
+	Flag:     AnalysisProbeBug,
+	Hashtag:  "#probeBug",
+	Severity: logcat.BUG,
 }, {
 	Flag:     AnalysisHTTPDiffStatusCode,
 	Hashtag:  "#httpDiffStatusCode",
-	Severity: AnalysisSeverityUnexpected,
-}, {
-	Flag:     AnalysisHTTPDiffHeaders,
-	Hashtag:  "#httpDiffHeaders",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: 0,
 }, {
 	Flag:     AnalysisHTTPDiffTitle,
 	Hashtag:  "#httpDiffTitle",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: 0,
+}, {
+	Flag:     AnalysisHTTPDiffHeaders,
+	Hashtag:  "#httpDiffHeaders",
+	Severity: 0,
 }, {
 	Flag:     AnalysisHTTPDiffBodyLength,
 	Hashtag:  "#httpDiffBodyLength",
-	Severity: AnalysisSeverityUnexpected,
+	Severity: 0,
+}, {
+	Flag:     AnalysisHTTPDiffLegitimateRedirect,
+	Hashtag:  "#httpDiffLegitimateRedirect",
+	Severity: 0,
+}, {
+	Flag:     AnalysisHTTPDiffTransparentProxy,
+	Hashtag:  "#httpDiffTransparentProxy",
+	Severity: 0,
 }}
 
 // ExplainFlagsUsingTagsAndSeverity provides an explanation of a given set of flags
@@ -131,14 +153,5 @@ type Explainable interface {
 // ExplainFlagsWithLogging logs an explanation of the given flags.
 func ExplainFlagsWithLogging(ei Explainable, flags int64) {
 	tags, severity := ExplainFlagsUsingTagsAndSeverity(flags)
-	var emoji string
-	switch {
-	case (severity & AnalysisSeverityConfirmed) != 0:
-		emoji = "🔥"
-	case (severity & AnalysisSeverityUnexpected) != 0:
-		emoji = "❓"
-	default:
-		return // just show what needs the most attention
-	}
-	logcat.Noticef("<%s> %s: %s", emoji, ei.Describe(), strings.Join(tags, " "))
+	logcat.Emitf(logcat.NOTICE, severity, "%s: %s", ei.Describe(), strings.Join(tags, " "))
 }

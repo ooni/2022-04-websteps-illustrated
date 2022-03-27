@@ -12,24 +12,21 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 )
 
 // ArchivalTestKeys contains the archival test keys.
 type ArchivalTestKeys struct {
-	URL    string                           `json:"url"`
-	Steps  []*ArchivalSingleStepMeasurement `json:"steps"`
-	Bodies *HashingBodies                   `json:"bodies"`
-	Flags  int64                            `json:"flags"`
+	URL   string                           `json:"url"`
+	Steps []*ArchivalSingleStepMeasurement `json:"steps"`
+	Flags int64                            `json:"flags"`
 }
 
 // ToArchival converts TestKeys to the archival data format.
 func (tk *TestKeys) ToArchival(begin time.Time) (out *ArchivalTestKeys) {
 	out = &ArchivalTestKeys{
-		URL:    tk.URL,
-		Steps:  []*ArchivalSingleStepMeasurement{}, // later
-		Bodies: tk.Bodies,
-		Flags:  tk.Flags,
+		URL:   tk.URL,
+		Steps: []*ArchivalSingleStepMeasurement{}, // later
+		Flags: tk.Flags,
 	}
 	for _, entry := range tk.Steps {
 		out.Steps = append(out.Steps, entry.ToArchival(begin))
@@ -74,9 +71,11 @@ func (ssm *SingleStepMeasurement) ToArchival(begin time.Time) *ArchivalSingleSte
 		logcat.Bugf("ssm.ProbeInitial should never be nil")
 		return nil
 	}
-	// Note: we're serializing the body choosing the option to
-	// serialize its hash rather than the body content
-	const bodyFlags = model.ArchivalHTTPBodySerializeTLSH
+	// Note: we're serializing the bodies inline. In the future we
+	// may want to use locality-sensitive hashing and only send a
+	// single copy of each body. We need to figure out which specific
+	// kind of hashing to use for this purpose first.
+	const bodyFlags = 0
 	v := ssm.ProbeInitial.ToArchival(begin, bodyFlags)
 	out := &ArchivalSingleStepMeasurement{
 		ID:              v.ID,
