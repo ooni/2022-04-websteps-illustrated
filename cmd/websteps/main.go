@@ -117,7 +117,7 @@ func measurexOptions(opts *CLI) *measurex.Options {
 		clientOptions.MaxAddressesPerFamily = 32
 		clientOptions.MaxCrawlerDepth = 11
 	} else if opts.Fast {
-		clientOptions.MaxAddressesPerFamily = 1
+		clientOptions.MaxAddressesPerFamily = 2 // less than may miss DNS censorship
 		clientOptions.MaxCrawlerDepth = 1
 		clientOptions.MaxHTTPResponseBodySnapshotSize = 1 << 10
 		clientOptions.MaxHTTPSResponseBodySnapshotSizeConnectivity = 1 << 10
