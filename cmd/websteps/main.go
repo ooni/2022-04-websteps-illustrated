@@ -27,6 +27,7 @@ type CLI struct {
 	Help                 bool            `doc:"prints this help message" short:"h"`
 	Input                []string        `doc:"add URL to list of URLs to crawl. You must provide input using this option or -f." short:"i"`
 	InputFile            []string        `doc:"add input file containing URLs to crawl. You must provide input using this option or -i." short:"f"`
+	Logfile              string          `doc:"file in which to write logs" short:"L"`
 	Mode                 string          `doc:"control depth versus breadth. One of: deep, default, and fast." short:"m"`
 	Output               string          `doc:"file where to write output (default: report.jsonl)" short:"o"`
 	PredictableResolvers bool            `doc:"always use the same resolver, thus producting a fully reusable probe cache" short:"P"`
@@ -46,6 +47,7 @@ func getopt() (getoptx.Parser, *CLI) {
 		Help:                 false,
 		Input:                []string{},
 		InputFile:            []string{},
+		Logfile:              "",
 		Mode:                 "default",
 		Output:               "report.jsonl",
 		PredictableResolvers: false,
@@ -178,6 +180,15 @@ func main() {
 	runtimex.Must(err, "cannot create output file")
 	begin := time.Now()
 	ctx := context.Background()
+	if opts.Logfile != "" {
+		logfile, err := os.Create(opts.Logfile)
+		runtimex.Must(err, "cannot open log file")
+		defer func() {
+			err := logfile.Close()
+			runtimex.Must(err, "cannot close log file")
+		}()
+		logcat.StartConsumer(ctx, logcat.DefaultLogger(logfile), false)
+	}
 	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), opts.Emoji)
 	clientOptions := measurexOptions(parser, opts)
 	clnt := websteps.NewClient(nil, nil, opts.Backend, clientOptions)

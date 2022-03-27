@@ -371,42 +371,50 @@ func Tracef(format string, values ...interface{}) {
 func DefaultLogger(w io.Writer) model.Logger {
 	return &defaultLogger{
 		w: w,
+		t: time.Now(),
 	}
 }
 
 // defaultLogger is the default model.Logger.
 type defaultLogger struct {
 	w io.Writer
+	t time.Time
+}
+
+// writeLog writes a log entry.
+func (dl *defaultLogger) writeLog(level, msg string) {
+	s := fmt.Sprintf("[%14.6f] <%s> %s\n", time.Since(dl.t).Seconds(), level, msg)
+	fmt.Fprint(dl.w, s)
 }
 
 // Debug implements DebugLogger.Debug
 func (dl *defaultLogger) Debug(msg string) {
-	fmt.Fprint(dl.w, msg+"\n")
+	dl.writeLog("DEBUG", msg)
 }
 
 // Debugf implements DebugLogger.Debugf
 func (dl *defaultLogger) Debugf(format string, v ...interface{}) {
-	fmt.Fprintf(dl.w, format+"\n", v...)
+	dl.writeLog("DEBUG", fmt.Sprintf(format+"\n", v...))
 }
 
 // Info implements InfoLogger.Info
 func (dl *defaultLogger) Info(msg string) {
-	fmt.Fprint(dl.w, msg+"\n")
+	dl.writeLog("INFO", msg)
 }
 
 // Infov implements InfoLogger.Infov
 func (dl *defaultLogger) Infof(format string, v ...interface{}) {
-	fmt.Fprintf(dl.w, format+"\n", v...)
+	dl.writeLog("INFO", fmt.Sprintf(format+"\n", v...))
 }
 
 // Warn implements Logger.Warn
 func (dl *defaultLogger) Warn(msg string) {
-	fmt.Fprint(dl.w, msg+"\n")
+	dl.writeLog("WARN", msg)
 }
 
 // Warnf implements Logger.Warnf
 func (dl *defaultLogger) Warnf(format string, v ...interface{}) {
-	fmt.Fprintf(dl.w, format+"\n", v...)
+	dl.writeLog("WARN", fmt.Sprintf(format+"\n", v...))
 }
 
 // Bug is a convenience function for emitting a log message about a bug. By default
