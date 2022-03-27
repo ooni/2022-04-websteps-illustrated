@@ -13,23 +13,25 @@ import (
 )
 
 type CLI struct {
-	Address     string          `doc:"address where to listen (default: \":9876\")" short:"A"`
-	CacheDir    string          `doc:"directory where to store cache (default: empty)" short:"C"`
-	Help        bool            `doc:"prints this help message" short:"h"`
-	MostlyCache bool            `doc:"never expire cache entries and keep adding to the cache"`
-	User        string          `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
-	Verbose     getoptx.Counter `doc:"enable verbose mode" short:"v"`
+	Address             string          `doc:"address where to listen (default: \":9876\")" short:"A"`
+	CacheDir            string          `doc:"directory where to store cache (default: empty)" short:"C"`
+	CacheDisableNetwork bool            `doc:"the cache would not rely on the network to fill missing entries" short:"N"`
+	Help                bool            `doc:"prints this help message" short:"h"`
+	MostlyCache         bool            `doc:"never expire cache entries and keep adding to the cache"`
+	User                string          `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
+	Verbose             getoptx.Counter `doc:"enable verbose mode" short:"v"`
 }
 
 // getopt parses command line options.
 func getopt() *CLI {
 	opts := &CLI{
-		Address:     ":9876",
-		CacheDir:    "",
-		Help:        false,
-		MostlyCache: false,
-		User:        "nobody",
-		Verbose:     0,
+		Address:             ":9876",
+		CacheDir:            "",
+		CacheDisableNetwork: false,
+		Help:                false,
+		MostlyCache:         false,
+		User:                "nobody",
+		Verbose:             0,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -51,6 +53,7 @@ func maybeOpenCache(ctx context.Context, opts *CLI) (*measurex.Cache, context.Ca
 		return nil, cancel
 	}
 	cache := measurex.NewCache(opts.CacheDir)
+	cache.DisableNetwork = opts.CacheDisableNetwork
 	cache.StartTrimmer(ctx)
 	return cache, cancel
 }

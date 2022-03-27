@@ -16,30 +16,42 @@ package measurex
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"path"
 	"time"
 
+	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/caching"
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 )
 
 // Cache is a cache for measurex DNS and endpoint measurements.
 type Cache struct {
-	dns  *caching.FSCache
-	epnt *caching.FSCache
+	// DisableNetwork allows to disable network operations.
+	DisableNetwork bool
+
+	// DNS is a reference to the underlying DNS cache.
+	DNS *caching.FSCache
+
+	// Endpoint is a reference to the underlying endpoint cache.
+	Endpoint *caching.FSCache
 }
 
 // NewCache creates a new cache inside the given directory.
 func NewCache(dirpath string) *Cache {
 	ddp := path.Join(dirpath, "dns")
 	edp := path.Join(dirpath, "endpoint")
-	return &Cache{dns: caching.NewFSCache(ddp), epnt: caching.NewFSCache(edp)}
+	return &Cache{
+		DisableNetwork: false,
+		DNS:            caching.NewFSCache(ddp),
+		Endpoint:       caching.NewFSCache(edp),
+	}
 }
 
 // Trim removes old entries from the cache.
 func (c *Cache) Trim() {
-	c.dns.Trim()
-	c.epnt.Trim()
+	c.DNS.Trim()
+	c.Endpoint.Trim()
 }
 
 // StartTrimmer starts a background goroutine that runs until the
@@ -201,6 +213,17 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 	for _, plan := range dnsLookups {
 		meas, found := mx.cache.FindDNSLookupMeasurement(plan, mx.policy)
 		if !found {
+			if mx.cache.DisableNetwork {
+				logcat.Shrugf("measurex: cache configured not to hit the network")
+				out <- &DNSLookupMeasurement{
+					ID:               0,
+					URLMeasurementID: 0,
+					ReverseAddress:   "",
+					Lookup:           &archival.FlatDNSLookupEvent{},
+					RoundTrip:        []*archival.FlatDNSRoundTripEvent{},
+				}
+				continue
+			}
 			todo = append(todo, plan)
 			continue
 		}
@@ -261,7 +284,7 @@ func (c *Cache) StoreDNSLookupMeasurement(dlm *DNSLookupMeasurement) error {
 }
 
 func (c *Cache) readDNSLookupEntry(k string) ([]CachedDNSLookupMeasurement, bool) {
-	data, err := c.dns.Get(k)
+	data, err := c.DNS.Get(k)
 	if err != nil {
 		return nil, false
 	}
@@ -277,7 +300,7 @@ func (c *Cache) writeDNSLookupEntry(k string, o []CachedDNSLookupMeasurement) er
 	if err != nil {
 		return err
 	}
-	return c.dns.Set(k, data)
+	return c.DNS.Set(k, data)
 }
 
 func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
@@ -289,6 +312,28 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 	for _, plan := range epnts {
 		meas, found := mx.cache.FindEndpointMeasurement(plan, mx.policy)
 		if !found {
+			if mx.cache.DisableNetwork {
+				logcat.Shrugf("measurex: cache configured not to hit the network")
+				out <- &EndpointMeasurement{
+					ID:               0,
+					URLMeasurementID: 0,
+					URL:              &SimpleURL{},
+					Network:          "",
+					Address:          "",
+					Options:          &Options{},
+					OrigCookies:      []*http.Cookie{},
+					Failure:          "",
+					FailedOperation:  "",
+					NewCookies:       []*http.Cookie{},
+					Location:         &SimpleURL{},
+					HTTPTitle:        "",
+					NetworkEvent:     []*archival.FlatNetworkEvent{},
+					TCPConnect:       &archival.FlatNetworkEvent{},
+					QUICTLSHandshake: &archival.FlatQUICTLSHandshakeEvent{},
+					HTTPRoundTrip:    &archival.FlatHTTPRoundTripEvent{},
+				}
+				continue
+			}
 			todo = append(todo, plan)
 			continue
 		}
@@ -349,7 +394,7 @@ func (c *Cache) StoreEndpointMeasurement(em *EndpointMeasurement) error {
 }
 
 func (c *Cache) readEndpointEntry(k string) ([]CachedEndpointMeasurement, bool) {
-	data, err := c.epnt.Get(k)
+	data, err := c.Endpoint.Get(k)
 	if err != nil {
 		return nil, false
 	}
@@ -365,5 +410,5 @@ func (c *Cache) writeEndpointEntry(k string, o []CachedEndpointMeasurement) erro
 	if err != nil {
 		return err
 	}
-	return c.epnt.Set(k, data)
+	return c.Endpoint.Set(k, data)
 }

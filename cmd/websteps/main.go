@@ -22,6 +22,7 @@ import (
 
 type CLI struct {
 	Backend              string          `doc:"backend URL (default: use OONI backend)" short:"b"`
+	CacheDisableNetwork  bool            `doc:"caches would not rely on the network to fill missing entries" short:"N"`
 	Emoji                bool            `doc:"enable emitting messages with emojis" short:"e"`
 	Help                 bool            `doc:"prints this help message" short:"h"`
 	Input                []string        `doc:"add URL to list of URLs to crawl. You must provide input using this option or -f." short:"i"`
@@ -40,6 +41,7 @@ type CLI struct {
 func getopt() (getoptx.Parser, *CLI) {
 	opts := &CLI{
 		Backend:              "wss://0.th.ooni.org/websteps/v1/th",
+		CacheDisableNetwork:  false,
 		Emoji:                false,
 		Help:                 false,
 		Input:                []string{},
@@ -135,6 +137,7 @@ func measurexOptions(parser getoptx.Parser, opts *CLI) *measurex.Options {
 func maybeSetCaches(opts *CLI, clnt *websteps.Client) {
 	if opts.ProbeCacheDir != "" {
 		mxCache := measurex.NewCache(opts.ProbeCacheDir)
+		mxCache.DisableNetwork = opts.CacheDisableNetwork
 		clnt.MeasurerFactory = func(options *measurex.Options) (
 			measurex.AbstractMeasurer, error) {
 			library := measurex.NewDefaultLibrary()
@@ -143,6 +146,7 @@ func maybeSetCaches(opts *CLI, clnt *websteps.Client) {
 			return mx, nil
 		}
 		dnspingCache := dnsping.NewCache(opts.ProbeCacheDir)
+		dnspingCache.DisableNetwork = opts.CacheDisableNetwork
 		clnt.NewDNSPingEngine = func(
 			idgen dnsping.IDGenerator, queryTimeout time.Duration) dnsping.AbstractEngine {
 			e := dnsping.NewEngine(idgen, queryTimeout)

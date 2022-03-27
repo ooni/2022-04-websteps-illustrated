@@ -18,13 +18,20 @@ import (
 
 // Cache is a cache for dnsping measurements.
 type Cache struct {
-	dnsping *caching.FSCache
+	// DisableNetwork allows to disable network operations.
+	DisableNetwork bool
+
+	// DNSPing is a reference to the underlying cache.
+	DNSPing *caching.FSCache
 }
 
 // NewCache creates a new cache inside the given directory.
 func NewCache(dirpath string) *Cache {
 	p := path.Join(dirpath, "dnsping")
-	return &Cache{dnsping: caching.NewFSCache(p)}
+	return &Cache{
+		DisableNetwork: false,
+		DNSPing:        caching.NewFSCache(p),
+	}
 }
 
 // CachingEngine is an Engine with caching.
@@ -66,6 +73,21 @@ func (cae *CachingEngine) run(plans []*SinglePingPlan, out chan<- *Result) {
 	for _, plan := range plans {
 		ping, found := cae.cache.FindSinglePingResult(plan)
 		if !found {
+			if cae.cache.DisableNetwork {
+				logcat.Shrugf("dnsping: cache configured not to hit the network")
+				pings = append(pings, &SinglePingResult{
+					ID:              0,
+					ResolverAddress: "",
+					Delay:           0,
+					Domain:          "",
+					QueryType:       0,
+					QueryID:         0,
+					Query:           []byte{},
+					Started:         time.Time{},
+					Replies:         []*SinglePingReply{},
+				})
+				continue
+			}
 			todo = append(todo, plan)
 			continue
 		}
@@ -112,7 +134,7 @@ func (c *Cache) StoreSinglePingResult(spr *SinglePingResult) error {
 }
 
 func (c *Cache) readSinglePingEntries(k string) ([]*SinglePingResult, bool) {
-	data, err := c.dnsping.Get(k)
+	data, err := c.DNSPing.Get(k)
 	if err != nil {
 		return nil, false
 	}
@@ -128,5 +150,5 @@ func (c *Cache) writeSinglePingEntries(k string, o []*SinglePingResult) error {
 	if err != nil {
 		return err
 	}
-	return c.dnsping.Set(k, data)
+	return c.DNSPing.Set(k, data)
 }
