@@ -20,33 +20,37 @@ import (
 )
 
 type CLI struct {
-	Backend   string          `doc:"backend URL (default: use OONI backend)" short:"b"`
-	CacheDir  string          `doc:"optional directory where to store cache (default: none)" short:"C"`
-	Emoji     bool            `doc:"enable emitting messages with emojis" short:"e"`
-	Help      bool            `doc:"prints this help message" short:"h"`
-	Input     []string        `doc:"add URL to list of URLs to crawl. You must provide input using this option or -f." short:"i"`
-	InputFile []string        `doc:"add input file containing URLs to crawl. You must provide input using this option or -i." short:"f"`
-	Mode      string          `doc:"control depth versus breadth. One of: deep, default, and fast." short:"m"`
-	Output    string          `doc:"file where to write output (default: report.jsonl)" short:"o"`
-	Random    bool            `doc:"shuffle input list before running through it"`
-	Raw       bool            `doc:"emit raw websteps format rather than OONI data format"`
-	Verbose   getoptx.Counter `doc:"enable verbose mode. Use more than once for more verbosity." short:"v"`
+	Backend              string          `doc:"backend URL (default: use OONI backend)" short:"b"`
+	Emoji                bool            `doc:"enable emitting messages with emojis" short:"e"`
+	Help                 bool            `doc:"prints this help message" short:"h"`
+	Input                []string        `doc:"add URL to list of URLs to crawl. You must provide input using this option or -f." short:"i"`
+	InputFile            []string        `doc:"add input file containing URLs to crawl. You must provide input using this option or -i." short:"f"`
+	Mode                 string          `doc:"control depth versus breadth. One of: deep, default, and fast." short:"m"`
+	Output               string          `doc:"file where to write output (default: report.jsonl)" short:"o"`
+	PredictableResolvers bool            `doc:"always use the same resolver, thus producting a fully reusable probe cache" short:"P"`
+	ProbeCacheDir        string          `doc:"optional directory where the probe cache lives. This case is R/W without any pruning policy." short:"C"`
+	Random               bool            `doc:"shuffle input list before running through it"`
+	Raw                  bool            `doc:"emit raw websteps format rather than OONI data format"`
+	THCacheDir           string          `doc:"optional directory where to TH cache lives. This cache is write only. Force a local 'thd' to use it running './thd -C dir'." short:"T"`
+	Verbose              getoptx.Counter `doc:"enable verbose mode. Use more than once for more verbosity." short:"v"`
 }
 
 // getopt parses command line flags.
 func getopt() (getoptx.Parser, *CLI) {
 	opts := &CLI{
-		Backend:   "wss://0.th.ooni.org/websteps/v1/th",
-		CacheDir:  "",
-		Emoji:     false,
-		Help:      false,
-		Input:     []string{},
-		InputFile: []string{},
-		Mode:      "default",
-		Output:    "report.jsonl",
-		Random:    false,
-		Raw:       false,
-		Verbose:   0,
+		Backend:              "wss://0.th.ooni.org/websteps/v1/th",
+		Emoji:                false,
+		Help:                 false,
+		Input:                []string{},
+		InputFile:            []string{},
+		Mode:                 "default",
+		Output:               "report.jsonl",
+		PredictableResolvers: false,
+		ProbeCacheDir:        "",
+		Random:               false,
+		Raw:                  false,
+		THCacheDir:           "",
+		Verbose:              0,
 	}
 	parser := getoptx.MustNewParser(opts, getoptx.NoPositionalArguments())
 	parser.MustGetopt(os.Args)
@@ -127,9 +131,9 @@ func measurexOptions(parser getoptx.Parser, opts *CLI) *measurex.Options {
 	return clientOptions
 }
 
-func maybeSetCache(opts *CLI, clnt *websteps.Client) {
-	if opts.CacheDir != "" {
-		cache := measurex.NewCache(opts.CacheDir)
+func maybeSetCaches(opts *CLI, clnt *websteps.Client) {
+	if opts.ProbeCacheDir != "" {
+		cache := measurex.NewCache(opts.ProbeCacheDir)
 		clnt.MeasurerFactory = func(options *measurex.Options) (
 			measurex.AbstractMeasurer, error) {
 			library := measurex.NewDefaultLibrary()
@@ -137,6 +141,23 @@ func maybeSetCache(opts *CLI, clnt *websteps.Client) {
 			mx = measurex.NewCachingMeasurer(mx, cache, measurex.CachingForeverPolicy())
 			return mx, nil
 		}
+	}
+	if opts.THCacheDir != "" {
+		cache := measurex.NewCache(opts.THCacheDir)
+		clnt.THMeasurementObserver = func(m *websteps.THResponse) {
+			for _, d := range m.DNS {
+				cache.StoreDNSLookupMeasurement(d)
+			}
+			for _, e := range m.Endpoint {
+				cache.StoreEndpointMeasurement(e)
+			}
+		}
+	}
+}
+
+func maybeUsePredictableResolvers(opts *CLI, clnt *websteps.Client) {
+	if opts.PredictableResolvers {
+		clnt.Resolvers = websteps.PredictableDNSResolvers()
 	}
 }
 
@@ -149,7 +170,8 @@ func main() {
 	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), opts.Emoji)
 	clientOptions := measurexOptions(parser, opts)
 	clnt := websteps.NewClient(nil, nil, opts.Backend, clientOptions)
-	maybeSetCache(opts, clnt)
+	maybeSetCaches(opts, clnt)
+	maybeUsePredictableResolvers(opts, clnt)
 	go clnt.Loop(ctx, websteps.LoopFlagGreedy)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)

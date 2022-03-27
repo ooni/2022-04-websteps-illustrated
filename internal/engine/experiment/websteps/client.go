@@ -40,9 +40,13 @@ type TestKeysOrError struct {
 	TestKeys *TestKeys
 }
 
-// Client is the websteps client.
+// Client is the websteps client. You cannot create an instance of
+// this struct manually, because the zero type does not work out
+// of the box. You MUST use the NewClient constructor to construct
+// a valid Client and then you can modify the public fields. You
+// MUST do that before starting the client loop.
 type Client struct {
-	// Input is the channel for receiving Input.
+	// Input is the MANDATORY channel for receiving Input.
 	Input chan string
 
 	// MeasurerFactory is the OPTIONAL factory for creating
@@ -50,8 +54,18 @@ type Client struct {
 	// set it before starting any background worker.
 	MeasurerFactory MeasurerFactory
 
-	// Output is the channel for emitting measurements.
+	// Output is the MANDATORY channel for emitting measurements.
 	Output chan *TestKeysOrError
+
+	// Resolvers contains the MANDATORY Resolvers to use.
+	Resolvers []*measurex.DNSResolverInfo
+
+	// THMeasurementObserver is an OPTIONAL hook allowing
+	// the user to view/store the response from the TH.
+	//
+	// You MUST NOT modify the measurement. Doing that is
+	// most likely going to result in a data race.
+	THMeasurementObserver func(m *THResponse)
 
 	// dialerCleartext is the cleartext dialer to use.
 	dialerCleartext model.Dialer
@@ -61,9 +75,6 @@ type Client struct {
 
 	// options contains measurex options.
 	options *measurex.Options
-
-	// resolvers contains the MANDATORY resolvers to use.
-	resolvers []*measurex.DNSResolverInfo
 
 	// thURL is the base URL of the test helper.
 	thURL string
@@ -100,7 +111,7 @@ func NewClient(dialer model.Dialer, tlsDialer model.TLSDialer, thURL string,
 		options: clientOptions.Chain(&measurex.Options{
 			HTTPExtractTitle: true,
 		}),
-		resolvers: defaultResolvers(),
+		Resolvers: defaultResolvers(),
 		thURL:     thURL,
 	}
 }
@@ -273,6 +284,26 @@ func clientCandidateResolversAAAA() []*measurex.DNSResolverInfo {
 	}}
 }
 
+// PredictableDNSResolvers always returns the same list of DNS
+// resolvers. It's not recommended to use this function when running
+// websteps in production. However, having predictable resolvers
+// reduces the effort required to build a probe cache. Without forcing
+// predictable resolvers, every websteps run possibly picks different
+// random resolvers. Running websteps once does not therefore guarantee
+// that you can reuse the cache produced by such a single run from
+// another location to replicate the same measurement that generated
+// the cache. On the contrary, forcing predictable resolvers to be
+// Client.Resolvers gives you that guarantee.
+func PredictableDNSResolvers() []*measurex.DNSResolverInfo {
+	return []*measurex.DNSResolverInfo{{
+		Network: "udp",
+		Address: "8.8.8.8:53",
+	}, {
+		Network: "udp",
+		Address: "[2001:4860:4860::8888]:53",
+	}}
+}
+
 // shuffleResolversList shuffles a list of resolvers using a rand.
 func shuffleResolversList(r *rand.Rand, list []*measurex.DNSResolverInfo) {
 	r.Shuffle(len(list), func(i, j int) {
@@ -316,6 +347,9 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 		// Implementation note: the purpose of this "import" is to have
 		// timing and IDs compatible with our measurements.
 		ssm.TH = c.importTHMeasurement(mx, maybeTH.Resp, cur)
+		if c.THMeasurementObserver != nil {
+			c.THMeasurementObserver(ssm.TH)
+		}
 	}
 	ssm.DNSPing = c.waitForDNSPing(dc, pingRunning)
 	c.measureAdditionalEndpoints(ctx, mx, ssm)
@@ -355,7 +389,7 @@ func (c *Client) dnsLookup(ctx context.Context, cache *stepsCache,
 	}
 	logcat.Substepf("resolving '%s' to IP addresses", cur.Domain())
 	const flags = 0 // no extra queries
-	dnsPlans := cur.NewDNSLookupPlans(flags, c.resolvers...)
+	dnsPlans := cur.NewDNSLookupPlans(flags, c.Resolvers...)
 	for m := range mx.DNSLookups(ctx, dnsPlans...) {
 		cur.DNS = append(cur.DNS, m)
 	}

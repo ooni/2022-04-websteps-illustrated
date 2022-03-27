@@ -357,7 +357,7 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 	// 1. find the cached measurements and return them
 	var todo []*DNSLookupPlan
 	for _, plan := range dnsLookups {
-		meas, found := mx.findDNSLookupMeasurement(plan)
+		meas, found := mx.cache.FindDNSLookupMeasurement(plan, mx.policy)
 		if !found {
 			todo = append(todo, plan)
 			continue
@@ -366,7 +366,7 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 	}
 	// 2. perform non-cached measurements and store them in cache
 	for meas := range mx.measurer.DNSLookups(ctx, todo...) {
-		_ = mx.storeDNSLookupMeasurement(meas)
+		_ = mx.cache.StoreDNSLookupMeasurement(meas)
 		out <- meas
 	}
 }
@@ -377,10 +377,11 @@ type CachedDNSLookupMeasurement struct {
 	M *DNSLookupMeasurement
 }
 
-func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
-	*DNSLookupMeasurement, bool) {
+// FindDNSLookupMeasurement searches for a DNSLookupMeasurement compatible with the plan.
+func (c *Cache) FindDNSLookupMeasurement(
+	plan *DNSLookupPlan, policy CachingPolicy) (*DNSLookupMeasurement, bool) {
 	begin := time.Now()
-	elist, _ := mx.readDNSLookupEntry(plan.Domain)
+	elist, _ := c.readDNSLookupEntry(plan.Domain)
 	for _, entry := range elist {
 		if entry.M == nil {
 			continue // probably a corrupted entry
@@ -388,7 +389,7 @@ func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 		if !entry.M.CouldDeriveFrom(plan) {
 			continue // this entry has been generated from another plan
 		}
-		if mx.policy.StaleDNSLookupMeasurement(&entry) {
+		if policy.StaleDNSLookupMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
 		logcat.Cachef("cache: DNS lookup entry '%s' in %v", plan.Summary(), time.Since(begin))
@@ -397,8 +398,9 @@ func (mx *CachingMeasurer) findDNSLookupMeasurement(plan *DNSLookupPlan) (
 	return nil, false
 }
 
-func (mx *CachingMeasurer) storeDNSLookupMeasurement(dlm *DNSLookupMeasurement) error {
-	elist, _ := mx.readDNSLookupEntry(dlm.Domain())
+// StoreDNSLookupMeasurement stores the given measurement into the cache.
+func (c *Cache) StoreDNSLookupMeasurement(dlm *DNSLookupMeasurement) error {
+	elist, _ := c.readDNSLookupEntry(dlm.Domain())
 	var out []CachedDNSLookupMeasurement
 	out = append(out, CachedDNSLookupMeasurement{ // fast search: new entry at the beginning
 		T: time.Now(),
@@ -413,11 +415,11 @@ func (mx *CachingMeasurer) storeDNSLookupMeasurement(dlm *DNSLookupMeasurement) 
 		}
 		out = append(out, entry) // not a duplicate and not corrupted: keep
 	}
-	return mx.writeDNSLookupEntry(dlm.Domain(), out)
+	return c.writeDNSLookupEntry(dlm.Domain(), out)
 }
 
-func (mx *CachingMeasurer) readDNSLookupEntry(k string) ([]CachedDNSLookupMeasurement, bool) {
-	data, err := mx.cache.dns.Get(k)
+func (c *Cache) readDNSLookupEntry(k string) ([]CachedDNSLookupMeasurement, bool) {
+	data, err := c.dns.Get(k)
 	if err != nil {
 		return nil, false
 	}
@@ -428,12 +430,12 @@ func (mx *CachingMeasurer) readDNSLookupEntry(k string) ([]CachedDNSLookupMeasur
 	return elist, true
 }
 
-func (mx *CachingMeasurer) writeDNSLookupEntry(k string, o []CachedDNSLookupMeasurement) error {
+func (c *Cache) writeDNSLookupEntry(k string, o []CachedDNSLookupMeasurement) error {
 	data, err := json.Marshal(o)
 	if err != nil {
 		return err
 	}
-	return mx.cache.dns.Set(k, data)
+	return c.dns.Set(k, data)
 }
 
 func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
@@ -443,7 +445,7 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 	// 1. find the cached measurements and return them
 	var todo []*EndpointPlan
 	for _, plan := range epnts {
-		meas, found := mx.findEndpointMeasurement(plan)
+		meas, found := mx.cache.FindEndpointMeasurement(plan, mx.policy)
 		if !found {
 			todo = append(todo, plan)
 			continue
@@ -452,7 +454,7 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 	}
 	// 2. perform non-cached measurements and store them in cache
 	for meas := range mx.measurer.MeasureEndpoints(ctx, todo...) {
-		_ = mx.storeEndpointMeasurement(meas)
+		_ = mx.cache.StoreEndpointMeasurement(meas)
 		out <- meas
 	}
 }
@@ -463,10 +465,11 @@ type CachedEndpointMeasurement struct {
 	M *EndpointMeasurement
 }
 
-func (mx *CachingMeasurer) findEndpointMeasurement(
-	plan *EndpointPlan) (*EndpointMeasurement, bool) {
+// FindEndpointMeasurement finds the endpoint measurement deriving from the given plan.
+func (c *Cache) FindEndpointMeasurement(
+	plan *EndpointPlan, policy CachingPolicy) (*EndpointMeasurement, bool) {
 	begin := time.Now()
-	elist, _ := mx.readEndpointEntry(plan.Summary())
+	elist, _ := c.readEndpointEntry(plan.Summary())
 	for _, entry := range elist {
 		if entry.M == nil {
 			continue // probably a corrupted entry
@@ -474,7 +477,7 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 		if !entry.M.CouldDeriveFrom(plan) {
 			continue // this entry has been generated from another plan
 		}
-		if mx.policy.StaleEndpointMeasurement(&entry) {
+		if policy.StaleEndpointMeasurement(&entry) {
 			continue // stale entry we should eventually remove
 		}
 		logcat.Cachef("cache: endpoint entry in %v: %s", time.Since(begin), entry.M.Summary())
@@ -483,8 +486,9 @@ func (mx *CachingMeasurer) findEndpointMeasurement(
 	return nil, false
 }
 
-func (mx *CachingMeasurer) storeEndpointMeasurement(em *EndpointMeasurement) error {
-	elist, _ := mx.readEndpointEntry(em.Summary())
+// StoreEndpointMeasurement stores the given measurement in cache.
+func (c *Cache) StoreEndpointMeasurement(em *EndpointMeasurement) error {
+	elist, _ := c.readEndpointEntry(em.Summary())
 	var out []CachedEndpointMeasurement
 	out = append(out, CachedEndpointMeasurement{ // fast search: new entry at the beginning
 		T: time.Now(),
@@ -499,11 +503,11 @@ func (mx *CachingMeasurer) storeEndpointMeasurement(em *EndpointMeasurement) err
 		}
 		out = append(out, entry) // not a duplicate and not corrupted: keep
 	}
-	return mx.writeEndpointEntry(em.Summary(), out)
+	return c.writeEndpointEntry(em.Summary(), out)
 }
 
-func (mx *CachingMeasurer) readEndpointEntry(k string) ([]CachedEndpointMeasurement, bool) {
-	data, err := mx.cache.epnt.Get(k)
+func (c *Cache) readEndpointEntry(k string) ([]CachedEndpointMeasurement, bool) {
+	data, err := c.epnt.Get(k)
 	if err != nil {
 		return nil, false
 	}
@@ -514,10 +518,10 @@ func (mx *CachingMeasurer) readEndpointEntry(k string) ([]CachedEndpointMeasurem
 	return elist, true
 }
 
-func (mx *CachingMeasurer) writeEndpointEntry(k string, o []CachedEndpointMeasurement) error {
+func (c *Cache) writeEndpointEntry(k string, o []CachedEndpointMeasurement) error {
 	data, err := json.Marshal(o)
 	if err != nil {
 		return err
 	}
-	return mx.cache.epnt.Set(k, data)
+	return c.epnt.Set(k, data)
 }
