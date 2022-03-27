@@ -22,29 +22,27 @@ import (
 type CLI struct {
 	Backend   string          `doc:"backend URL (default: use OONI backend)" short:"b"`
 	CacheDir  string          `doc:"optional directory where to store cache (default: none)" short:"C"`
-	Deep      bool            `doc:"causes websteps to scan more IP addresses and follow more redirects (slower but more precise)"`
 	Emoji     bool            `doc:"enable emitting messages with emojis" short:"e"`
-	Fast      bool            `doc:"minimum crawler depth and follows as few IP addresses as possible (faster but less precise)"`
 	Help      bool            `doc:"prints this help message" short:"h"`
 	Input     []string        `doc:"add URL to list of URLs to crawl. You must provide input using this option or -f." short:"i"`
 	InputFile []string        `doc:"add input file containing URLs to crawl. You must provide input using this option or -i." short:"f"`
+	Mode      string          `doc:"control depth versus breadth. One of: deep, default, and fast." short:"m"`
 	Output    string          `doc:"file where to write output (default: report.jsonl)" short:"o"`
 	Random    bool            `doc:"shuffle input list before running through it"`
 	Raw       bool            `doc:"emit raw websteps format rather than OONI data format"`
-	Verbose   getoptx.Counter `doc:"enable verbose mode" short:"v"`
+	Verbose   getoptx.Counter `doc:"enable verbose mode. Use more than once for more verbosity." short:"v"`
 }
 
 // getopt parses command line flags.
-func getopt() *CLI {
+func getopt() (getoptx.Parser, *CLI) {
 	opts := &CLI{
 		Backend:   "wss://0.th.ooni.org/websteps/v1/th",
 		CacheDir:  "",
-		Deep:      false,
 		Emoji:     false,
-		Fast:      false,
 		Help:      false,
 		Input:     []string{},
 		InputFile: []string{},
+		Mode:      "default",
 		Output:    "report.jsonl",
 		Random:    false,
 		Raw:       false,
@@ -71,7 +69,7 @@ func getopt() *CLI {
 			opts.Input[i], opts.Input[j] = opts.Input[j], opts.Input[i]
 		})
 	}
-	return opts
+	return parser, opts
 }
 
 // readInputFiles reads the input files.
@@ -104,24 +102,27 @@ func readInputFile(filepath string) (inputs []string) {
 	return
 }
 
-func measurexOptions(opts *CLI) *measurex.Options {
+func measurexOptions(parser getoptx.Parser, opts *CLI) *measurex.Options {
 	clientOptions := &measurex.Options{
 		MaxAddressesPerFamily: measurex.DefaultMaxAddressPerFamily,
 		MaxCrawlerDepth:       measurex.DefaultMaxCrawlerDepth,
 	}
-	if opts.Deep && opts.Fast {
-		fmt.Fprintf(os.Stderr, "websteps: cannot use --deep and --fast together")
-		os.Exit(1)
-	}
-	if opts.Deep {
+	switch opts.Mode {
+	case "deep":
 		clientOptions.MaxAddressesPerFamily = 32
 		clientOptions.MaxCrawlerDepth = 11
-	} else if opts.Fast {
+	case "default":
+		// nothing to do
+	case "fast":
 		clientOptions.MaxAddressesPerFamily = 2 // less than may miss DNS censorship
 		clientOptions.MaxCrawlerDepth = 1
 		clientOptions.MaxHTTPResponseBodySnapshotSize = 1 << 10
 		clientOptions.MaxHTTPSResponseBodySnapshotSizeConnectivity = 1 << 10
 		clientOptions.MaxHTTPSResponseBodySnapshotSizeThrottling = 1 << 10
+	default:
+		fmt.Fprintf(os.Stderr, "websteps: invalid argument passed to -m, --mode flag.\n")
+		parser.PrintUsage(os.Stderr)
+		os.Exit(1)
 	}
 	return clientOptions
 }
@@ -140,13 +141,13 @@ func maybeSetCache(opts *CLI, clnt *websteps.Client) {
 }
 
 func main() {
-	opts := getopt()
+	parser, opts := getopt()
 	filep, err := os.OpenFile(opts.Output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	runtimex.Must(err, "cannot create output file")
 	begin := time.Now()
 	ctx := context.Background()
 	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout), opts.Emoji)
-	clientOptions := measurexOptions(opts)
+	clientOptions := measurexOptions(parser, opts)
 	clnt := websteps.NewClient(nil, nil, opts.Backend, clientOptions)
 	maybeSetCache(opts, clnt)
 	go clnt.Loop(ctx, websteps.LoopFlagGreedy)
