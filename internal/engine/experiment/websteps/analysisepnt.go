@@ -126,7 +126,7 @@ func analyzeSingleEndpointMeasurement(
 		}
 		// If they failed differently, for now we're going
 		// to consider this case as "meh".
-		logcat.Shrugf("[#%d] #%d, which fails with %d, is inconclusive because #%d fails with %s",
+		logcat.Shrugf("[#%d] #%d, which fails with %s, is inconclusive because #%d fails with %s",
 			score.ID, epnt.ID, epnt.Failure, otherEpnt.ID, otherEpnt.Failure)
 		score.Flags |= AnalysisInconclusive
 		return score

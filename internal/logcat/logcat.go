@@ -449,12 +449,12 @@ func Bugf(format string, value ...interface{}) {
 // should not see these messages by default unless they want more details. For this
 // reason we emit this kind of messages at the INFO level.
 func Cache(message string) {
-	Emit(INFO, CACHE, message)
+	Emit(DEBUG, CACHE, message)
 }
 
 // Cachef is like Cache but allows formatting a message.
 func Cachef(format string, value ...interface{}) {
-	Emitf(INFO, CACHE, format, value...)
+	Emitf(DEBUG, CACHE, format, value...)
 }
 
 // Shrug is a convenience function for emitting log messages detailing that something

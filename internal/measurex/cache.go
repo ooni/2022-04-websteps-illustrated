@@ -227,6 +227,9 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 			todo = append(todo, plan)
 			continue
 		}
+		meas.ID = mx.NextID()
+		logcat.Noticef("mx: import from cache: %s... %s", meas.Describe(),
+			archival.FlatFailureToStringOrOK(meas.Failure()))
 		out <- meas
 	}
 	// 2. perform non-cached measurements and store them in cache
@@ -344,6 +347,9 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 			todo = append(todo, plan)
 			continue
 		}
+		meas.ID = mx.NextID()
+		logcat.Noticef("mx: import from cache: %s... %s", meas.Describe(),
+			archival.FlatFailureToStringOrOK(meas.Failure))
 		out <- meas
 	}
 	// 2. perform non-cached measurements and store them in cache

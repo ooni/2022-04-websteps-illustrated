@@ -55,6 +55,11 @@ func NewCachingMeasurer(ae AbstractEngine, cache *Cache) *CachingEngine {
 
 var _ AbstractEngine = &CachingEngine{}
 
+// NextID implements AbstractEngine.NextID.
+func (cae *CachingEngine) NextID() int64 {
+	return cae.engine.NextID()
+}
+
 // RunAsync implements AbstractEngine.RunAsync.
 func (cae *CachingEngine) RunAsync(plans []*SinglePingPlan) <-chan *Result {
 	out := make(chan *Result)
@@ -91,6 +96,7 @@ func (cae *CachingEngine) run(plans []*SinglePingPlan, out chan<- *Result) {
 			todo = append(todo, plan)
 			continue
 		}
+		ping.ID = cae.NextID()
 		pings = append(pings, ping)
 	}
 	// 2. perform non-cached measurements and store them in cache

@@ -200,6 +200,14 @@ type Engine struct {
 type AbstractEngine interface {
 	// RunAsync behaves like Engine.RunAsync
 	RunAsync(plans []*SinglePingPlan) <-chan *Result
+
+	// NextID returns the next ID.
+	NextID() int64
+}
+
+// NextID implements AbstractEngine.NextID.
+func (e *Engine) NextID() int64 {
+	return e.IDGenerator.NextID()
 }
 
 // IDGenerator is a generic unique-IDs generator.
