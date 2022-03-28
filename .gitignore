@@ -7,6 +7,7 @@
 /dnsping
 /dnsping.exe
 /report.jsonl
+/tmp*
 /thctl
 /thctl.exe
 /thd
