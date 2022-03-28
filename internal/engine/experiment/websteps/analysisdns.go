@@ -9,6 +9,7 @@ package websteps
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
@@ -159,7 +160,8 @@ func analyzeSingleDNSLookup(mx measurex.AbstractMeasurer, lookup *measurex.DNSLo
 		// If HTTPS works with addresses in this lookup, we are most likely good.
 		if dnsAnalysisHTTPSCheck(lookup, epnts...) {
 			logcat.Celebratef(
-				"[#%d] %d is OK: its addresses work with HTTPS", score.ID, lookup.ID)
+				"[#%d] %d is OK: at least one of its addresses (%s) work with HTTPS for the probe or the TH",
+				score.ID, lookup.ID, strings.Join(lookup.Addresses(), ", "))
 			return score
 		}
 		// We cannot yet reach a conclusion, let's continue.

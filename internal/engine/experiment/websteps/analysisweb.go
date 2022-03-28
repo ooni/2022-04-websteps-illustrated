@@ -129,7 +129,8 @@ func analysisWebStatusCodeDiff(
 	match := epnt.StatusCode() == otherEpnt.StatusCode()
 	if match {
 		logcat.Infof(
-			"[#%d] status code matches for #%d and #%d", scoreID, epnt.ID, otherEpnt.ID)
+			"[#%d] status code matches for #%d and #%d: %d",
+			scoreID, epnt.ID, otherEpnt.ID, epnt.StatusCode())
 		return analysisWebMatch
 	}
 
@@ -303,16 +304,16 @@ func analysisWebHeadersDiff(
 	}
 	// if they are equal we're done
 	if good := reflect.DeepEqual(ours, theirs); good {
-		logcat.Infof("[#%d] uncommon headers are equal for #%d and #%d",
-			scoreID, epnt.ID, otherEpnt.ID)
+		logcat.Infof("[#%d] uncommon headers are equal for #%d and #%d: %+v",
+			scoreID, epnt.ID, otherEpnt.ID, matching)
 		return analysisWebMatch
 	}
 	// compute the intersection of uncommon headers
 	for _, value := range matching {
 		if (value & analysisInBoth) == analysisInBoth {
 			logcat.Infof(
-				"[#%d] uncommon headers intersection for #%d and #%d is not empty",
-				scoreID, epnt.ID, otherEpnt.ID)
+				"[#%d] uncommon headers intersection for #%d and #%d is not empty: %+v",
+				scoreID, epnt.ID, otherEpnt.ID, matching)
 			return analysisWebMatch
 		}
 	}

@@ -68,9 +68,6 @@ func analysisDNSDiffCheck(scoreID int64, lookup,
 // addresses returned by lookup and the ones returned by peerLookup.
 func analysisDNSDiffHasOverlappingAddrs(
 	scoreID int64, lookup, peerLookup *measurex.DNSLookupMeasurement) bool {
-	logcat.Infof(
-		"[#%d] checking whether #%d and #%d have overlapping IP addresses",
-		scoreID, lookup.ID, peerLookup.ID)
 	ipmap := make(map[string]int)
 	for _, addr := range lookup.Addresses() {
 		ipmap[addr] |= analysisInMeasurement
@@ -86,6 +83,9 @@ func analysisDNSDiffHasOverlappingAddrs(
 			return true
 		}
 	}
+	logcat.Infof(
+		"[#%d] #%d and #%d do not have overlapping IP addresses: %+v and %+v",
+		scoreID, lookup.ID, peerLookup.ID, lookup.Addresses(), peerLookup.Addresses())
 	return false
 }
 
@@ -98,9 +98,6 @@ func analysisDNSHasOverlappingReverseLookups(
 	otherLookups []*measurex.DNSLookupMeasurement) bool {
 
 	// 2.1. map every IP address to the known public suffixes for it
-	logcat.Infof(
-		"[#%d] checking whether #%d and #%d have overlapping reverse lookups",
-		scoreID, lookup.ID, peerLookup.ID)
 	suffixes := make(map[string][]string)
 	for _, dns := range otherLookups {
 		if dns.LookupType() != archival.DNSLookupTypeReverse {
@@ -140,6 +137,9 @@ func analysisDNSHasOverlappingReverseLookups(
 		}
 	}
 
+	logcat.Infof(
+		"[#%d] #%d and #%d do not have have overlapping reverse lookups: %+v",
+		scoreID, lookup.ID, peerLookup.ID, suffmap)
 	return false
 }
 
@@ -148,8 +148,6 @@ func analysisDNSHasOverlappingReverseLookups(
 // returned by peerLookup. We use the bundled ASN database for that.
 func analysisDNSHasOverlappingANSs(
 	scoreID int64, lookup, peerLookup *measurex.DNSLookupMeasurement) bool {
-	logcat.Infof("[#%d] checking whether #%d and #%d have overlapping ASNs",
-		scoreID, lookup.ID, peerLookup.ID)
 	asnmap := make(map[uint]int64)
 	for _, addr := range lookup.Addresses() {
 		if asnum := analysisMapAddrToASN(addr); asnum != 0 {
@@ -168,5 +166,7 @@ func analysisDNSHasOverlappingANSs(
 			return true
 		}
 	}
+	logcat.Infof("[#%d] #%d and #%d have overlapping ASNs: %+v",
+		scoreID, lookup.ID, peerLookup.ID, asnmap)
 	return false
 }

@@ -101,7 +101,9 @@ func analyzeSingleEndpointMeasurement(
 	// Special case: if we are using HTTPS (or HTTP3) and we
 	// succeded, then we're most likely okay, modulo sanctions.
 	if epnt.Failure == "" && epnt.Scheme() == "https" {
-		logcat.Celebratef("[#%d] #%d is accessible because it works with HTTPS", score.ID, epnt.ID)
+		logcat.Celebratef(
+			"[#%d] #%d is accessible because it works with HTTPS for the probe",
+			score.ID, epnt.ID)
 		return score
 	}
 
