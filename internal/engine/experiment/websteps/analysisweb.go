@@ -318,7 +318,7 @@ func analysisWebHeadersDiff(
 		}
 	}
 	logcat.Infof(
-		"[#%d] uncommon headers intersection for #%d and #%d is empty",
+		"[#%d] uncommon headers intersection unexpectedly empty for #%d and #%d",
 		scoreID, epnt.ID, otherEpnt.ID)
 	return analysisWebDiff
 }
