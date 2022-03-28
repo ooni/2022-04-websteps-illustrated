@@ -37,15 +37,7 @@ func (ssm *SingleStepMeasurement) analyzeTHResults(
 		return
 	}
 
-	// 3. log useful information
-	for _, e := range probeSet {
-		logcat.Infof("inside IP-resolved-by-probe set: %s", e.Describe())
-	}
-	for _, e := range thSet {
-		logcat.Infof("inside IP-resolved-by-TH set: %s", e.Describe())
-	}
-
-	// 4. perform cross comparison proper
+	// 3. perform cross comparison proper
 	for _, epnt := range probeSet {
 		logcat.Infof("considering %s in the IP-resolved-by-probe set", epnt.Describe())
 		if epnt.Failure != "" {
@@ -78,7 +70,7 @@ func (ssm *SingleStepMeasurement) analyzeTHResults(
 		}
 	}
 
-	// 5. remove unflagged results and return
+	// 4. remove unflagged results and return
 	return endpointAnalysisRemoveUnflaggedResults(out)
 }
 
@@ -107,8 +99,10 @@ func analysisTHPartitionResults(
 			continue
 		}
 		if _, found := probeAddrs[ipAddr]; found {
+			logcat.Infof("inside IP-resolved-by-probe set: %s", e.Describe())
 			probeSet = append(probeSet, e)
 		} else {
+			logcat.Infof("inside IP-resolved-by-TH set: %s", e.Describe())
 			thSet = append(thSet, e)
 		}
 	}
