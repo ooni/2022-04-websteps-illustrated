@@ -396,9 +396,9 @@ const logformat = "2006-01-02T15:04:05.999999999Z07:00"
 func (dl *defaultLogger) writeLog(level, msg string) {
 	var s string
 	if (dl.f & DefaultLoggerWriteTimestamps) == 0 {
-		s = fmt.Sprintf("[%14.6f] <%s> %s\n", time.Since(dl.t).Seconds(), level, msg)
+		s = fmt.Sprintf("[%14.6f] %8s: %s\n", time.Since(dl.t).Seconds(), level, msg)
 	} else {
-		s = fmt.Sprintf("[%s] <%s> %s\n", time.Now().Format(logformat), level, msg)
+		s = fmt.Sprintf("[%s] %8s: %s\n", time.Now().Format(logformat), level, msg)
 	}
 	fmt.Fprint(dl.w, s)
 }
