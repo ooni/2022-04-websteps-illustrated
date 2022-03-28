@@ -378,7 +378,7 @@ func (ua *URLAddress) AlreadyTestedHTTP3() bool {
 // return value indicates whether we have at least one IP address in the result.
 func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 	endpoint []*EndpointMeasurement) ([]*URLAddress, bool) {
-	uniq := make(map[string]int64)
+	uniq := newOrderedMapStringToFlags()
 	// 1. start searching into the DNS lookup results.
 	for _, dns := range dns {
 		if domain != dns.Domain() {
@@ -397,7 +397,7 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 				logcat.Bugf("[mx] NewURLAddressList: cannot parse IP: %s", addr)
 				continue
 			}
-			uniq[addr] |= flags
+			uniq.bitwiseOrForKey(addr, flags)
 		}
 	}
 	// 2. continue searching into HTTP responses.
@@ -412,26 +412,26 @@ func NewURLAddressList(ID int64, domain string, dns []*DNSLookupMeasurement,
 			continue
 		}
 		if epnt.IsHTTPMeasurement() {
-			uniq[ipAddr] |= URLAddressAlreadyTestedHTTP
+			uniq.bitwiseOrForKey(ipAddr, URLAddressAlreadyTestedHTTP)
 		}
 		if epnt.IsHTTPSMeasurement() {
-			uniq[ipAddr] |= URLAddressAlreadyTestedHTTPS
+			uniq.bitwiseOrForKey(ipAddr, URLAddressAlreadyTestedHTTPS)
 		}
 		if epnt.IsHTTP3Measurement() {
-			uniq[ipAddr] |= URLAddressAlreadyTestedHTTP3
+			uniq.bitwiseOrForKey(ipAddr, URLAddressAlreadyTestedHTTP3)
 		}
 		if epnt.SupportsAltSvcHTTP3() {
-			uniq[ipAddr] |= URLAddressSupportsHTTP3
+			uniq.bitwiseOrForKey(ipAddr, URLAddressSupportsHTTP3)
 		}
 	}
 	// 3. finally build the result.
 	out := make([]*URLAddress, 0, 8)
-	for addr, flags := range uniq {
+	for _, addr := range uniq.orderedKeys() {
 		out = append(out, &URLAddress{
 			URLMeasurementID: ID,
 			Address:          addr,
 			Domain:           domain,
-			Flags:            flags,
+			Flags:            uniq.get(addr),
 		})
 	}
 	// 4. rearrange and return

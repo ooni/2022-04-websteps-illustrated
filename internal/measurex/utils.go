@@ -158,3 +158,43 @@ func ParseCookies(cookie ...string) []*http.Cookie {
 	r := &http.Response{Header: header}
 	return r.Cookies()
 }
+
+// orderedMapStringToFlags is an ordered map where the keys are strings
+// and the values are int64 flags. We use this map implementation in
+// NewURLAddressList to guarantee a predictable order of the returned
+// address list, which otherwise is random. This extra randomness isn't
+// bad in general but breaks predictable cache-based reruns.
+type orderdedMapStringToFlags struct {
+	flags map[string]int64
+	keys  []string
+}
+
+// newOrderedMapStringToFlags creates a new instance.
+func newOrderedMapStringToFlags() *orderdedMapStringToFlags {
+	return &orderdedMapStringToFlags{
+		flags: map[string]int64{},
+		keys:  []string{},
+	}
+}
+
+// bitwiseOrForKey performs a bitwise or of the given flags and the
+// current flags for the given key. If the key does not already exist,
+// this function creates a new entry for the given key with the
+// provided flags at the value associated to the key.
+func (om *orderdedMapStringToFlags) bitwiseOrForKey(key string, flags int64) {
+	if _, found := om.flags[key]; !found {
+		om.flags[key] = 0
+		om.keys = append(om.keys, key)
+	}
+	om.flags[key] |= flags
+}
+
+// orderedKeys returns the sequence of ordered keys.
+func (om *orderdedMapStringToFlags) orderedKeys() []string {
+	return om.keys
+}
+
+// get returns the element with the given key, or zero if not found.
+func (om *orderdedMapStringToFlags) get(key string) int64 {
+	return om.flags[key]
+}
