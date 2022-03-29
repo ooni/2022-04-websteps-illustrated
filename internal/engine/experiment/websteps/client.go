@@ -119,11 +119,9 @@ func NewClient(dialer model.Dialer, tlsDialer model.TLSDialer, thURL string,
 		Output:          make(chan *TestKeysOrError),
 		dialerCleartext: dialer,
 		dialerTLS:       tlsDialer,
-		options: clientOptions.Chain(&measurex.Options{
-			HTTPExtractTitle: true,
-		}),
-		Resolvers: defaultResolvers(),
-		thURL:     thURL,
+		options:         clientOptions,
+		Resolvers:       defaultResolvers(),
+		thURL:           thURL,
 	}
 }
 

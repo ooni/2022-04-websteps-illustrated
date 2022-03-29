@@ -788,15 +788,12 @@ func (thr *THRequestHandler) fillOrRejectOptions(
 		// options for which the defaults are not good enough
 		MaxAddressesPerFamily: 32,
 		// options for which we use clients settings if they're okay
-		HTTPExtractTitle:                             false,
 		HTTPRequestHeaders:                           map[string][]string{},
 		DoNotInitiallyForceHTTPAndHTTPS:              false,
 		MaxHTTPResponseBodySnapshotSize:              0,
 		MaxHTTPSResponseBodySnapshotSizeConnectivity: 0,
 		MaxHTTPSResponseBodySnapshotSizeThrottling:   0,
 	}
-	// 0. HTTPExtractTitle
-	tho.HTTPExtractTitle = clnto.HTTPExtractTitle
 	// 1. HTTPRequestHeaders
 	copiedHeaders := []string{
 		"Accept",
