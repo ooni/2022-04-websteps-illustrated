@@ -1,4 +1,5 @@
 .DS_Store
+/*.tar.gz
 /crawler
 /crawler.exe
 /crawler.jsonl
@@ -7,11 +8,11 @@
 /dnsping
 /dnsping.exe
 /report.jsonl
-/tmp*
 /thctl
 /thctl.exe
 /thd
 /thd.exe
+/tmp*
 /websteps
 /websteps.exe
 __pycache__
