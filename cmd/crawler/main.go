@@ -81,7 +81,6 @@ func newMeasurer(opts *CLI) measurex.AbstractMeasurer {
 	library := measurex.NewDefaultLibrary()
 	mx := measurex.NewMeasurer(library)
 	mx.Options = &measurex.Options{
-		HTTPExtractTitle:                             true,
 		HTTPHostHeader:                               opts.HostHeader,
 		MaxAddressesPerFamily:                        32,
 		MaxCrawlerDepth:                              16,

@@ -350,7 +350,6 @@ func endpointSummary(URL *SimpleURL, network archival.NetworkType,
 	// ao is a shortcut to write less :^)
 	ao := endpointDumpOption
 	d = append(d, ao("alpn", o.alpn()))
-	d = append(d, ao("http_extract_title", o.httpExtractTitle()))
 	d = append(d, ao("http_host_header", o.httpHostHeader()))
 	d = append(d, ao("http_request_headers", stablerepr(o.httpClonedRequestHeaders())))
 	d = append(d, ao("max_http_response_body_snapshot_size", o.maxHTTPResponseBodySnapshotSize()))
@@ -572,9 +571,7 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 	}
 	if len(trace.HTTPRoundTrip) == 1 {
 		out.HTTPRoundTrip = trace.HTTPRoundTrip[0]
-		if epnt.Options.httpExtractTitle() {
-			out.HTTPTitle = GetWebPageTitle(out.HTTPRoundTrip.ResponseBody)
-		}
+		out.HTTPTitle = GetWebPageTitle(out.HTTPRoundTrip.ResponseBody)
 	}
 
 	if len(trace.QUICTLSHandshake) > 1 {

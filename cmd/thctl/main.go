@@ -57,7 +57,6 @@ func newRequest(opts *CLI) *websteps.THRequest {
 		URL: opts.Input,
 		Options: &measurex.Options{
 			DoNotInitiallyForceHTTPAndHTTPS: !opts.Both,
-			HTTPExtractTitle:                true,
 		},
 		Plan: []websteps.THRequestEndpointPlan{},
 	}
