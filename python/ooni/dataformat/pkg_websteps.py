@@ -47,14 +47,14 @@ WEBSTEPS_FLAGS: List[Tuple[int, str]] = [
     (1 << 15, "#httpTimeout"),
     (1 << 16, "#httpReset"),
     (1 << 17, "#httpEOF"),
-    (1 << 18, "#inconclusive"),
-    (1 << 19, "#probeBug"),
-    (1 << 24, "#httpDiffStatusCode"),
-    (1 << 25, "#httpDiffTitle"),
-    (1 << 26, "#httpDiffHeaders"),
-    (1 << 27, "#httpDiffBodyLength"),
-    (1 << 28, "#httpDiffLegitimateRedirect"),
-    (1 << 28, "#httpDiffTransparentProxy"),
+    (1 << 32, "#inconclusive"),
+    (1 << 33, "#probeBug"),
+    (1 << 34, "#httpDiffStatusCode"),
+    (1 << 35, "#httpDiffTitle"),
+    (1 << 36, "#httpDiffHeaders"),
+    (1 << 37, "#httpDiffBodyLength"),
+    (1 << 38, "#httpDiffLegitimateRedirect"),
+    (1 << 39, "#httpDiffTransparentProxy"),
 ]
 
 

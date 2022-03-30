@@ -201,7 +201,7 @@ func (c *Client) steps(ctx context.Context, input string, flags int64) {
 		tkoe.TestKeys.Steps = append(tkoe.TestKeys.Steps, ssm)
 		q.Append(redirects...)
 		ssm.Flags = ssm.aggregateFlags()
-		if ssm.Flags != 0 && (flags&LoopFlagGreedy) != 0 {
+		if AnalysisFlagsContainAnomalies(ssm.Flags) && (flags&LoopFlagGreedy) != 0 {
 			logcat.Notice("greedy mode: stop as soon as we see anomalies")
 			break
 		}
@@ -368,7 +368,6 @@ func (c *Client) step(ctx context.Context, cache *stepsCache,
 	ssm.Analysis.DNS = ssm.dnsAnalysis(mx)
 	ssm.Analysis.Endpoint = ssm.endpointAnalysis(mx)
 	ssm.Analysis.TH = ssm.analyzeTHResults(mx)
-	ssm.analysisClearInternalFlags()
 	// TODO(bassosimone): run follow-up experiments (e.g., SNI blocking)
 	return ssm
 }
