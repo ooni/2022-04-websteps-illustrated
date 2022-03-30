@@ -11,6 +11,7 @@ package netxlite
 import (
 	"net"
 
+	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
@@ -18,7 +19,7 @@ import (
 // function a non-IP address causes it to return true.
 func IsBogon(address string) bool {
 	ip := net.ParseIP(address)
-	return ip == nil || isPrivate(ip)
+	return ip == nil || isPrivate(address, ip)
 }
 
 // IsLoopback returns whether an IP address is loopback. Passing to this
@@ -28,27 +29,46 @@ func IsLoopback(address string) bool {
 	return ip == nil || ip.IsLoopback()
 }
 
-var privateIPBlocks []*net.IPNet
+var (
+	bogons4 []*net.IPNet
+	bogons6 []*net.IPNet
+)
+
+func expandbogons(cidrs []string) (out []*net.IPNet) {
+	for _, cidr := range cidrs {
+		_, block, err := net.ParseCIDR(cidr)
+		runtimex.PanicOnError(err, "net.ParseCIDR failed")
+		out = append(out, block)
+	}
+	return
+}
 
 func init() {
-	// List extracted from https://ipinfo.io/bogon
-	for _, cidr := range []string{
-		"0.0.0.0/8",             // "This" network
-		"10.0.0.0/8",            // Private-use networks
-		"100.64.0.0/10",         // Carrier-grade NAT
-		"127.0.0.0/8",           // Loopback
-		"127.0.53.53/32",        // Name collision occurrence
-		"169.254.0.0/16",        // Link local
-		"172.16.0.0/12",         // Private-use networks
-		"192.0.0.0/24",          // IETF protocol assignments
-		"192.0.2.0/24",          // TEST-NET-1
-		"192.168.0.0/16",        // Private-use networks
-		"198.18.0.0/15",         // Network interconnect device benchmark testing
-		"198.51.100.0/24",       // TEST-NET-2
-		"203.0.113.0/24",        // TEST-NET-3
-		"224.0.0.0/4",           // Multicast
-		"240.0.0.0/4",           // Reserved for future use
-		"255.255.255.255/32",    // Limited broadcast
+	bogons4 = append(bogons4, expandbogons([]string{
+		//
+		// List extracted from https://ipinfo.io/bogon
+		//
+		"0.0.0.0/8",          // "This" network
+		"10.0.0.0/8",         // Private-use networks
+		"100.64.0.0/10",      // Carrier-grade NAT
+		"127.0.0.0/8",        // Loopback
+		"127.0.53.53/32",     // Name collision occurrence
+		"169.254.0.0/16",     // Link local
+		"172.16.0.0/12",      // Private-use networks
+		"192.0.0.0/24",       // IETF protocol assignments
+		"192.0.2.0/24",       // TEST-NET-1
+		"192.168.0.0/16",     // Private-use networks
+		"198.18.0.0/15",      // Network interconnect device benchmark testing
+		"198.51.100.0/24",    // TEST-NET-2
+		"203.0.113.0/24",     // TEST-NET-3
+		"224.0.0.0/4",        // Multicast
+		"240.0.0.0/4",        // Reserved for future use
+		"255.255.255.255/32", // Limited broadcast
+	})...)
+	bogons6 = append(bogons6, expandbogons([]string{
+		//
+		// List extracted from https://ipinfo.io/bogon
+		//
 		"::/128",                // Node-scope unicast unspecified address
 		"::1/128",               // Node-scope unicast loopback address
 		"::ffff:0:0/96",         // IPv4-mapped addresses
@@ -88,19 +108,24 @@ func init() {
 		"2001:0:e000::/36",      // Teredo bogon (224.0.0.0/4)
 		"2001:0:f000::/36",      // Teredo bogon (240.0.0.0/4)
 		"2001:0:ffff:ffff::/64", // Teredo bogon (255.255.255.255/32)
-	} {
-		_, block, err := net.ParseCIDR(cidr)
-		runtimex.PanicOnError(err, "net.ParseCIDR failed")
-		privateIPBlocks = append(privateIPBlocks, block)
-	}
+	})...)
 }
 
-func isPrivate(ip net.IP) bool {
+func isPrivate(address string, ip net.IP) bool {
 	if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() {
 		return true
 	}
-	for _, block := range privateIPBlocks {
+	var bogons []*net.IPNet
+	if isIPv6(address) {
+		bogons = bogons6
+	} else {
+		bogons = bogons4
+	}
+	for idx, block := range bogons {
 		if block.Contains(ip) {
+			logcat.Unexpectedf(
+				"%s is a bogon because is inside %s with index %d",
+				ip.String(), block.String(), idx)
 			return true
 		}
 	}
