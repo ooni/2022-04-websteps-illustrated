@@ -7,6 +7,8 @@ package websteps
 //
 
 import (
+	"net/http"
+
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 )
@@ -87,15 +89,18 @@ func analysisRedirectTransparentProxyCheck(
 // redirects to cn.bing.com, but only if you're in China. So, if we notice
 // that this is the case, we return true, otherwise we return false.
 //
+// For this condition to match, the left endpoint must be a redirect
+// while the right endpoint must be 200 Ok.
+//
 // Note: on a purely speculative level, a censor could bypass this check
 // by redirecting users to 404 pages of the censored website and we would
 // not detect that. But AFAIK this does not happen and TBH I prefer to
 // have a bit more false negatives than false positives.
 func analysisRedirectLegitimateRedirect(
-	scoreID int64, epnt *measurex.EndpointMeasurement) bool {
-	if epnt.SeemsLegitimateRedirect() {
+	scoreID int64, left, right *measurex.EndpointMeasurement) bool {
+	if left.SeemsLegitimateRedirect() && right.StatusCode() == http.StatusOK {
 		logcat.Emitf(logcat.NOTICE, logcat.SHRUG, "[#%d] however #%d seems a legitimate redirect %s",
-			scoreID, epnt.ID, "so, we're going to treat it as such, not as #httpDiff")
+			scoreID, left.ID, "so, we're going to treat it as such, not as #httpDiff")
 		return true
 	}
 	return false

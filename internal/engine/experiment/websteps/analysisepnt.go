@@ -248,11 +248,11 @@ func analyzeSingleEndpointMeasurement(
 			score.Flags |= AnalysisHTTPDiffTransparentProxy
 			return score
 		}
-		if analysisRedirectLegitimateRedirect(score.ID, epnt) {
+		if analysisRedirectLegitimateRedirect(score.ID, epnt, otherEpnt) {
 			score.Flags |= AnalysisHTTPDiffLegitimateRedirect
 			return score
 		}
-		if analysisRedirectLegitimateRedirect(score.ID, otherEpnt) {
+		if analysisRedirectLegitimateRedirect(score.ID, otherEpnt, epnt) {
 			score.Flags |= AnalysisHTTPDiffLegitimateRedirect
 			return score
 		}
