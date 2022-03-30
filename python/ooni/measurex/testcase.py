@@ -47,6 +47,10 @@ from ..dataformat.typecast import (
     StrWrapper,
 )
 
+from ..tabulatex import (
+    Tabular,
+)
+
 from .decode import (
     decode_and_print_dns,
     decode_and_print_endpoint,
@@ -167,45 +171,6 @@ def import_from_tarball(destdir: str, filename: str) -> str:
 # Implements loading from YAML files.
 #
 
-
-class Tabular:
-    """Tabular contains tabular data. This class is ideal for being used
-    along with the tabulate package for producing tables."""
-
-    def __init__(self):
-        self._columns: List[str] = []
-        self._rows: List[List[Any]] = []
-
-    def columns(self) -> List[str]:
-        """Returns the table columns"""
-        return self._columns
-
-    def rows(self) -> List[Any]:
-        """Returns the table rows"""
-        return self._rows
-
-    @staticmethod
-    def create(pairs: List[Tuple[str, Any]]) -> Tabular:
-        tab = Tabular()
-        row: List[Any] = []
-        for key, val in pairs:
-            tab._columns.append(key)
-            row.append(val)
-        tab._rows.append(row)
-        return tab
-
-    def append(self, tab: Tabular):
-        """Appends the given tabular to the current tabular, if the
-        columns are compatible, otherwise raise TypeError."""
-        if not tab.columns:
-            return
-        if not self._columns:
-            self._columns = tab._columns
-            self._rows = tab._rows
-            return
-        if self._columns != tab._columns:
-            raise TypeError("incompatible columns")
-        self._rows.extend(tab._rows)
 
 
 class Manifest:

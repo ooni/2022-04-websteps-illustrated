@@ -17,7 +17,6 @@ import sys
 from typing import (
     Set,
 )
-import tabulate
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 from ooni.measurex import (
@@ -34,7 +33,6 @@ from ooni.measurex import (
 def new_tempdir():
     """Creates a new temporary directory."""
     return tempfile.mkdtemp(dir=".")
-
 
 
 #
@@ -98,13 +96,7 @@ def sh_list_run(args: argparse.Namespace):
         elif filename.endswith(".yaml"):
             with testcase.load(filename) as tc:
                 tab.append(tc.manifest().as_tabular())
-    print(
-        tabulate.tabulate(
-            sorted(tab.rows(), key=lambda x: x[0]),
-            headers=tab.columns(),
-            tablefmt="grid",
-        )
-    )
+    print(tab.tabulatex(format=args.format, sortkey=lambda x: x[0]))
 
 
 def sh_list_configure(apa: argparse.ArgumentParser):
@@ -113,6 +105,11 @@ def sh_list_configure(apa: argparse.ArgumentParser):
         "file",
         help="one or more test cases to list",
         nargs="+",
+    )
+    apa.add_argument(
+        "--format",
+        help="choose the format (e.g., grid, github, html, ...)",
+        default="grid",
     )
     apa.set_defaults(func=sh_list_run)
 
@@ -134,15 +131,9 @@ def sh_show_run(args: argparse.Namespace):
         with testcase.load(filename) as tc:
             cache = tc.cache()
             dns = cache.dns_measurements_as_tabular()
-            print(tabulate.tabulate(dns.rows(), headers=dns.columns(), tablefmt="grid"))
+            print(dns.tabulatex(format=args.format))
             epnt = cache.endpoint_measurements_as_tabular()
-            print(
-                tabulate.tabulate(
-                    sorted(epnt.rows(), key=lambda x: x[4]),
-                    headers=epnt.columns(),
-                    tablefmt="grid",
-                )
-            )
+            print(epnt.tabulatex(format=args.format, sortkey=lambda x: x[4]))
 
 
 def sh_show_configure(apa: argparse.ArgumentParser):
@@ -151,6 +142,11 @@ def sh_show_configure(apa: argparse.ArgumentParser):
         "file",
         help="test case in yaml format to show",
         nargs=1,
+    )
+    apa.add_argument(
+        "--format",
+        help="choose the format (e.g., grid, github, html, ...)",
+        default="grid",
     )
     apa.set_defaults(func=sh_show_run)
 
@@ -292,6 +288,7 @@ def sh_rerun_configure(apa: argparse.ArgumentParser):
         nargs=1,
     )
     apa.set_defaults(func=sh_rerun_run)
+
 
 #
 # Main
