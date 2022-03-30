@@ -341,15 +341,10 @@ class Entry:
         self._filename = filepath
         self._time = data.getstring("T")
         self._measurement = self._load_entry(filepath, data.getdictionary("M"))
-        self._raw = data
 
     def filename(self) -> str:
         """Returns the filename of this entry."""
         return self._filename
-
-    def as_original_dict(self) -> Dict:
-        """Returns the entry as the original dict that generated it."""
-        return self._raw.unwrap()
 
     def as_tabular(self) -> Tabular:
         """Convenience function for converting to tabular."""
@@ -389,14 +384,22 @@ class Cache:
 
     def __init__(self, data: DictWrapper):
         self._cache: Dict[str, List[Entry]] = {}
+        self._raw: Dict[str, List] = {}
         for key in data.unwrap():
             filename = StrWrapper(key).unwrap()
             if not _CACHE_ENTRY_PATTERN.match(filename):
                 logging.warning(f"Cache: invalid filename: {filename}")
                 continue
-            for entry in data.getlist(key):
+            rawlist = data.getlist(key)
+            self._raw[key] = rawlist
+            for entry in rawlist:
                 self._cache.setdefault(filename, [])
                 self._cache[filename].append(Entry(filename, DictWrapper(entry)))
+
+    def raw_entries(self) -> Iterator[Tuple[str, List]]:
+        """Yields all the raw entries that produced this cache."""
+        for filename, raw_entry in self._raw.items():
+            yield filename, raw_entry
 
     def entries(self) -> Iterator[Tuple[str, Entry]]:
         """Yields all the cache entries"""

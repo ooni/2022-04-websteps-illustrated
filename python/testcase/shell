@@ -206,7 +206,7 @@ def sh_decode_configure(apa: argparse.ArgumentParser):
 
 def sh_rerun_write_cache_into(basedir: str, cache: testcase.Cache):
     """Writes the cache into the given basedir."""
-    for key, value in cache.entries():
+    for key, value in cache.raw_entries():
         dirname = os.path.join(basedir, os.path.dirname(key))
         os.makedirs(dirname, exist_ok=True)
         fullname = os.path.join(basedir, key)
@@ -245,7 +245,7 @@ def sh_rerun_run_probe(emoji: bool, basedir: str, target_url: str):
         os.path.join(basedir, "probe-log.txt"),
         "-No",
         os.path.join(basedir, "report.jsonl"),
-        "-Pvvv",
+        "-Pv",
     ]
     if emoji:
         argv.append("-e")
