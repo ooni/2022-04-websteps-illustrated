@@ -78,6 +78,14 @@ func analyzeSingleEndpointMeasurement(
 		Flags:            0,
 	}
 
+	logcat.Infof("[#%d] analyzing #%d: %s", score.ID, epnt.ID, epnt.Summary())
+
+	if epnt.ID <= 0 {
+		logcat.Bugf("[#%d] endpoint with ID <= 0: %+v", score.ID, epnt)
+		score.Flags |= AnalysisProbeBug
+		return score
+	}
+
 	// Corner case: when you don't have IPv6 support, you fail with
 	// "host unreachable" or "net unreachable". Because these kind of
 	// errors are not _widely_ used for censorship, our heuristic

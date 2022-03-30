@@ -57,6 +57,10 @@ func (ssm *SingleStepMeasurement) analyzeTHResults(
 	// 5. perform cross comparison proper
 	for _, epnt := range probeSet {
 		logcat.Infof("considering %s in the IP-resolved-by-probe set", epnt.Describe())
+		if epnt.ID <= 0 {
+			logcat.Bugf("skipping endpoint with ID <= 0: %+v", epnt)
+			continue
+		}
 		if epnt.Failure != "" {
 			logcat.Infof("skipping %s because it failed", epnt.Describe())
 			continue
@@ -67,6 +71,10 @@ func (ssm *SingleStepMeasurement) analyzeTHResults(
 		}
 		for _, otherEpnt := range thSet {
 			logcat.Infof("considering %s in the IP-resolved-by-TH set", otherEpnt.Describe())
+			if otherEpnt.ID <= 0 {
+				logcat.Bugf("skipping endpoint with ID <= 0: %+v", otherEpnt)
+				continue
+			}
 			if otherEpnt.Failure != "" {
 				logcat.Infof("skipping %s because it failed", otherEpnt.Describe())
 				continue

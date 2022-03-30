@@ -112,6 +112,12 @@ func analyzeSingleDNSLookup(mx measurex.AbstractMeasurer, lookup *measurex.DNSLo
 
 	logcat.Infof("[#%d] analyzing #%d: %s", score.ID, lookup.ID, lookup.Summary())
 
+	if lookup.ID <= 0 {
+		logcat.Bugf("[#%d] lookup with ID <= 0: %+v", score.ID, lookup)
+		score.Flags |= AnalysisProbeBug
+		return score
+	}
+
 	// Ensure that we're using a getaddrinfo or HTTPS-kind lookup. All the other kind
 	// of lookups are not actionable by this analysis function.
 	switch v := lookup.LookupType(); v {
