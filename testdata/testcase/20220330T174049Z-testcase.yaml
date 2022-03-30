@@ -1,0 +1,1359 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmp49jtkpkj/cache/probe
+- --th-cache-dir
+- ./tmp49jtkpkj/cache/th
+- --output
+- ./tmp_anhqnf_/report.jsonl
+- --logfile
+- ./tmp_anhqnf_/log.txt
+- --input
+- https://www.securityinabox.org/
+- --emoji
+created: 20220330T174049Z
+description: '#bogon #httpReset'
+imported: 20220330T174459Z
+probe_asn: AS45090
+probe_cc: CN
+url: https://www.securityinabox.org/
+...
+---
+testcase/cache/probe/dns/84/84d9cad0fa9c56077fb8ba3e4fd4688c3ddee4723b38108f9caaa4dfb434c396-d:
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 103.200.31.172
+      - 2001::b93c:db24
+      Domain: www.securityinabox.org
+      Finished: '2022-03-31T01:40:49.732955642+08:00'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T01:40:49.689397228+08:00'
+    RoundTrip:
+    - Finished: '2022-03-31T01:40:49.732948719+08:00'
+      Query: i9cBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAP8AAQ==
+      Reply: i9eBgAABAAIAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAP8AAcAMAAEAAQAAAAAABGfIH6zADAAcAAEAAAAAABAgAQAAAAAAAAAAAAC5PNsk
+      ResolverNetwork: system
+      Started: '2022-03-31T01:40:49.68940384+08:00'
+  T: '2022-03-31T01:40:49.733214527+08:00'
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 2001::6761:313
+      - 208.77.47.172
+      Domain: www.securityinabox.org
+      Finished: '2022-03-31T01:40:49.71694524+08:00'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:40:49.689178688+08:00'
+    RoundTrip:
+    - Finished: '2022-03-31T01:40:49.716488584+08:00'
+      Query: BnIBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAQ==
+      Reply: BnKBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAOsAECABAAAAAAAAAAAAAGdhAxM=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:40:49.689205238+08:00'
+    - Finished: '2022-03-31T01:40:49.716938518+08:00'
+      Query: J94BAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAQ==
+      Reply: J96BgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAAFgABNBNL6w=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:40:49.689301438+08:00'
+  T: '2022-03-31T01:40:49.717165183+08:00'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.securityinabox.org
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:40:49.689595671+08:00'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:40:49.689338598+08:00'
+    RoundTrip:
+    - Failure: network_unreachable
+      Finished: '2022-03-31T01:40:49.689374555+08:00'
+      Query: 04UBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:40:49.689348206+08:00'
+    - Failure: network_unreachable
+      Finished: '2022-03-31T01:40:49.689592745+08:00'
+      Query: DX4BAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:40:49.689573529+08:00'
+  T: '2022-03-31T01:40:49.689758005+08:00'
+testcase/cache/probe/dnsping/09/0972aa06888af7e640b048630a3b4df5a45031b6916b84226b9284a24869459f-d:
+- Delay: 200000000
+  Domain: www.securityinabox.org
+  ID: 31
+  Query: xM8BAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAQ==
+  QueryID: 50383
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::6ca0:a7a7
+    Error: ''
+    Finished: '2022-03-31T01:40:49.962297637+08:00'
+    ID: 34
+    Rcode: NOERROR
+    Reply: xM+BgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAALoAECABAAAAAAAAAAAAAGygp6c=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2001::68f4:2eb9
+    Error: ''
+    Finished: '2022-03-31T01:40:49.964965541+08:00'
+    ID: 36
+    Rcode: NOERROR
+    Reply: xM+BgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAMQAECABAAAAAAAAAAAAAGj0Lrk=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2a01:7e01::f03c:92ff:fecd:7e45
+    Error: ''
+    Finished: '2022-03-31T01:40:50.13743543+08:00'
+    ID: 48
+    Rcode: NOERROR
+    Reply: xM+BgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAASwAECoBfgEAAAAA8DyS//7NfkU=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:49.935256984+08:00'
+testcase/cache/probe/dnsping/0a/0a3c3d8501e97a5b31d89710e86c59f9f46f0c1167413931440316e3ea36c0de-d:
+- Delay: 100000000
+  Domain: www.securityinabox.org
+  ID: 23
+  Query: HiEBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAQ==
+  QueryID: 7713
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::1f0d:4b05
+    Error: ''
+    Finished: '2022-03-31T01:40:49.860920218+08:00'
+    ID: 26
+    Rcode: NOERROR
+    Reply: HiGBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAKgAECABAAAAAAAAAAAAAB8NSwU=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2001::45ab:f607
+    Error: ''
+    Finished: '2022-03-31T01:40:49.860951226+08:00'
+    ID: 28
+    Rcode: NOERROR
+    Reply: HiGBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAFMAECABAAAAAAAAAAAAAEWr9gc=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2a01:7e01::f03c:92ff:fecd:7e45
+    Error: ''
+    Finished: '2022-03-31T01:40:50.141516355+08:00'
+    ID: 50
+    Rcode: NOERROR
+    Reply: HiGBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAASwAECoBfgEAAAAA8DyS//7NfkU=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:49.834634112+08:00'
+testcase/cache/probe/dnsping/17/1748b2b3e4e9d150cb765a802ea0e21521a768e497dcbc9fc00457933f10ebd3-d:
+- Delay: 0
+  Domain: www.securityinabox.org
+  ID: 7
+  Query: TswBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAQ==
+  QueryID: 20172
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 108.160.170.45
+    Error: ''
+    Finished: '2022-03-31T01:40:49.763750604+08:00'
+    ID: 18
+    Rcode: NOERROR
+    Reply: TsyBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAAGIABGygqi0=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 74.86.142.55
+    Error: ''
+    Finished: '2022-03-31T01:40:49.767255869+08:00'
+    ID: 20
+    Rcode: NOERROR
+    Reply: TsyBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAAEcABEpWjjc=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 172.105.249.143
+    Error: ''
+    Finished: '2022-03-31T01:40:49.999035227+08:00'
+    ID: 42
+    Rcode: NOERROR
+    Reply: TsyBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAASwABKxp+Y8=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:49.736467338+08:00'
+testcase/cache/probe/dnsping/30/309d199c4c576820297174a4bb1ef984c455b79349f48f056e2acfa77ac589e8-d:
+- Delay: 500000000
+  Domain: www.securityinabox.org
+  ID: 54
+  Query: N/UBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAQ==
+  QueryID: 14325
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 104.244.43.248
+    Error: ''
+    Finished: '2022-03-31T01:40:50.263606612+08:00'
+    ID: 56
+    Rcode: NOERROR
+    Reply: N/WBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAALgABGj0K/g=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 75.126.115.192
+    Error: ''
+    Finished: '2022-03-31T01:40:50.263613424+08:00'
+    ID: 58
+    Rcode: NOERROR
+    Reply: N/WBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAAOkABEt+c8A=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 172.105.249.143
+    Error: ''
+    Finished: '2022-03-31T01:40:50.612430838+08:00'
+    ID: 66
+    Rcode: NOERROR
+    Reply: N/WBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAASwABKxp+Y8=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:50.235895504+08:00'
+testcase/cache/probe/dnsping/4a/4ab1cbc8356d5e663140a832189d55b97db338c179c3b2602e1aa5dc44bdeb6e-d:
+- Delay: 500000000
+  Domain: www.securityinabox.org
+  ID: 53
+  Query: MccBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAQ==
+  QueryID: 12743
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::453f:b4ad
+    Error: ''
+    Finished: '2022-03-31T01:40:50.268774356+08:00'
+    ID: 60
+    Rcode: NOERROR
+    Reply: MceBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAMgAECABAAAAAAAAAAAAAEU/tK0=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2001::c73b:95cc
+    Error: ''
+    Finished: '2022-03-31T01:40:50.268930028+08:00'
+    ID: 62
+    Rcode: NOERROR
+    Reply: MceBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAHQAECABAAAAAAAAAAAAAMc7lcw=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2a01:7e01::f03c:92ff:fecd:7e45
+    Error: ''
+    Finished: '2022-03-31T01:40:50.295723705+08:00'
+    ID: 64
+    Rcode: NOERROR
+    Reply: MceBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAASsAECoBfgEAAAAA8DyS//7NfkU=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:50.235856231+08:00'
+testcase/cache/probe/dnsping/6e/6e08be2cc4b371995a56d03db9da8bab96db0a83a787a82dae38c44a1e664d83-d:
+- Delay: 0
+  Domain: www.securityinabox.org
+  ID: 5
+  Query: 5OcBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAQ==
+  QueryID: 58599
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::d155:e566
+    Error: ''
+    Finished: '2022-03-31T01:40:49.762753233+08:00'
+    ID: 16
+    Rcode: NOERROR
+    Reply: 5OeBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAN0AECABAAAAAAAAAAAAANFV5WY=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2001::80f2:f55d
+    Error: ''
+    Finished: '2022-03-31T01:40:49.776710844+08:00'
+    ID: 22
+    Rcode: NOERROR
+    Reply: 5OeBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAAEEAECABAAAAAAAAAAAAAIDy9V0=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2a01:7e01::f03c:92ff:fecd:7e45
+    Error: ''
+    Finished: '2022-03-31T01:40:50.018068477+08:00'
+    ID: 44
+    Rcode: NOERROR
+    Reply: 5OeBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAASwAECoBfgEAAAAA8DyS//7NfkU=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:49.734337855+08:00'
+testcase/cache/probe/dnsping/ed/ed2088fa1f8a767aa84e61fc6e7039f679b6a51bda3f966517f329fa8977a1a6-d:
+- Delay: 200000000
+  Domain: www.securityinabox.org
+  ID: 32
+  Query: RfIBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAQ==
+  QueryID: 17906
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 31.13.82.169
+    Error: ''
+    Finished: '2022-03-31T01:40:49.965056973+08:00'
+    ID: 38
+    Rcode: NOERROR
+    Reply: RfKBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAAMMABB8NUqk=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 157.240.2.50
+    Error: ''
+    Finished: '2022-03-31T01:40:49.967723073+08:00'
+    ID: 40
+    Rcode: NOERROR
+    Reply: RfKBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAAOoABJ3wAjI=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 172.105.249.143
+    Error: ''
+    Finished: '2022-03-31T01:40:50.196600476+08:00'
+    ID: 52
+    Rcode: NOERROR
+    Reply: RfKBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAASwABKxp+Y8=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:49.935322807+08:00'
+testcase/cache/probe/dnsping/f9/f982414e12d4cc3225d395f05164035bb1f88c243cfa77513dee8223d8c58e67-d:
+- Delay: 100000000
+  Domain: www.securityinabox.org
+  ID: 24
+  Query: 4OkBAAABAAAAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAQ==
+  QueryID: 57577
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 173.252.88.67
+    Error: ''
+    Finished: '2022-03-31T01:40:49.864562179+08:00'
+    ID: 30
+    Rcode: NOERROR
+    Reply: 4OmBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAAIgABK38WEM=
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 172.105.249.143
+    Error: ''
+    Finished: '2022-03-31T01:40:50.112600887+08:00'
+    ID: 46
+    Rcode: NOERROR
+    Reply: 4OmBgAABAAEAAAAAA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAASwABKxp+Y8=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:40:49.834689987+08:00'
+testcase/cache/probe/endpoint/1e/1e69b6e1ee8e01cd3fdac195ca9865e26290ba1ba60b0b83592667ee337be60d-d:
+- M:
+    Address: 172.105.249.143:80
+    FailedOperation: http_round_trip
+    Failure: connection_reset
+    HTTPRoundTrip:
+      Failure: connection_reset
+      Finished: '2022-03-31T01:41:06.068753237+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.securityinabox.org
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      Started: '2022-03-31T01:41:06.042004013+08:00'
+      Transport: tcp
+      URL: http://www.securityinabox.org/
+    ID: 80
+    Network: tcp
+    NetworkEvent:
+    - Count: 283
+      Finished: '2022-03-31T01:41:06.042307512+08:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 172.105.249.143:80
+      Started: '2022-03-31T01:41:06.042297945+08:00'
+    - Failure: connection_reset
+      Finished: '2022-03-31T01:41:06.068714845+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.105.249.143:80
+      Started: '2022-03-31T01:41:06.042268099+08:00'
+    - Finished: '2022-03-31T01:41:06.068777402+08:00'
+      Operation: bytes_read
+      Started: '2022-03-31T01:41:06.068777402+08:00'
+    - Count: 283
+      Finished: '2022-03-31T01:41:06.068777402+08:00'
+      Operation: bytes_written
+      Started: '2022-03-31T01:41:06.068777402+08:00'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T01:41:06.041899237+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 172.105.249.143:80
+      Started: '2022-03-31T01:41:05.765268259+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:06.069913143+08:00'
+testcase/cache/probe/endpoint/32/327834582d62fd6b9d73deac26cec0f38217adcc82d6c84059591157493916d8-d:
+- M:
+    Address: '[2001::6761:313]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 10
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:40:49.73657514+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2001::6761:313]:80'
+      Started: '2022-03-31T01:40:49.73654843+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:40:49.736695977+08:00'
+testcase/cache/probe/endpoint/4e/4ee79fe5c977c584439f4e9cb59d08d0345ebd94066e059e6e839c0fcf790a50-d:
+- M:
+    Address: '[2001::b93c:db24]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 12
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:40:49.736621938+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2001::b93c:db24]:80'
+      Started: '2022-03-31T01:40:49.736609104+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:40:49.739804728+08:00'
+testcase/cache/probe/endpoint/7d/7d22c9bba9f37e901ae851deb42ed706d216d927d6cbcde759df59f35df4ec2d-d:
+- M:
+    Address: 172.105.249.143:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:41:07.789421664+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.securityinabox.org
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PGh0bWw+DQo8aGVhZD48dGl0bGU+MzAxIE1vdmVkIFBlcm1hbmVudGx5PC90aXRsZT48L2hlYWQ+DQo8Ym9keSBiZ2NvbG9yPSJ3aGl0ZSI+DQo8Y2VudGVyPjxoMT4zMDEgTW92ZWQgUGVybWFuZW50bHk8L2gxPjwvY2VudGVyPg0KPGhyPjxjZW50ZXI+bmdpbng8L2NlbnRlcj4NCjwvYm9keT4NCjwvaHRtbD4NCg==
+      ResponseBodyLength: 178
+      ResponseBodyTLSH: 60c012a9ab026cc9a8973b3866c3a190e2ec80649bd9491112a45a47f08b19b9ec23d1
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '178'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 17:41:07 GMT
+        Feature-Policy:
+        - geolocation 'none';midi 'none'; notifications 'none'; push 'none'; sync-xhr
+          'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope
+          'none'; speaker self; vibrate 'none'; fullscreen self; payment 'none';
+        Location:
+        - https://securityinabox.org/
+        Permissions-Policy:
+        - accelerometer=(), camera=() geolocation=() gyroscope=() magnetometer=()
+          microphone=() payment=() usb=() interest-cohort=()
+        Referrer-Policy:
+        - same-origin
+        Server:
+        - nginx
+        X-Content-Type-Options:
+        - nosniff
+        X-Frame-Options:
+        - SAMEORIGIN
+        X-Xss-Protection:
+        - 1; mode=block
+      Started: '2022-03-31T01:41:07.088129846+08:00'
+      StatusCode: 301
+      Transport: tcp
+      URL: https://www.securityinabox.org/
+    HTTPTitle: 301 Moved Permanently
+    ID: 81
+    Location:
+      Host: securityinabox.org
+      Path: /
+      Scheme: https
+    Network: tcp
+    NetworkEvent:
+    - Count: 292
+      Finished: '2022-03-31T01:41:06.077616282+08:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:06.07760414+08:00'
+    - Count: 517
+      Finished: '2022-03-31T01:41:06.781257582+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:06.0776204+08:00'
+    - Count: 2307
+      Finished: '2022-03-31T01:41:06.78142746+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:06.781424405+08:00'
+    - Count: 2316
+      Finished: '2022-03-31T01:41:07.086849806+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:06.781428312+08:00'
+    - Count: 64
+      Finished: '2022-03-31T01:41:07.088044055+08:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:07.088027805+08:00'
+    - Count: 305
+      Finished: '2022-03-31T01:41:07.088475174+08:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:07.088463643+08:00'
+    - Count: 287
+      Finished: '2022-03-31T01:41:07.393767278+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:07.088433446+08:00'
+    - Count: 1188
+      Finished: '2022-03-31T01:41:07.789285459+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:07.393788858+08:00'
+    - Count: 6615
+      Finished: '2022-03-31T01:41:07.78946215+08:00'
+      Operation: bytes_read
+      Started: '2022-03-31T01:41:07.78946215+08:00'
+    - Count: 685
+      Finished: '2022-03-31T01:41:07.78946215+08:00'
+      Operation: bytes_written
+      Started: '2022-03-31T01:41:07.78946215+08:00'
+    - Finished: '2022-03-31T01:41:07.789540026+08:00'
+      Operation: bytes_read
+      Started: '2022-03-31T01:41:07.789540026+08:00'
+    - Finished: '2022-03-31T01:41:07.789540026+08:00'
+      Operation: bytes_written
+      Started: '2022-03-31T01:41:07.789540026+08:00'
+    Options: {}
+    QUICTLSHandshake:
+      ALPN:
+      - h2
+      - http/1.1
+      CipherSuite: TLS_AES_128_GCM_SHA256
+      Finished: '2022-03-31T01:41:07.088062239+08:00'
+      NegotiatedProto: http/1.1
+      Network: tcp
+      PeerCerts:
+      - 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
+      RemoteAddr: 172.105.249.143:443
+      SNI: www.securityinabox.org
+      Started: '2022-03-31T01:41:06.077452926+08:00'
+      TLSVersion: TLSv1.3
+    TCPConnect:
+      Finished: '2022-03-31T01:41:06.071149172+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 172.105.249.143:443
+      Started: '2022-03-31T01:41:05.765350964+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:07.790482775+08:00'
+testcase/cache/probe/endpoint/7f/7f61ec56519840d3a6442384f1f32c237a880b1339e76e64d1599a00909d28e6-d:
+- M:
+    Address: '[2001::b93c:db24]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 14
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:40:49.739503794+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2001::b93c:db24]:443'
+      Started: '2022-03-31T01:40:49.739478606+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:40:49.740065528+08:00'
+testcase/cache/probe/endpoint/9b/9b5fbcca0cf59654a841581cc97c73cb9c0952933c974ed2eab57d20ace19203-d:
+- M:
+    Address: '[2a01:7e01::f03c:92ff:fecd:7e45]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 83
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:41:05.765477742+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2a01:7e01::f03c:92ff:fecd:7e45]:443'
+      Started: '2022-03-31T01:41:05.765455711+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:05.765910463+08:00'
+testcase/cache/probe/endpoint/a0/a0a0b4b0bb4696948aad25980ef8f9fcfe8d47e5765b31a2a50cfd1a7aaf3c2d-d:
+- M:
+    Address: 208.77.47.172:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 13
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:41:04.73743366+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 208.77.47.172:80
+      Started: '2022-03-31T01:40:49.736637227+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:04.73802599+08:00'
+testcase/cache/probe/endpoint/a5/a55a1bdad7ba26e6a15d89cb881385ce6216f6b3824e7cca83cde5d4c8a5d5c2-d:
+- M:
+    Address: 103.200.31.172:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 9
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:41:04.737419243+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 103.200.31.172:443
+      Started: '2022-03-31T01:40:49.736523273+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:04.737912518+08:00'
+testcase/cache/probe/endpoint/c1/c1b62d8e804820aa63bb2fb9fa4f26da93daacc67b04a05b2913cb330b7da30a-d:
+- M:
+    Address: 208.77.47.172:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 8
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:41:04.737381232+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 208.77.47.172:443
+      Started: '2022-03-31T01:40:49.736495331+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:04.737754842+08:00'
+testcase/cache/probe/endpoint/c4/c4f8bc38dbed75ec8d67eaf95c8f82173e769a15cf249cdd2295727b04f8c670-d:
+- M:
+    Address: 103.200.31.172:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 6
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:41:04.737345434+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 103.200.31.172:80
+      Started: '2022-03-31T01:40:49.736385976+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:04.737568182+08:00'
+testcase/cache/probe/endpoint/e4/e4f93bd4fbc76615062a85c3795438aa26b7ceaf95d98ad1e92dcbcd5482f8cf-d:
+- M:
+    Address: '[2a01:7e01::f03c:92ff:fecd:7e45]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 82
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:41:05.765438008+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2a01:7e01::f03c:92ff:fecd:7e45]:80'
+      Started: '2022-03-31T01:41:05.765385579+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:05.765729775+08:00'
+testcase/cache/probe/endpoint/ef/ef295fe968d14e657ee8424b227798184e82d82b5fcbd44e8cbfbac64d7ae2ce-d:
+- M:
+    Address: '[2001::6761:313]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 11
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:40:49.736602812+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2001::6761:313]:443'
+      Started: '2022-03-31T01:40:49.736589307+08:00'
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:40:49.739935354+08:00'
+testcase/cache/th/dns/43/4339703f8a19e5758f043e23c39d77fc1bce621da35aa9a8669e98932f2f2b65-d:
+- M:
+    ID: 69
+    Lookup:
+      Domain: 143.249.105.172.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+    ReverseAddress: 172.105.249.143
+    RoundTrip:
+    - Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Query: BroBAAABAAAAAAABAzE0MwMyNDkDMTA1AzE3Mgdpbi1hZGRyBGFycGEAAAwAAQAAKRAAAACAAABHAAwAQwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: BrqBhQABAAAAAAABAzE0MwMyNDkDMTA1AzE3Mgdpbi1hZGRyBGFycGEAAAwAAQAAKQTQAACAAAGbAAwBlwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+  T: '2022-03-31T01:41:05.760371083+08:00'
+testcase/cache/th/dns/84/84d9cad0fa9c56077fb8ba3e4fd4688c3ddee4723b38108f9caaa4dfb434c396-d:
+- M:
+    ID: 67
+    Lookup:
+      Addresses:
+      - 2a01:7e01::f03c:92ff:fecd:7e45
+      - 172.105.249.143
+      Domain: www.securityinabox.org
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+    RoundTrip:
+    - Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Query: 5QIBAAABAAAAAAABA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAQAAKRAAAACAAABNAAwASQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 5QKBgAABAAEAAAABA3d3dw5zZWN1cml0eWluYWJveANvcmcAABwAAcAMABwAAQAAASwAECoBfgEAAAAA8DyS//7NfkUAACkE0AAAgAABhQAMAYEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+    - Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Query: xw0BAAABAAAAAAABA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAQAAKRAAAACAAABNAAwASQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: xw2BgAABAAEAAAABA3d3dw5zZWN1cml0eWluYWJveANvcmcAAAEAAcAMAAEAAQAAASwABKxp+Y8AACkE0AAAgAABkQAMAY0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+  T: '2022-03-31T01:41:05.758020894+08:00'
+testcase/cache/th/dns/90/908b853293c3f42fcc50abdc0919811cced94ee77c6add20207127ff6bf6d3e7-d:
+- M:
+    ID: 70
+    Lookup:
+      Domain: 172.47.77.208.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+    ReverseAddress: 208.77.47.172
+    RoundTrip:
+    - Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Query: 55QBAAABAAAAAAABAzE3MgI0NwI3NwMyMDgHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 55SBhQABAAAAAAABAzE3MgI0NwI3NwMyMDgHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABnQAMAZkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+  T: '2022-03-31T01:41:05.760464588+08:00'
+testcase/cache/th/dns/ca/ca338a07d139b64a1e784528766c143f6d1d7ac1b4620579a5ecab4eafc7fae1-d:
+- M:
+    ID: 71
+    Lookup:
+      Domain: 172.31.200.103.in-addr.arpa.
+      Failure: dns_nxdomain_error
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+    ReverseAddress: 103.200.31.172
+    RoundTrip:
+    - Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Query: bnABAAABAAAAAAABAzE3MgIzMQMyMDADMTAzB2luLWFkZHIEYXJwYQAADAABAAApEAAAAIAAAEgADABEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: bnCBowABAAAACAABAzE3MgIzMQMyMDADMTAzB2luLWFkZHIEYXJwYQAADAABwBcABgABAAAOEABMAm5zBWFwbmljA25ldAAncmVhZC10eHQtcmVjb3JkLW9mLXpvbmUtZmlyc3QtZG5zLWFkbWluwDwAAPa/AAAcIAAABwgACTqAAAAOEMAXAC4AAQAADhAAZAAGDQMAAA4QYlhFF2JEaX/SdwMxMDMHaW4tYWRkcgRhcnBhAMfQBp+88HTKx5wq6KwRBS3Q+qlYCVT2Z05tB11IuKrjBfi4hak/mcZKFgjwDrolrvb9hHkoN/rhxbh2uwWbxoAgY2QxNmlvdW03YmtocTB2MHVwcmZic3ZnaG8wN3FqY2fAFwAyAAEAAA4QACIBAAAFCAyJQDPDjNZYFGNF1TCqJ6+q47WNEjRcX14VbDLhwPUALgABAAAOEABkADINBAAADhBiVSMDYkFHa9J3AzEwMwdpbi1hZGRyBGFycGEAxDrZffAk2af9CMIz2w0IpbNivDGCq7cx5BABgsCU9a4Mr9Mq8B6r7B+9+xIUXB4tOylNeWvKs7sJKLpC3VIrhiBzdnFrazZ1ZWpncGxxYTJoNWRyN2U1NjlzY2lzdDZyZsAXADIAAQAADhAAJQEAAAUIDIlAM8OM1lgU5/Xewdvlhnm0N6VMQ0mxsyfk7xYAASDBtAAuAAEAAA4QAGQAMg0EAAAOEGJVIwNiQUdr0ncDMTAzB2luLWFkZHIEYXJwYQBy1AZgskPYQBFfJJqLHb3un2mY8FbRd5ITNIWxfFo2c1YrUYbioayS00lvUaP34d2RvqR39h4D1xArZJhuPixNIGYyaHRvNGFkMzAzZWU2ZzBldHI3cGxqZTd1aDN0Zm4xwBcAMgABAAAOEAAiAQAABQgMiUAzw4zWWBR4pMJJbvZ9tS+pYxriOBjPZIkVLMJ2AC4AAQAADhAAZAAyDQQAAA4QYlUjA2JBR2vSdwMxMDMHaW4tYWRkcgRhcnBhAGenCPCxZusQhpW6eo6ZCFAeymhe56AUImT2aEZkQHTf5rhjHkZQTS9ADW18mFID4ckNGoYtUU5kyNXGhmqfGVMAACkE0AAAgAAAaAAMAGQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+  T: '2022-03-31T01:41:05.760549167+08:00'
+testcase/cache/th/dns/f8/f8fa6d8e27ca7140f2f8f7db945721b3cf79474f3992c5230bf7a40350c57929-d:
+- M:
+    ID: 68
+    Lookup:
+      Domain: 5.4.e.7.d.c.e.f.f.f.2.9.c.3.0.f.0.0.0.0.0.0.0.0.1.0.e.7.1.0.a.2.ip6.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+    ReverseAddress: 2a01:7e01::f03c:92ff:fecd:7e45
+    RoundTrip:
+    - Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Query: ucwBAAABAAAAAAABATUBNAFlATcBZAFjAWUBZgFmAWYBMgE5AWMBMwEwAWYBMAEwATABMAEwATABMAEwATEBMAFlATcBMQEwAWEBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: ucyBhQABAAAAAAABATUBNAFlATcBZAFjAWUBZgFmAWYBMgE5AWMBMwEwAWYBMAEwATABMAEwATABMAEwATEBMAFlATcBMQEwAWEBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+  T: '2022-03-31T01:41:05.760274432+08:00'
+testcase/cache/th/endpoint/1e/1e69b6e1ee8e01cd3fdac195ca9865e26290ba1ba60b0b83592667ee337be60d-d:
+- M:
+    Address: 172.105.249.143:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.securityinabox.org
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 178
+      ResponseBodyTLSH: 60c012a9ab026cc9a8973b3866c3a190e2ec80649bd9491112a45a47f08b19b9ec23d1
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '178'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 17:40:50 GMT
+        Feature-Policy:
+        - geolocation 'none';midi 'none'; notifications 'none'; push 'none'; sync-xhr
+          'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope
+          'none'; speaker self; vibrate 'none'; fullscreen self; payment 'none';
+        Location:
+        - https://securityinabox.org/
+        Permissions-Policy:
+        - accelerometer=(), camera=() geolocation=() gyroscope=() magnetometer=()
+          microphone=() payment=() usb=() interest-cohort=()
+        Referrer-Policy:
+        - same-origin
+        Server:
+        - nginx
+        X-Content-Type-Options:
+        - nosniff
+        X-Frame-Options:
+        - SAMEORIGIN
+        X-Xss-Protection:
+        - 1; mode=block
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.securityinabox.org/
+    HTTPTitle: 301 Moved Permanently
+    ID: 72
+    Location:
+      Host: securityinabox.org
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:05.760664764+08:00'
+testcase/cache/th/endpoint/7d/7d22c9bba9f37e901ae851deb42ed706d216d927d6cbcde759df59f35df4ec2d-d:
+- M:
+    Address: 172.105.249.143:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.securityinabox.org
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 178
+      ResponseBodyTLSH: 60c012a9ab026cc9a8973b3866c3a190e2ec80649bd9491112a45a47f08b19b9ec23d1
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '178'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 17:40:50 GMT
+        Feature-Policy:
+        - geolocation 'none';midi 'none'; notifications 'none'; push 'none'; sync-xhr
+          'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope
+          'none'; speaker self; vibrate 'none'; fullscreen self; payment 'none';
+        Location:
+        - https://securityinabox.org/
+        Permissions-Policy:
+        - accelerometer=(), camera=() geolocation=() gyroscope=() magnetometer=()
+          microphone=() payment=() usb=() interest-cohort=()
+        Referrer-Policy:
+        - same-origin
+        Server:
+        - nginx
+        X-Content-Type-Options:
+        - nosniff
+        X-Frame-Options:
+        - SAMEORIGIN
+        X-Xss-Protection:
+        - 1; mode=block
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+      StatusCode: 301
+      Transport: tcp
+      URL: https://www.securityinabox.org/
+    HTTPTitle: 301 Moved Permanently
+    ID: 74
+    Location:
+      Host: securityinabox.org
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:05.760948175+08:00'
+testcase/cache/th/endpoint/9b/9b5fbcca0cf59654a841581cc97c73cb9c0952933c974ed2eab57d20ace19203-d:
+- M:
+    Address: '[2a01:7e01::f03c:92ff:fecd:7e45]:443'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.securityinabox.org
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 178
+      ResponseBodyTLSH: 60c012a9ab026cc9a8973b3866c3a190e2ec80649bd9491112a45a47f08b19b9ec23d1
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '178'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 17:40:50 GMT
+        Feature-Policy:
+        - geolocation 'none';midi 'none'; notifications 'none'; push 'none'; sync-xhr
+          'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope
+          'none'; speaker self; vibrate 'none'; fullscreen self; payment 'none';
+        Location:
+        - https://securityinabox.org/
+        Permissions-Policy:
+        - accelerometer=(), camera=() geolocation=() gyroscope=() magnetometer=()
+          microphone=() payment=() usb=() interest-cohort=()
+        Referrer-Policy:
+        - same-origin
+        Server:
+        - nginx
+        X-Content-Type-Options:
+        - nosniff
+        X-Frame-Options:
+        - SAMEORIGIN
+        X-Xss-Protection:
+        - 1; mode=block
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+      StatusCode: 301
+      Transport: tcp
+      URL: https://www.securityinabox.org/
+    HTTPTitle: 301 Moved Permanently
+    ID: 75
+    Location:
+      Host: securityinabox.org
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:05.76129238+08:00'
+testcase/cache/th/endpoint/a0/a0a0b4b0bb4696948aad25980ef8f9fcfe8d47e5765b31a2a50cfd1a7aaf3c2d-d:
+- M:
+    Address: 208.77.47.172:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 76
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:05.763620558+08:00'
+testcase/cache/th/endpoint/a5/a55a1bdad7ba26e6a15d89cb881385ce6216f6b3824e7cca83cde5d4c8a5d5c2-d:
+- M:
+    Address: 103.200.31.172:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 79
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:05.764241363+08:00'
+testcase/cache/th/endpoint/c1/c1b62d8e804820aa63bb2fb9fa4f26da93daacc67b04a05b2913cb330b7da30a-d:
+- M:
+    Address: 208.77.47.172:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 77
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:41:05.763782241+08:00'
+testcase/cache/th/endpoint/c4/c4f8bc38dbed75ec8d67eaf95c8f82173e769a15cf249cdd2295727b04f8c670-d:
+- M:
+    Address: 103.200.31.172:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 78
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:05.764081463+08:00'
+testcase/cache/th/endpoint/e4/e4f93bd4fbc76615062a85c3795438aa26b7ceaf95d98ad1e92dcbcd5482f8cf-d:
+- M:
+    Address: '[2a01:7e01::f03c:92ff:fecd:7e45]:80'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:41:05.757937799+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.securityinabox.org
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 178
+      ResponseBodyTLSH: 60c012a9ab026cc9a8973b3866c3a190e2ec80649bd9491112a45a47f08b19b9ec23d1
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '178'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 17:40:50 GMT
+        Feature-Policy:
+        - geolocation 'none';midi 'none'; notifications 'none'; push 'none'; sync-xhr
+          'none'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope
+          'none'; speaker self; vibrate 'none'; fullscreen self; payment 'none';
+        Location:
+        - https://securityinabox.org/
+        Permissions-Policy:
+        - accelerometer=(), camera=() geolocation=() gyroscope=() magnetometer=()
+          microphone=() payment=() usb=() interest-cohort=()
+        Referrer-Policy:
+        - same-origin
+        Server:
+        - nginx
+        X-Content-Type-Options:
+        - nosniff
+        X-Frame-Options:
+        - SAMEORIGIN
+        X-Xss-Protection:
+        - 1; mode=block
+      Started: '2022-03-31T01:41:05.757937799+08:00'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.securityinabox.org/
+    HTTPTitle: 301 Moved Permanently
+    ID: 73
+    Location:
+      Host: securityinabox.org
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.securityinabox.org
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:41:05.760814875+08:00'
+...

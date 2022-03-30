@@ -1,0 +1,1193 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmpeli5hkwr/cache/probe
+- --th-cache-dir
+- ./tmpeli5hkwr/cache/th
+- --output
+- ./tmpsff534jr/report.jsonl
+- --logfile
+- ./tmpsff534jr/log.txt
+- --input
+- https://chinadigitaltimes.net/
+- --emoji
+created: 20220330T173857Z
+description: '#bogon #httpReset #tlsReset'
+imported: 20220330T174459Z
+probe_asn: AS45090
+probe_cc: CN
+url: https://chinadigitaltimes.net/
+...
+---
+testcase/cache/probe/dns/2e/2ec15621efe4dedeeaa6499d9881e79645b5527a8cffe0e17b580b187968c3ce-d:
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 59.24.3.173
+      - 2001::45ab:e517
+      Domain: chinadigitaltimes.net
+      Finished: '2022-03-31T01:38:57.287237856+08:00'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T01:38:57.190921421+08:00'
+    RoundTrip:
+    - Finished: '2022-03-31T01:38:57.287232736+08:00'
+      Query: B68BAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAA/wAB
+      Reply: B6+BgAABAAIAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAA/wABwAwAAQABAAAAAAAEOxgDrcAMABwAAQAAAAAAECABAAAAAAAAAAAAAEWr5Rc=
+      ResolverNetwork: system
+      Started: '2022-03-31T01:38:57.190928764+08:00'
+  T: '2022-03-31T01:38:57.287429956+08:00'
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 243.185.187.39
+      Domain: chinadigitaltimes.net
+      Finished: '2022-03-31T01:38:57.22031712+08:00'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:38:57.190667624+08:00'
+    RoundTrip:
+    - Finished: '2022-03-31T01:38:57.218985492+08:00'
+      Query: 0ioBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB
+      Reply: 0iqBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAwQAE87m7Jw==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:38:57.190825671+08:00'
+    - Finished: '2022-03-31T01:38:57.220310988+08:00'
+      Query: PHIBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB
+      Reply: PHKBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAAQABAAAA9QAE87m7Jw==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:38:57.190710746+08:00'
+  T: '2022-03-31T01:38:57.220555116+08:00'
+- M:
+    ID: 3
+    Lookup:
+      Domain: chinadigitaltimes.net
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:38:57.191128038+08:00'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:38:57.190863602+08:00'
+    RoundTrip:
+    - Failure: network_unreachable
+      Finished: '2022-03-31T01:38:57.190908476+08:00'
+      Query: qAcBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:38:57.190875414+08:00'
+    - Failure: network_unreachable
+      Finished: '2022-03-31T01:38:57.191125343+08:00'
+      Query: VV8BAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T01:38:57.191106077+08:00'
+  T: '2022-03-31T01:38:57.191188341+08:00'
+testcase/cache/probe/dnsping/2c/2c85c8d003857bf97f0ca01a1d174d13c25c42bce73daef58d3ee6e4a3a5a478-d:
+- Delay: 200000000
+  Domain: chinadigitaltimes.net
+  ID: 39
+  Query: fPkBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB
+  QueryID: 31993
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::453f:bb0c
+    Error: ''
+    Finished: '2022-03-31T01:38:57.518075977+08:00'
+    ID: 42
+    Rcode: NOERROR
+    Reply: fPmBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAAAhAAQIAEAAAAAAAAAAAAART+7DA==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T01:38:57.519369313+08:00'
+    ID: 46
+    Rcode: NOERROR
+    Reply: fPmBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAAQABAAAA2AAECAfGLQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2606:4700:10::ac43:19be
+    - 2606:4700:10::6816:2bac
+    - 2606:4700:10::6816:2aac
+    Error: ''
+    Finished: '2022-03-31T01:38:57.546353529+08:00'
+    ID: 48
+    Rcode: NOERROR
+    Reply: fPmBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAABLAAQJgZHAAAQAAAAAAAArEMZvsAMABwAAQAAASwAECYGRwAAEAAAAAAAAGgWK6zADAAcAAEAAAEsABAmBkcAABAAAAAAAABoFiqs
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.490055758+08:00'
+testcase/cache/probe/dnsping/5a/5a5ad92074b0bab492688846b5dc07953bfe8b100796ba9e40ec2811c2f5fb6d-d:
+- Delay: 0
+  Domain: chinadigitaltimes.net
+  ID: 5
+  Query: vtMBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB
+  QueryID: 48851
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::4a75:b6c5
+    Error: ''
+    Finished: '2022-03-31T01:38:57.317973908+08:00'
+    ID: 14
+    Rcode: NOERROR
+    Reply: vtOBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAAA3wAQIAEAAAAAAAAAAAAASnW2xQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T01:38:57.32299213+08:00'
+    ID: 18
+    Rcode: NOERROR
+    Reply: vtOBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAAQABAAAARQAE87m7Jw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2606:4700:10::ac43:19be
+    - 2606:4700:10::6816:2aac
+    - 2606:4700:10::6816:2bac
+    Error: ''
+    Finished: '2022-03-31T01:38:57.382047674+08:00'
+    ID: 22
+    Rcode: NOERROR
+    Reply: vtOBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAABLAAQJgZHAAAQAAAAAAAArEMZvsAMABwAAQAAASwAECYGRwAAEAAAAAAAAGgWKqzADAAcAAEAAAEsABAmBkcAABAAAAAAAABoFius
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.288355633+08:00'
+testcase/cache/probe/dnsping/65/65f2e7e9089ec880a524086502659c6d19e349b14d388d3af1f0fc77f29b0aae-d:
+- Delay: 0
+  Domain: chinadigitaltimes.net
+  ID: 7
+  Query: z8ABAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB
+  QueryID: 53184
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 8.7.198.45
+    Error: ''
+    Finished: '2022-03-31T01:38:57.31981476+08:00'
+    ID: 16
+    Rcode: NOERROR
+    Reply: z8CBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAA0gAECAfGLQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 8.7.198.45
+    Error: ''
+    Finished: '2022-03-31T01:38:57.323911916+08:00'
+    ID: 20
+    Rcode: NOERROR
+    Reply: z8CBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAowAECAfGLQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 104.22.42.172
+    - 104.22.43.172
+    - 172.67.25.190
+    Error: ''
+    Finished: '2022-03-31T01:38:57.386874167+08:00'
+    ID: 24
+    Rcode: NOERROR
+    Reply: z8CBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAABLAAEaBYqrMAMAAEAAQAAASwABGgWK6zADAABAAEAAAEsAASsQxm+
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.290547824+08:00'
+testcase/cache/probe/dnsping/82/82414caf76593c267f7bd3c535ba1243a350e5aff7e441df04774ccf23c608c8-d:
+- Delay: 500000000
+  Domain: chinadigitaltimes.net
+  ID: 51
+  Query: J0ABAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB
+  QueryID: 10048
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::1f0d:4628
+    Error: ''
+    Finished: '2022-03-31T01:38:57.822055874+08:00'
+    ID: 54
+    Rcode: NOERROR
+    Reply: J0CBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAAAfwAQIAEAAAAAAAAAAAAAHw1GKA==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T01:38:57.829754455+08:00'
+    ID: 60
+    Rcode: NOERROR
+    Reply: J0CBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAAQABAAAAsQAE87m7Jw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2606:4700:10::6816:2aac
+    - 2606:4700:10::6816:2bac
+    - 2606:4700:10::ac43:19be
+    Error: ''
+    Finished: '2022-03-31T01:38:57.902589656+08:00'
+    ID: 64
+    Rcode: NOERROR
+    Reply: J0CBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAABLAAQJgZHAAAQAAAAAAAAaBYqrMAMABwAAQAAASwAECYGRwAAEAAAAAAAAGgWK6zADAAcAAEAAAEsABAmBkcAABAAAAAAAACsQxm+
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.791076074+08:00'
+testcase/cache/probe/dnsping/88/88aa8d9e9dc619aa85540447e0dc862d08ac99f42f104e789117a62c77a3b7dd-d:
+- Delay: 100000000
+  Domain: chinadigitaltimes.net
+  ID: 25
+  Query: xRIBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB
+  QueryID: 50450
+  QueryType: 28
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 2001::4a75:b6be
+    Error: ''
+    Finished: '2022-03-31T01:38:57.416950061+08:00'
+    ID: 32
+    Rcode: NOERROR
+    Reply: xRKBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAAAuAAQIAEAAAAAAAAAAAAASnW2vg==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T01:38:57.430793098+08:00'
+    ID: 34
+    Rcode: NOERROR
+    Reply: xRKBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAAQABAAAAlAAECAfGLQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 2606:4700:10::6816:2bac
+    - 2606:4700:10::6816:2aac
+    - 2606:4700:10::ac43:19be
+    Error: ''
+    Finished: '2022-03-31T01:38:57.48547158+08:00'
+    ID: 38
+    Rcode: NOERROR
+    Reply: xRKBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAABLAAQJgZHAAAQAAAAAAAAaBYrrMAMABwAAQAAASwAECYGRwAAEAAAAAAAAGgWKqzADAAcAAEAAAEsABAmBkcAABAAAAAAAACsQxm+
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.389308042+08:00'
+testcase/cache/probe/dnsping/9b/9b7799cfa92796948e47e9e91633863a446463ead11925ea3351d973bda438e3-d:
+- Delay: 200000000
+  Domain: chinadigitaltimes.net
+  ID: 40
+  Query: mGkBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB
+  QueryID: 39017
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 203.98.7.65
+    Error: ''
+    Finished: '2022-03-31T01:38:57.519203612+08:00'
+    ID: 44
+    Rcode: NOERROR
+    Reply: mGmBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAmwAEy2IHQQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 172.67.25.190
+    - 104.22.42.172
+    - 104.22.43.172
+    Error: ''
+    Finished: '2022-03-31T01:38:57.584717038+08:00'
+    ID: 50
+    Rcode: NOERROR
+    Reply: mGmBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAABLAAErEMZvsAMAAEAAQAAASwABGgWKqzADAABAAEAAAEsAARoFius
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.490105161+08:00'
+testcase/cache/probe/dnsping/b7/b75daeb1b99ea1f0a7dffa50346bbe0728ba58a07f0c6e76a4147f952c45fe9f-d:
+- Delay: 100000000
+  Domain: chinadigitaltimes.net
+  ID: 26
+  Query: gtYBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB
+  QueryID: 33494
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 59.24.3.173
+    Error: ''
+    Finished: '2022-03-31T01:38:57.414997659+08:00'
+    ID: 28
+    Rcode: NOERROR
+    Reply: gtaBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAsAAEOxgDrQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 59.24.3.173
+    Error: ''
+    Finished: '2022-03-31T01:38:57.415020011+08:00'
+    ID: 30
+    Rcode: NOERROR
+    Reply: gtaBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAxgAEOxgDrQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 104.22.43.172
+    - 104.22.42.172
+    - 172.67.25.190
+    Error: ''
+    Finished: '2022-03-31T01:38:57.482202679+08:00'
+    ID: 36
+    Rcode: NOERROR
+    Reply: gtaBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAABLAAEaBYrrMAMAAEAAQAAASwABGgWKqzADAABAAEAAAEsAASsQxm+
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.38936528+08:00'
+testcase/cache/probe/dnsping/fc/fc104e16054c4c99fa0363e767f65651f3de7d2c14927f6ac570f16acfc7cce4-d:
+- Delay: 500000000
+  Domain: chinadigitaltimes.net
+  ID: 52
+  Query: qvEBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB
+  QueryID: 43761
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 59.24.3.173
+    Error: ''
+    Finished: '2022-03-31T01:38:57.82279461+08:00'
+    ID: 56
+    Rcode: NOERROR
+    Reply: qvGBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAwAAEOxgDrQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 8.7.198.45
+    Error: ''
+    Finished: '2022-03-31T01:38:57.828293184+08:00'
+    ID: 58
+    Rcode: NOERROR
+    Reply: qvGBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAQgAECAfGLQ==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 172.67.25.190
+    - 104.22.42.172
+    - 104.22.43.172
+    Error: ''
+    Finished: '2022-03-31T01:38:57.855956694+08:00'
+    ID: 62
+    Rcode: NOERROR
+    Reply: qvGBgAABAAMAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAABLAAErEMZvsAMAAEAAQAAASwABGgWKqzADAABAAEAAAEsAARoFius
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T01:38:57.791162997+08:00'
+testcase/cache/probe/endpoint/2b/2b250cc676633ec082621c3168bbbb02e4f95d603481656f6aeca905d1921a54-d:
+- M:
+    Address: 243.185.187.39:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 9
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:39:12.290754238+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 243.185.187.39:80
+      Started: '2022-03-31T01:38:57.29287503+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:39:12.291264575+08:00'
+testcase/cache/probe/endpoint/44/44a835fe95b2e49d30ae9257704d3e2c16b76b0e380f6fb279c46713bd22021d-d:
+- M:
+    Address: 59.24.3.173:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 8
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:39:12.290736895+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 59.24.3.173:443
+      Started: '2022-03-31T01:38:57.290568663+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:39:12.291153817+08:00'
+testcase/cache/probe/endpoint/5f/5f2d40cb457f645461235a2dcd49d0d7ee1b50814517f7059b593e226336e045-d:
+- M:
+    Address: '[2606:4700:10::6816:2bac]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 80
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:39:14.880635943+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2606:4700:10::6816:2bac]:443'
+      Started: '2022-03-31T01:39:14.880612579+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:39:14.880764474+08:00'
+testcase/cache/probe/endpoint/63/636ac5cd776f3f53f3af908c7aec751693bb0dba9d4026763228dbacb0ebad5e-d:
+- M:
+    Address: 172.67.25.190:80
+    FailedOperation: http_round_trip
+    Failure: connection_reset
+    HTTPRoundTrip:
+      Failure: connection_reset
+      Finished: '2022-03-31T01:39:15.072147384+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - chinadigitaltimes.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      Started: '2022-03-31T01:39:15.047317009+08:00'
+      Transport: tcp
+      URL: http://chinadigitaltimes.net/
+    ID: 81
+    Network: tcp
+    NetworkEvent:
+    - Count: 282
+      Finished: '2022-03-31T01:39:15.047464667+08:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 172.67.25.190:80
+      Started: '2022-03-31T01:39:15.047453506+08:00'
+    - Failure: connection_reset
+      Finished: '2022-03-31T01:39:15.072070049+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.67.25.190:80
+      Started: '2022-03-31T01:39:15.047425443+08:00'
+    - Finished: '2022-03-31T01:39:15.072203068+08:00'
+      Operation: bytes_read
+      Started: '2022-03-31T01:39:15.072203068+08:00'
+    - Count: 282
+      Finished: '2022-03-31T01:39:15.072203068+08:00'
+      Operation: bytes_written
+      Started: '2022-03-31T01:39:15.072203068+08:00'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T01:39:15.047230076+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 172.67.25.190:80
+      Started: '2022-03-31T01:39:14.880654598+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:39:15.073279217+08:00'
+testcase/cache/probe/endpoint/74/743a213daf62e564678a6046f370ac20e11b97514eef86b849deb01adf394afd-d:
+- M:
+    Address: '[2606:4700:10::6816:2bac]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 79
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:39:14.880427222+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2606:4700:10::6816:2bac]:80'
+      Started: '2022-03-31T01:39:14.880360948+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:39:14.88046356+08:00'
+testcase/cache/probe/endpoint/84/84a003c7003e2a5b979fad40bb903abb6c9b6e17b4e15007439151975e689f47-d:
+- M:
+    Address: 243.185.187.39:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 10
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:39:12.29076593+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 243.185.187.39:443
+      Started: '2022-03-31T01:38:57.290612906+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:39:12.291366406+08:00'
+testcase/cache/probe/endpoint/86/864b5a3e7fbaeaa490f93020b6860e4b7992a91dc830fa695c6fce0c2a04c8ff-d:
+- M:
+    Address: '[2001::45ab:e517]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 11
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:38:57.290663761+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2001::45ab:e517]:80'
+      Started: '2022-03-31T01:38:57.290635979+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:38:57.293558221+08:00'
+testcase/cache/probe/endpoint/86/86d1ba872ec3f0c432bf77360e3a165d965ab45c82561b76110a57809d8fbf3a-d:
+- M:
+    Address: '[2001::45ab:e517]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 12
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T01:38:57.290704718+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2001::45ab:e517]:443'
+      Started: '2022-03-31T01:38:57.290688939+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:38:57.290844991+08:00'
+testcase/cache/probe/endpoint/9f/9f38fdd9f1aa0a84b8066c4b6511aa4a7555b9b22c88a358e31458e4b9ca4d42-d:
+- M:
+    Address: 172.67.25.190:443
+    FailedOperation: tls_handshake
+    Failure: connection_reset
+    ID: 82
+    Network: tcp
+    NetworkEvent:
+    - Count: 291
+      Finished: '2022-03-31T01:39:15.054105703+08:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 172.67.25.190:443
+      Started: '2022-03-31T01:39:15.054095654+08:00'
+    - Failure: connection_reset
+      Finished: '2022-03-31T01:39:15.097627367+08:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 172.67.25.190:443
+      Started: '2022-03-31T01:39:15.054117785+08:00'
+    Options: {}
+    QUICTLSHandshake:
+      ALPN:
+      - h2
+      - http/1.1
+      Failure: connection_reset
+      Finished: '2022-03-31T01:39:15.097650831+08:00'
+      Network: tcp
+      RemoteAddr: 172.67.25.190:443
+      SNI: chinadigitaltimes.net
+      Started: '2022-03-31T01:39:15.053957144+08:00'
+    TCPConnect:
+      Finished: '2022-03-31T01:39:15.050598485+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 172.67.25.190:443
+      Started: '2022-03-31T01:39:14.880701266+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:39:15.097718188+08:00'
+testcase/cache/probe/endpoint/f5/f50ec446078bd4aa8fc1a59af865ff3e6534a271a2662677a0226b4b4d4410be-d:
+- M:
+    Address: 59.24.3.173:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 6
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T01:39:12.290688854+08:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 59.24.3.173:80
+      Started: '2022-03-31T01:38:57.290464909+08:00'
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:39:12.29093161+08:00'
+testcase/cache/th/dns/25/25f3ce2c6e5bf4dce21d93b8747bb7d1d02f9139c6f319e2fae03d432de2c900-d:
+- M:
+    ID: 68
+    Lookup:
+      Domain: 190.25.67.172.in-addr.arpa.
+      Failure: dns_nxdomain_error
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    ReverseAddress: 172.67.25.190
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: 8BEBAAABAAAAAAABAzE5MAIyNQI2NwMxNzIHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 8BGBgwABAAAAAQABAzE5MAIyNQI2NwMxNzIHaW4tYWRkcgRhcnBhAAAMAAHAEwAGAAEAAA4QADIEY3J1egJucwpjbG91ZGZsYXJlA2NvbQADZG5zwEB5RTqYAAAnEAAACWAACTqAAAAOEAAAKQTQAACAAAFfAAwBWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.877030761+08:00'
+testcase/cache/th/dns/2e/2ec15621efe4dedeeaa6499d9881e79645b5527a8cffe0e17b580b187968c3ce-d:
+- M:
+    ID: 65
+    Lookup:
+      Addresses:
+      - 2606:4700:10::6816:2bac
+      - 2606:4700:10::ac43:19be
+      - 2606:4700:10::6816:2aac
+      - 172.67.25.190
+      - 104.22.42.172
+      - 104.22.43.172
+      Domain: chinadigitaltimes.net
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: CrsBAAABAAAAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABAAApEAAAAIAAAE4ADABKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: CruBgAABAAMAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAABLAAQJgZHAAAQAAAAAAAAaBYrrMAMABwAAQAAASwAECYGRwAAEAAAAAAAAKxDGb7ADAAcAAEAAAEsABAmBkcAABAAAAAAAABoFiqsAAApBNAAAIAAAU4ADAFKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: GHQBAAABAAAAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABAAApEAAAAIAAAE4ADABKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: GHSBgAABAAMAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAABLAAErEMZvsAMAAEAAQAAASwABGgWKqzADAABAAEAAAEsAARoFiusAAApBNAAAIAAAXIADAFuAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.876461452+08:00'
+testcase/cache/th/dns/3d/3da0090ed60ddabf76e0f970c1fafaba7ba971f212634a0bb48faf598095e59d-d:
+- M:
+    ID: 69
+    Lookup:
+      Domain: 172.42.22.104.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    ReverseAddress: 104.22.42.172
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: SAwBAAABAAAAAAABAzE3MgI0MgIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: SAyBhQABAAAAAAABAzE3MgI0MgIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABnQAMAZkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.877145826+08:00'
+testcase/cache/th/dns/3e/3ec760ca3c480ebb2239509d63be9659205a7dc8da4b3a9de8acc39a8e23b85e-d:
+- M:
+    ID: 66
+    Lookup:
+      Domain: c.a.b.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    ReverseAddress: 2606:4700:10::6816:2bac
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: 6vQBAAABAAAAAAABAWMBYQFiATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 6vSBhQABAAAAAAABAWMBYQFiATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.876773037+08:00'
+testcase/cache/th/dns/81/81b5df8d8b4ac7f00d39dbf2518efa4ce13d9502b3343236f59732539639a1dc-d:
+- M:
+    ID: 67
+    Lookup:
+      Domain: e.b.9.1.3.4.c.a.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    ReverseAddress: 2606:4700:10::ac43:19be
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: x8IBAAABAAAAAAABAWUBYgE5ATEBMwE0AWMBYQEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: x8KBhQABAAAAAAABAWUBYgE5ATEBMwE0AWMBYQEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.876894465+08:00'
+testcase/cache/th/dns/cf/cf153d84e1eebb437cbb1b8967df1fd8351025be1ab5b5a8d7cf31429a71b20e-d:
+- M:
+    ID: 71
+    Lookup:
+      Domain: 173.3.24.59.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    ReverseAddress: 59.24.3.173
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: z38BAAABAAAAAAABAzE3MwEzAjI0AjU5B2luLWFkZHIEYXJwYQAADAABAAApEAAAAIAAAEsADABHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: z3+BhQABAAAAAAABAzE3MwEzAjI0AjU5B2luLWFkZHIEYXJwYQAADAABAAApBNAAAIAAAZ8ADAGbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.877376369+08:00'
+testcase/cache/th/dns/dc/dc2403501afde634a7f1b37ed42fb5aa1a67af311e3d6ceb72005c26a70aff52-d:
+- M:
+    ID: 70
+    Lookup:
+      Domain: 172.43.22.104.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    ReverseAddress: 104.22.43.172
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: mXABAAABAAAAAAABAzE3MgI0MwIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: mXCBhQABAAAAAAABAzE3MgI0MwIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABnQAMAZkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.877263998+08:00'
+testcase/cache/th/dns/fb/fb2c3fe2b96855b6c948ec9f994520707d4a33d4b23d76a78ed4eef4664eae7f-d:
+- M:
+    ID: 72
+    Lookup:
+      Domain: c.a.a.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.
+      Failure: dns_nxdomain_error
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+    ReverseAddress: 2606:4700:10::6816:2aac
+    RoundTrip:
+    - Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Query: vE8BAAABAAAAAAABAWMBYQFhATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: vE+BgwABAAAAAQABAWMBYQFhATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAABgABAAAOEABABGxlYWgCbnMKY2xvdWRmbGFyZQNjb20AA2RucwpjbG91ZGZsYXJlA2NvbQCG/+BqAAAnEAAACWAACTqAAAAOEAAAKQTQAACAAAELAAwBBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+  T: '2022-03-31T01:39:14.877489661+08:00'
+testcase/cache/th/endpoint/44/44a835fe95b2e49d30ae9257704d3e2c16b76b0e380f6fb279c46713bd22021d-d:
+- M:
+    Address: 59.24.3.173:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 77
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:39:14.879598217+08:00'
+testcase/cache/th/endpoint/5f/5f2d40cb457f645461235a2dcd49d0d7ee1b50814517f7059b593e226336e045-d:
+- M:
+    Address: '[2606:4700:10::6816:2bac]:443'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - chinadigitaltimes.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyIsTruncated: true
+      ResponseBodyLength: 4096
+      ResponseBodyTLSH: f9811df35e2b2c29136091d03077314c812ea74bc9a6ed93e1df1ccddae96a465f3265
+      ResponseHeaders:
+        Cache-Control:
+        - no-store, no-cache, must-revalidate
+        Cf-Apo-Via:
+        - origin,miss
+        Cf-Cache-Status:
+        - EXPIRED
+        Cf-Edge-Cache:
+        - cache,platform=wordpress
+        Cf-Ray:
+        - 6f429f3b6cb17aba-LAX
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 17:39:01 GMT
+        Expect-Ct:
+        - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+        Expires:
+        - Thu, 19 Nov 1981 08:52:00 GMT
+        Last-Modified:
+        - Wed, 30 Mar 2022 17:28:13 GMT
+        Link:
+        - <https://chinadigitaltimes.net/wp-json/>; rel="https://api.w.org/"
+        Pragma:
+        - no-cache
+        Server:
+        - cloudflare
+        Strict-Transport-Security:
+        - max-age=31536000; includeSubDomains
+        Vary:
+        - Accept-Encoding, Accept-Encoding
+        X-Content-Type-Options:
+        - nosniff
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: https://chinadigitaltimes.net/
+    HTTPTitle: China Digital Times (CDT) - Covering China from Cyberspace
+    ID: 75
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:39:14.879229545+08:00'
+testcase/cache/th/endpoint/63/636ac5cd776f3f53f3af908c7aec751693bb0dba9d4026763228dbacb0ebad5e-d:
+- M:
+    Address: 172.67.25.190:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - chinadigitaltimes.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=3600
+        Cf-Ray:
+        - 6f429f3b5a897c1d-LAX
+        Connection:
+        - keep-alive
+        Date:
+        - Wed, 30 Mar 2022 17:38:58 GMT
+        Expires:
+        - Wed, 30 Mar 2022 18:38:58 GMT
+        Location:
+        - https://chinadigitaltimes.net/
+        Server:
+        - cloudflare
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://chinadigitaltimes.net/
+    ID: 74
+    Location:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:39:14.879050779+08:00'
+testcase/cache/th/endpoint/74/743a213daf62e564678a6046f370ac20e11b97514eef86b849deb01adf394afd-d:
+- M:
+    Address: '[2606:4700:10::6816:2bac]:80'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - chinadigitaltimes.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=3600
+        Cf-Ray:
+        - 6f429f3b5e517c73-LAX
+        Connection:
+        - keep-alive
+        Date:
+        - Wed, 30 Mar 2022 17:38:58 GMT
+        Expires:
+        - Wed, 30 Mar 2022 18:38:58 GMT
+        Location:
+        - https://chinadigitaltimes.net/
+        Server:
+        - cloudflare
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://chinadigitaltimes.net/
+    ID: 73
+    Location:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:39:14.877645233+08:00'
+testcase/cache/th/endpoint/9f/9f38fdd9f1aa0a84b8066c4b6511aa4a7555b9b22c88a358e31458e4b9ca4d42-d:
+- M:
+    Address: 172.67.25.190:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T01:39:14.876377284+08:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - chinadigitaltimes.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyIsTruncated: true
+      ResponseBodyLength: 4096
+      ResponseBodyTLSH: f9811df35e2b2c29136091d03077314c812ea74bc9a6ed93e1df1ccddae96a465f3265
+      ResponseHeaders:
+        Cache-Control:
+        - no-store, no-cache, must-revalidate
+        Cf-Apo-Via:
+        - origin,miss
+        Cf-Cache-Status:
+        - EXPIRED
+        Cf-Edge-Cache:
+        - cache,platform=wordpress
+        Cf-Ray:
+        - 6f429f3b7d537c98-LAX
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 17:39:01 GMT
+        Expect-Ct:
+        - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+        Expires:
+        - Thu, 19 Nov 1981 08:52:00 GMT
+        Last-Modified:
+        - Wed, 30 Mar 2022 17:28:13 GMT
+        Link:
+        - <https://chinadigitaltimes.net/wp-json/>; rel="https://api.w.org/"
+        Pragma:
+        - no-cache
+        Server:
+        - cloudflare
+        Strict-Transport-Security:
+        - max-age=31536000; includeSubDomains
+        Vary:
+        - Accept-Encoding, Accept-Encoding
+        X-Content-Type-Options:
+        - nosniff
+      Started: '2022-03-31T01:39:14.876377284+08:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: https://chinadigitaltimes.net/
+    HTTPTitle: China Digital Times (CDT) - Covering China from Cyberspace
+    ID: 76
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T01:39:14.879405906+08:00'
+testcase/cache/th/endpoint/f5/f50ec446078bd4aa8fc1a59af865ff3e6534a271a2662677a0226b4b4d4410be-d:
+- M:
+    Address: 59.24.3.173:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 78
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: chinadigitaltimes.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T01:39:14.87973869+08:00'
+...
