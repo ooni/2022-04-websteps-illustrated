@@ -3,6 +3,7 @@ This package contains extensions over the tabulate package.
 """
 
 from __future__ import annotations
+import json
 
 import tabulate
 
@@ -11,6 +12,7 @@ from typing import (
     Callable,
     List,
     Optional,
+    OrderedDict,
     Tuple,
 )
 
@@ -59,7 +61,9 @@ class Tabular:
         """This function returns a representation of the values currently
         in the tables that is compatible with the given format.
 
-        The supported formats are the same used by the tabulate library.
+        If the format argument is JSON we'll construct an ordered dict out of
+        each row and the column names and we'll emit that. Otherwise, we'll just
+        pass the format argument through to tabulate.
 
         The optional callable allows for specifying the sort key to be
         used before generating the textual representation.
@@ -67,4 +71,10 @@ class Tabular:
         rows = self._rows
         if sortkey is not None:
             rows = sorted(self._rows, key=sortkey)
+        if format == "json":
+            out = []
+            for row in rows:
+                out.append(OrderedDict(zip(self._columns, row)))
+            # See https://stackoverflow.com/a/64469761
+            return json.dumps(out, default=vars)
         return tabulate.tabulate(rows, headers=self._columns, tablefmt=format)
