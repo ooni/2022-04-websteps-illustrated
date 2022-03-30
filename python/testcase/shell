@@ -177,9 +177,9 @@ def sh_decode_run(args: argparse.Namespace):
         with testcase.load(filename) as tc:
             cache = tc.cache()
             for dns in cache.dns_measurements(idfilter):
-                dns.decode_and_print()
+                print(dns.decode())
             for epnt in cache.endpoint_measurements(idfilter):
-                epnt.decode_and_print()
+                print(epnt.decode())
 
 
 def sh_decode_configure(apa: argparse.ArgumentParser):

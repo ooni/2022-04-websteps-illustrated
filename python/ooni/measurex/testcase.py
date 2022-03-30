@@ -212,8 +212,9 @@ class EntryMeasurement(Protocol):
         depends on the kind of the entry."""
         return Tabular()
 
-    def decode_and_print(self) -> None:
-        """Decodes round trips inside this entry and prints them."""
+    def decode(self) -> str:
+        """Decodes round trips inside this entry."""
+        return ""
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         """Returns the underlying DNSLookupMeasurement if possible."""
@@ -251,8 +252,8 @@ class _DNSLookupMeasurement:
             ]
         )
 
-    def decode_and_print(self) -> None:
-        print(decode.dns(self._probe_th, self._dns))
+    def decode(self) -> str:
+        return decode.dns(self._probe_th, self._dns)
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         return self._dns
@@ -299,8 +300,8 @@ class _EndpointMeasurement:
             ]
         )
 
-    def decode_and_print(self) -> None:
-        print(decode.endpoint(self._probe_th, self._endpoint))
+    def decode(self) -> str:
+        return decode.endpoint(self._probe_th, self._endpoint)
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         return None
@@ -321,8 +322,8 @@ class _Unsupported:
     def as_tabular(self) -> Tabular:
         return Tabular()
 
-    def decode_and_print(self) -> None:
-        pass
+    def decode(self) -> str:
+        return ""
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         return None
