@@ -18,6 +18,7 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
 )
 
@@ -249,9 +250,13 @@ func (um *URLMeasurement) NewDNSReverseLookupPlans(
 	addrs []string, ri ...*DNSResolverInfo) []*DNSLookupPlan {
 	out := []*DNSLookupPlan{}
 	for _, addr := range addrs {
+		if netxlite.IsBogon(addr) {
+			logcat.Shrugf("cowardly refusing to reverse lookup a bogon: %s", addr)
+			continue
+		}
 		reverseAddr, err := dns.ReverseAddr(addr)
 		if err != nil {
-			// TODO(bassosimone): should we emit a warning about this?
+			logcat.Bugf("cannot reverse this IP addr: %s", addr)
 			continue
 		}
 		for _, r := range ri {
