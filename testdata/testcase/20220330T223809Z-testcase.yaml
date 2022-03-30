@@ -1,0 +1,268 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmp6x4qe50q/cache/probe
+- --th-cache-dir
+- ./tmp6x4qe50q/cache/th
+- --output
+- ./tmpv9711anw/report.jsonl
+- --logfile
+- ./tmpv9711anw/log.txt
+- --input
+- http://www.iwantim.com/
+- --emoji
+created: 20220330T223809Z
+description: 'false positive caused by any resolver returning a bogon'
+imported: 20220330T223848Z
+probe_asn: AS30722
+probe_cc: IT
+url: http://www.iwantim.com/
+...
+---
+testcase/cache/probe/dns/d0/d0d6c37576b254e517e7ebe46245e15c4c4b6ba3b50fff4d892db46f3b84f9c5-d:
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 127.0.0.1
+      Domain: www.iwantim.com
+      Finished: '2022-03-31T00:38:12.078676+02:00'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T00:38:09.899946+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:38:12.078649+02:00'
+      Query: PlwBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAA/wAB
+      Reply: PlyBgAABAAEAAAAAA3d3dwdpd2FudGltA2NvbQAA/wABwAwAAQABAAAAAAAEfwAAAQ==
+      ResolverNetwork: system
+      Started: '2022-03-31T00:38:09.899959+02:00'
+  T: '2022-03-31T00:38:12.079153+02:00'
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 127.0.0.1
+      Domain: www.iwantim.com
+      Finished: '2022-03-31T00:38:10.051728+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:38:09.899903+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:38:10.006392+02:00'
+      Query: eP4BAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAAQAB
+      Reply: eP6BgAABAAEAAAAAA3d3dwdpd2FudGltA2NvbQAAAQABwAwAAQABAAAAeAAEfwAAAQ==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:38:09.899929+02:00'
+    - Finished: '2022-03-31T00:38:10.051639+02:00'
+      Query: cM8BAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAHAAB
+      Reply: cM+BgAABAAAAAQAAA3d3dwdpd2FudGltA2NvbQAAHAABAAAGAAEAAAB4ADMJdW5kZWZpbmVkCWxvY2FsaG9zdAAHc3VwcG9ydMA2eGeQbQAAHCAAAA4QABJ1AAAAAHg=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:38:09.899921+02:00'
+  T: '2022-03-31T00:38:10.052016+02:00'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.iwantim.com
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:38:09.900196+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:38:09.89991+02:00'
+    RoundTrip:
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:38:09.900107+02:00'
+      Query: Vd8BAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAHAAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:38:09.899926+02:00'
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:38:09.900195+02:00'
+      Query: pRsBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAAQAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:38:09.899942+02:00'
+  T: '2022-03-31T00:38:09.900218+02:00'
+testcase/cache/probe/dnsping/03/037f467f7a71647808a7ae878fb8d9616b58c41add9b97af5f5f84c5cb133050-d:
+- Delay: 200000000
+  Domain: www.iwantim.com
+  ID: 16
+  Query: AGEBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAHAAB
+  QueryID: 97
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T00:38:12.305286+02:00'
+    ID: 18
+    Rcode: NOERROR
+    Reply: AGGBgAABAAAAAQAAA3d3dwdpd2FudGltA2NvbQAAHAABAAAGAAEAAAB4ADMJdW5kZWZpbmVkCWxvY2FsaG9zdAAHc3VwcG9ydMA2eGeQbQAAHCAAAA4QABJ1AAAAAHg=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.2825+02:00'
+testcase/cache/probe/dnsping/1b/1b9e8bc41a901fa3665c36f694d72b82ef49e0b33d888ac803038ae4f4ad8302-d:
+- Delay: 500000000
+  Domain: www.iwantim.com
+  ID: 24
+  Query: tDcBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAAQAB
+  QueryID: 46135
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 127.0.0.1
+    Error: ''
+    Finished: '2022-03-31T00:38:12.606972+02:00'
+    ID: 28
+    Rcode: NOERROR
+    Reply: tDeBgAABAAEAAAAAA3d3dwdpd2FudGltA2NvbQAAAQABwAwAAQABAAAAdgAEfwAAAQ==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.582935+02:00'
+testcase/cache/probe/dnsping/34/3446d12c1d7fc4af2335b823645af95306dd9fbf406c9690386413534c3cbdb7-d:
+- Delay: 200000000
+  Domain: www.iwantim.com
+  ID: 15
+  Query: mJcBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAAQAB
+  QueryID: 39063
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 127.0.0.1
+    Error: ''
+    Finished: '2022-03-31T00:38:12.372534+02:00'
+    ID: 22
+    Rcode: NOERROR
+    Reply: mJeBgAABAAEAAAAAA3d3dwdpd2FudGltA2NvbQAAAQABwAwAAQABAAAAeAAEfwAAAQ==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.282497+02:00'
+testcase/cache/probe/dnsping/4d/4ddfd78a9758b735e406bf1b5a06afa58111546c394ba53f9f342995df084c0d-d:
+- Delay: 0
+  Domain: www.iwantim.com
+  ID: 6
+  Query: 4fsBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAHAAB
+  QueryID: 57851
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T00:38:12.234316+02:00'
+    ID: 10
+    Rcode: NOERROR
+    Reply: 4fuBgAABAAAAAQAAA3d3dwdpd2FudGltA2NvbQAAHAABAAAGAAEAAAB4ADMJdW5kZWZpbmVkCWxvY2FsaG9zdAAHc3VwcG9ydMA2eGeQbQAAHCAAAA4QABJ1AAAAAHg=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.080783+02:00'
+testcase/cache/probe/dnsping/91/910246358cf24d93f7640bbe81db8c917b68bb14553c4ade2c60ef3c5f491615-d:
+- Delay: 100000000
+  Domain: www.iwantim.com
+  ID: 7
+  Query: J3EBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAAQAB
+  QueryID: 10097
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 127.0.0.1
+    Error: ''
+    Finished: '2022-03-31T00:38:12.360064+02:00'
+    ID: 20
+    Rcode: NOERROR
+    Reply: J3GBgAABAAEAAAAAA3d3dwdpd2FudGltA2NvbQAAAQABwAwAAQABAAAAeAAEfwAAAQ==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.181194+02:00'
+testcase/cache/probe/dnsping/94/944848357a1a7d7c21862f6e11812616430d4d137bf0ff9d59a65fb7be81ba5a-d:
+- Delay: 500000000
+  Domain: www.iwantim.com
+  ID: 23
+  Query: olkBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAHAAB
+  QueryID: 41561
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T00:38:12.605747+02:00'
+    ID: 26
+    Rcode: NOERROR
+    Reply: olmBgAABAAAAAQAAA3d3dwdpd2FudGltA2NvbQAAHAABAAAGAAEAAAB4ADMJdW5kZWZpbmVkCWxvY2FsaG9zdAAHc3VwcG9ydMA2eGeQbQAAHCAAAA4QABJ1AAAAAHg=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.58293+02:00'
+testcase/cache/probe/dnsping/9b/9ba4fbbf04174e585c9dbfdd553c0018ffe957ccb2b0865e9602472197cece57-d:
+- Delay: 0
+  Domain: www.iwantim.com
+  ID: 5
+  Query: rccBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAAQAB
+  QueryID: 44487
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 127.0.0.1
+    Error: ''
+    Finished: '2022-03-31T00:38:12.26892+02:00'
+    ID: 14
+    Rcode: NOERROR
+    Reply: rceBgAABAAEAAAAAA3d3dwdpd2FudGltA2NvbQAAAQABwAwAAQABAAAAeAAEfwAAAQ==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.080783+02:00'
+testcase/cache/probe/dnsping/ff/ff00900b658a9f88c42c393fb20602131e5e675a53236bed357cb43dab4ea310-d:
+- Delay: 100000000
+  Domain: www.iwantim.com
+  ID: 8
+  Query: TlcBAAABAAAAAAAAA3d3dwdpd2FudGltA2NvbQAAHAAB
+  QueryID: 20055
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T00:38:12.259627+02:00'
+    ID: 12
+    Rcode: NOERROR
+    Reply: TleBgAABAAAAAQAAA3d3dwdpd2FudGltA2NvbQAAHAABAAAGAAEAAAB4ADMJdW5kZWZpbmVkCWxvY2FsaG9zdAAHc3VwcG9ydMA2eGeQbQAAHCAAAA4QABJ1AAAAAHg=
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T00:38:12.181199+02:00'
+testcase/cache/th/dns/d0/d0d6c37576b254e517e7ebe46245e15c4c4b6ba3b50fff4d892db46f3b84f9c5-d:
+- M:
+    ID: 29
+    Lookup:
+      Addresses:
+      - 127.0.0.1
+      Domain: www.iwantim.com
+      Finished: '2022-03-31T00:38:13.031426+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:38:13.031426+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:38:13.031426+02:00'
+      Query: iWQBAAABAAAAAAABA3d3dwdpd2FudGltA2NvbQAAAQABAAApEAAAAIAAAFQADABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: iWSBgAABAAEAAAABA3d3dwdpd2FudGltA2NvbQAAAQABwAwAAQABAAAAeAAEfwAAAQAAKQTQAACAAAGYAA8AQwAXWzI2MDQ6OWEwMDoyMTAwOmEwMDg6Nzo6MV06NTMgcmNvZGU9UkVGVVNFRCBmb3Igd3d3Lml3YW50aW0uY29tIEEADAFNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:38:13.031426+02:00'
+    - Finished: '2022-03-31T00:38:13.031426+02:00'
+      Query: WvcBAAABAAAAAAABA3d3dwdpd2FudGltA2NvbQAAHAABAAApEAAAAIAAAFQADABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: WveBgAABAAAAAAABA3d3dwdpd2FudGltA2NvbQAAHAABAAApBNAAAIAAAagADAGkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:38:13.031426+02:00'
+  T: '2022-03-31T00:38:13.03157+02:00'
+...

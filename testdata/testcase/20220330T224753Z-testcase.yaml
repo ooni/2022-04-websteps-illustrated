@@ -1,0 +1,740 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmput_29p8o/cache/probe
+- --th-cache-dir
+- ./tmput_29p8o/cache/th
+- --output
+- ./tmphs0xvss5/report.jsonl
+- --logfile
+- ./tmphs0xvss5/log.txt
+- --input
+- http://marapcana.com/
+- --emoji
+created: 20220330T224753Z
+description: '#dnsDiff with DNS lying and block pages'
+imported: 20220330T225016Z
+probe_asn: AS30722
+probe_cc: IT
+url: http://marapcana.com/
+...
+---
+testcase/cache/probe/dns/5e/5ec773f7a00750ea3e174b5aaab4bb12cefb9d8c5e64c385a2a59c85fab61848-d:
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 50.28.32.8
+      - 2600:3c02::f03c:91ff:fee2:5b0f
+      Domain: marapcana.com
+      Finished: '2022-03-31T00:47:53.353187+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:47:53.201108+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:47:53.345421+02:00'
+      Query: D/kBAAABAAAAAAAACW1hcmFwY2FuYQNjb20AAAEAAQ==
+      Reply: D/mBgAABAAEAAAAACW1hcmFwY2FuYQNjb20AAAEAAcAMAAEAAQAAOEAABDIcIAg=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:47:53.201189+02:00'
+    - Finished: '2022-03-31T00:47:53.353173+02:00'
+      Query: YVcBAAABAAAAAAAACW1hcmFwY2FuYQNjb20AABwAAQ==
+      Reply: YVeBgAABAAEAAAAACW1hcmFwY2FuYQNjb20AABwAAcAMABwAAQAAOEAAECYAPAIAAAAA8DyR//7iWw8=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:47:53.201124+02:00'
+  T: '2022-03-31T00:47:53.353476+02:00'
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 83.224.65.74
+      Domain: marapcana.com
+      Finished: '2022-03-31T00:47:53.231555+02:00'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T00:47:53.201211+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:47:53.231546+02:00'
+      Query: ApoBAAABAAAAAAAACW1hcmFwY2FuYQNjb20AAP8AAQ==
+      Reply: ApqBgAABAAEAAAAACW1hcmFwY2FuYQNjb20AAP8AAcAMAAEAAQAAAAAABFPgQUo=
+      ResolverNetwork: system
+      Started: '2022-03-31T00:47:53.201224+02:00'
+  T: '2022-03-31T00:47:53.231663+02:00'
+- M:
+    ID: 3
+    Lookup:
+      Domain: marapcana.com
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:47:53.201414+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:47:53.201193+02:00'
+    RoundTrip:
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:47:53.201315+02:00'
+      Query: 8u0BAAABAAAAAAAACW1hcmFwY2FuYQNjb20AABwAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:47:53.201204+02:00'
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:47:53.201408+02:00'
+      Query: CgkBAAABAAAAAAAACW1hcmFwY2FuYQNjb20AAAEAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:47:53.201209+02:00'
+  T: '2022-03-31T00:47:53.201453+02:00'
+testcase/cache/probe/endpoint/20/2064dc036a4b770530734c1a8004bb1e30518433ce81836a8138f2bada6d79b6-d:
+- M:
+    Address: 83.224.65.74:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    Finished: '2022-03-31T00:48:08.356613+02:00'
+    ID: 8
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T00:48:08.356576+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 83.224.65.74:443
+      Started: '2022-03-31T00:47:53.3566+02:00'
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:48:08.356907+02:00'
+testcase/cache/probe/endpoint/26/26da28de724e39465c84a350320337607a1df4f6bbdadcaa08931d6dac684b4e-d:
+- M:
+    Address: '[2600:3c02::f03c:91ff:fee2:5b0f]:80'
+    FailedOperation: connect
+    Failure: host_unreachable
+    Finished: '2022-03-31T00:47:53.356665+02:00'
+    ID: 6
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:47:53.356653+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2600:3c02::f03c:91ff:fee2:5b0f]:80'
+      Started: '2022-03-31T00:47:53.356527+02:00'
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:47:53.356854+02:00'
+testcase/cache/probe/endpoint/32/3208aa1e2f908db3fb3afd3a2d54c76bd55f522b1efddb5f0f6ee47720e39dd1-d:
+- M:
+    Address: 50.28.32.8:80
+    Finished: '2022-03-31T00:47:56.778667+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:47:56.778449+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - marapcana.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PGh0bWw+Cgk8aGVhZD4KCQk8c2NyaXB0PgoJCQl2YXIgZm9yd2FyZGluZ1VybCA9ICIvcGFnZS9ib3VuY3kucGhwPyZicGFlPUdiaEdkTDNtdTF4N2puUFZLYmR2SCUyQiUyRlFPbmR5JTJCbHVKODRhaGlCRHRMMjFsUXNKS2VSYkp3Z2tSbXA2SlhZcDRIeFVCcEVpZWdqd25LVXpMNWdmJTJCSEZGN0FxTzM0dU84dDVEUDJPdGphbzBNUlJhZGNhTnh2YkJuJTJCVHdJJTJCb3QwWldNQXN3bUl3c05LV2tZd2pRJTJCeSUyRnJ2Q1dpWHFYTlMlMkJtM3VHTzNyciUyQllOVllDeEZJWEZ6SVJ0R2FDYXFMcGMxWUxIN08wVjVVdVY2JTJGZlIyS3NUVzhXSU0lMkIlMkY5WnFWVjFuRGk2dmJXREJlNnNWRW5jdXdLUW84RGUxUno0TGU5NTlxQnAyV1RCckpGeTVjZmZVUmdnVk1LVDVNMWZjQkVBVWJtMkw4JTJCRkczY091MVZqUDlaWVAzN0JzYmtFOGtaN053MnolMkJqZjREQUVwTCUyQmR5UWc5ZFkydWdTY3NBZWxDVEZoWHZ1MTlKYWFpTVdaWktHQVR5UlZXeFJ6T0JsSmNiUFhmQmdUSVpRRWlqWE9VMHNTQ2QzSUExR1VmVmVidllOTVdNTzNJN3NNdE5NS3FtQ1B1REJpTElhOHFKciUyRmwwZlZYdDJwaFdoeTJwanI2R01QV1N3UVYzb2V3U1VVVHRFemdjbjI1RiUyQlBsM1ZncU9uQzBEc0p3ZzhSJTJGMWJEa2RPaFdnVWFEcG9KMyUyRmJwNHBibXJ3dUxycWMwT3hPUkZ3RU9hWER5cW5NdzFPV1dVdW5qMUFzaGZ6OEVXaXpKeFppTXhiZ21EUEtzbE1DanZCU3B2UmpvMSUyRjN4SWs2VFdDQTJmZlJFbloxYW5DNVVqUVlMbGFqdU9qN0p5UiUyRm5EeXlZYWhtSHpXQUElM0QlM0QmcmVkaXJlY3RUeXBlPWpzIjsKCQkJdmFyIGRlc3RpbmF0aW9uVXJsID0gIi9wYWdlL2JvdW5jeS5waHA/JmJwYWU9R2JoR2RMM211MXg3am5QVktiZHZIJTJCJTJGUU9uZHklMkJsdUo4NGFoaUJEdEwyMWxRc0pLZVJiSndna1JtcDZKWFlwNEh4VUJwRWllZ2p3bktVekw1Z2YlMkJIRkY3QXFPMzR1Tzh0NURQMk90amFvME1SUmFkY2FOeHZiQm4lMkJUd0klMkJvdDBaV01Bc3dtSXdzTktXa1l3alElMkJ5JTJGcnZDV2lYcVhOUyUyQm0zdUdPM3JyJTJCWU5WWUN4RklYRnpJUnRHYUNhcUxwYzFZTEg3TzBWNVV1VjYlMkZmUjJLc1RXOFdJTSUyQiUyRjlacVZWMW5EaTZ2YldEQmU2c1ZFbmN1d0tRbzhEZTFSejRMZTk1OXFCcDJXVEJySkZ5NWNmZlVSZ2dWTUtUNU0xZmNCRUFVYm0yTDglMkJGRzNjT3UxVmpQOVpZUDM3QnNia0U4a1o3TncyeiUyQmpmNERBRXBMJTJCZHlRZzlkWTJ1Z1Njc0FlbENURmhYdnUxOUphYWlNV1paS0dBVHlSVld4UnpPQmxKY2JQWGZCZ1RJWlFFaWpYT1Uwc1NDZDNJQTFHVWZWZWJ2WU5NV01PM0k3c010Tk1LcW1DUHVEQmlMSWE4cUpyJTJGbDBmVlh0MnBoV2h5MnBqcjZHTVBXU3dRVjNvZXdTVVVUdEV6Z2NuMjVGJTJCUGwzVmdxT25DMERzSndnOFIlMkYxYkRrZE9oV2dVYURwb0ozJTJGYnA0cGJtcnd1THJxYzBPeE9SRndFT2FYRHlxbk13MU9XV1V1bmoxQXNoZno4RVdpekp4WmlNeGJnbURQS3NsTUNqdkJTcHZSam8xJTJGM3hJazZUV0NBMmZmUkVuWjFhbkM1VWpRWUxsYWp1T2o3SnlSJTJGbkR5eVlhaG1IeldBQSUzRCUzRCZyZWRpcmVjdFR5cGU9bWV0YSI7CgkJCXZhciBhZGREZXRlY3Rpb24gPSB0cnVlOwoJCQlpZiAoYWRkRGV0ZWN0aW9uKSB7CgkJCQl2YXIgaW5JZnJhbWUgPSB3aW5kb3cuc2VsZiAhPT0gd2luZG93LnRvcDsKCQkJCWZvcndhcmRpbmdVcmwgKz0gIiZpbklmcmFtZT0iICsgaW5JZnJhbWU7CgkJCQl2YXIgaW5Qb3BVcCA9ICh3aW5kb3cub3BlbmVyICE9PSB1bmRlZmluZWQgJiYgd2luZG93Lm9wZW5lciAhPT0gbnVsbCAmJiB3aW5kb3cub3BlbmVyICE9PSB3aW5kb3cpOwoJCQkJZm9yd2FyZGluZ1VybCArPSAiJmluUG9wVXA9IiArIGluUG9wVXA7CgkJCX0KCQkJd2luZG93LmxvY2F0aW9uLnJlcGxhY2UoZm9yd2FyZGluZ1VybCk7CgkJPC9zY3JpcHQ+CgkJPG5vc2NyaXB0PgoJCQk8bWV0YSBodHRwLWVxdWl2PSJyZWZyZXNoIiBjb250ZW50PSIxO3VybD0vcGFnZS9ib3VuY3kucGhwPyZicGFlPUdiaEdkTDNtdTF4N2puUFZLYmR2SCUyQiUyRlFPbmR5JTJCbHVKODRhaGlCRHRMMjFsUXNKS2VSYkp3Z2tSbXA2SlhZcDRIeFVCcEVpZWdqd25LVXpMNWdmJTJCSEZGN0FxTzM0dU84dDVEUDJPdGphbzBNUlJhZGNhTnh2YkJuJTJCVHdJJTJCb3QwWldNQXN3bUl3c05LV2tZd2pRJTJCeSUyRnJ2Q1dpWHFYTlMlMkJtM3VHTzNyciUyQllOVllDeEZJWEZ6SVJ0R2FDYXFMcGMxWUxIN08wVjVVdVY2JTJGZlIyS3NUVzhXSU0lMkIlMkY5WnFWVjFuRGk2dmJXREJlNnNWRW5jdXdLUW84RGUxUno0TGU5NTlxQnAyV1RCckpGeTVjZmZVUmdnVk1LVDVNMWZjQkVBVWJtMkw4JTJCRkczY091MVZqUDlaWVAzN0JzYmtFOGtaN053MnolMkJqZjREQUVwTCUyQmR5UWc5ZFkydWdTY3NBZWxDVEZoWHZ1MTlKYWFpTVdaWktHQVR5UlZXeFJ6T0JsSmNiUFhmQmdUSVpRRWlqWE9VMHNTQ2QzSUExR1VmVmVidllOTVdNTzNJN3NNdE5NS3FtQ1B1REJpTElhOHFKciUyRmwwZlZYdDJwaFdoeTJwanI2R01QV1N3UVYzb2V3U1VVVHRFemdjbjI1RiUyQlBsM1ZncU9uQzBEc0p3ZzhSJTJGMWJEa2RPaFdnVWFEcG9KMyUyRmJwNHBibXJ3dUxycWMwT3hPUkZ3RU9hWER5cW5NdzFPV1dVdW5qMUFzaGZ6OEVXaXpKeFppTXhiZ21EUEtzbE1DanZCU3B2UmpvMSUyRjN4SWs2VFdDQTJmZlJFbloxYW5DNVVqUVlMbGFqdU9qN0p5UiUyRm5EeXlZYWhtSHpXQUElM0QlM0QmcmVkaXJlY3RUeXBlPW1ldGEiIC8+CgkJPC9ub3NjcmlwdD4KCTwvaGVhZD4KPC9odG1sPg==
+      ResponseBodyLength: 2746
+      ResponseBodyTLSH: 9f51c6c4ef3e5942262d7125a92ab39ffd832053293c9dc1892fc014299079f59c977e
+      ResponseHeaders:
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 22:47:55 GMT
+        Server:
+        - Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9
+        X-Powered-By:
+        - PHP/5.4.16
+      Started: '2022-03-31T00:47:55.492927+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://marapcana.com/
+    ID: 10
+    Network: tcp
+    NetworkEvent:
+    - Count: 274
+      Finished: '2022-03-31T00:47:55.493134+02:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 50.28.32.8:80
+      Started: '2022-03-31T00:47:55.493076+02:00'
+    - Count: 2975
+      Finished: '2022-03-31T00:47:56.777706+02:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 50.28.32.8:80
+      Started: '2022-03-31T00:47:55.493053+02:00'
+    - Count: 2975
+      Finished: '2022-03-31T00:47:56.778614+02:00'
+      Operation: bytes_read
+      Started: '2022-03-31T00:47:56.778614+02:00'
+    - Count: 274
+      Finished: '2022-03-31T00:47:56.778614+02:00'
+      Operation: bytes_written
+      Started: '2022-03-31T00:47:56.778614+02:00'
+    - Finished: '2022-03-31T00:47:56.778664+02:00'
+      Operation: bytes_read
+      Started: '2022-03-31T00:47:56.778664+02:00'
+    - Finished: '2022-03-31T00:47:56.778664+02:00'
+      Operation: bytes_written
+      Started: '2022-03-31T00:47:56.778664+02:00'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T00:47:55.492776+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 50.28.32.8:80
+      Started: '2022-03-31T00:47:53.356716+02:00'
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:47:56.781568+02:00'
+testcase/cache/probe/endpoint/b0/b0aca5ec8d1f1b530cbf41c484fc3775160e6cbd139cc12fc5caa37691e69f06-d:
+- M:
+    Address: '[2600:3c02::f03c:91ff:fee2:5b0f]:443'
+    FailedOperation: connect
+    Failure: host_unreachable
+    Finished: '2022-03-31T00:47:53.356763+02:00'
+    ID: 9
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:47:53.356747+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2600:3c02::f03c:91ff:fee2:5b0f]:443'
+      Started: '2022-03-31T00:47:53.356602+02:00'
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:47:53.357695+02:00'
+testcase/cache/probe/endpoint/ba/baefef0e9bff74615873ca5c9add44d0af78ae7eef9a04c362cbe9637ab7d69a-d:
+- M:
+    Address: 83.224.65.74:80
+    Finished: '2022-03-31T00:47:53.404141+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:47:53.404087+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - marapcana.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PCFET0NUWVBFIGh0bWwgUFVCTElDICItLy9XM0MvL0RURCBYSFRNTCAxLjAgU3RyaWN0Ly9FTiIgImh0dHA6Ly93d3cudzMub3JnL1RSL3hodG1sMS9EVEQveGh0bWwxLXN0cmljdC5kdGQiPgo8aHRtbCB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgbGFuZz0iZW4iIHhtbDpsYW5nPSJlbiI+CjxoZWFkPgogICA8bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRtbDtjaGFyc2V0PWlzby04ODU5LTEiIC8+CiAgIDx0aXRsZT5BR0NPTSBTdG9wIFBhZ2U8L3RpdGxlPgoKPGJvZHk+CiAgIDxwIGFsaWduPWNlbnRlcj48aW1nIHdpZHRoPTExMjIgaGVpZ2h0PTc0NSBzcmM9Ii4vaW1hZ2UwMDEuanBnIiBhbHQ9IiIgLz48L3A+CjwvYm9keT4KPC9odG1sPgoK
+      ResponseBodyLength: 402
+      ResponseBodyTLSH: 24e0f158045ac2c3d1d0c72038f37f9995c342c341c5428cf5a18087c8c8788d473384
+      ResponseHeaders:
+        Accept-Ranges:
+        - bytes
+        Content-Length:
+        - '402'
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 21:54:19 GMT
+        Etag:
+        - '"9fc0a-192-51460a6e504a0"'
+        Last-Modified:
+        - Thu, 23 Apr 2015 09:10:32 GMT
+        Server:
+        - Apache
+      Started: '2022-03-31T00:47:53.381059+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://marapcana.com/
+    HTTPTitle: AGCOM Stop Page
+    ID: 5
+    Network: tcp
+    NetworkEvent:
+    - Count: 274
+      Finished: '2022-03-31T00:47:53.381219+02:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 83.224.65.74:80
+      Started: '2022-03-31T00:47:53.381157+02:00'
+    - Count: 655
+      Finished: '2022-03-31T00:47:53.403877+02:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 83.224.65.74:80
+      Started: '2022-03-31T00:47:53.381148+02:00'
+    - Count: 655
+      Finished: '2022-03-31T00:47:53.40414+02:00'
+      Operation: bytes_read
+      Started: '2022-03-31T00:47:53.40414+02:00'
+    - Count: 274
+      Finished: '2022-03-31T00:47:53.40414+02:00'
+      Operation: bytes_written
+      Started: '2022-03-31T00:47:53.40414+02:00'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T00:47:53.380967+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 83.224.65.74:80
+      Started: '2022-03-31T00:47:53.356504+02:00'
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:47:53.405362+02:00'
+testcase/cache/probe/endpoint/d2/d2b7b9a00612997ef4cbba16058ab5e656be1ffb90a5855b16144887f4a66b3a-d:
+- M:
+    Address: 50.28.32.8:443
+    FailedOperation: tls_handshake
+    Failure: ssl_unknown_authority
+    Finished: '2022-03-31T00:47:55.424795+02:00'
+    ID: 7
+    Network: tcp
+    NetworkEvent:
+    - Count: 283
+      Finished: '2022-03-31T00:47:54.497689+02:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 50.28.32.8:443
+      Started: '2022-03-31T00:47:54.497521+02:00'
+    - Count: 517
+      Finished: '2022-03-31T00:47:55.424314+02:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 50.28.32.8:443
+      Started: '2022-03-31T00:47:54.497701+02:00'
+    - Count: 3321
+      Finished: '2022-03-31T00:47:55.424372+02:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 50.28.32.8:443
+      Started: '2022-03-31T00:47:55.424363+02:00'
+    - Count: 7
+      Finished: '2022-03-31T00:47:55.424739+02:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 50.28.32.8:443
+      Started: '2022-03-31T00:47:55.424622+02:00'
+    Options: {}
+    QUICTLSHandshake:
+      ALPN:
+      - h2
+      - http/1.1
+      Failure: ssl_unknown_authority
+      Finished: '2022-03-31T00:47:55.424772+02:00'
+      Network: tcp
+      PeerCerts:
+      - MIINLjCCDBagAwIBAgISBEyAUn+6fMFNNKdMRTPw8798MA0GCSqGSIb3DQEBCwUAMDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQDEwJSMzAeFw0yMjAzMjQwNzMyMzVaFw0yMjA2MjIwNzMyMzRaMCUxIzAhBgNVBAMTGm1hbm5tb3VudGFpbm91dGZpdHRlcnMuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApl2oU5876gDrBqjoWifYMxjlf20kPXtZBSE2dQnFirfdoDt5gNtxIxqxSc+OUjFC8NFqwo7c8ZD9QwFeuxzwwfHxpTqANYQEjerLb1um4BSZcFOwNASlUiVroS5UzDPpTD29CwCY14poXUbOfzsKcrdQ0PFQNK36/T8WLG2AlotXHk5XW8Ay6wYQfbVi+o2oVEVwlCtjXB8o8SvXAPCHljeJIXIR2ycISI3VnHZN6nAgGteLG3Zb/8uaXLmpGTgf4bWbSSkjPkHEJh+5nTKdPqqpuZKHmnalcS/w3cEIoG6ZKCKwJ/BnA4z2E4ylACmJxLS+MjZbTpLQ+PNxZklhmQIDAQABo4IKSTCCCkUwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBR7kI+jwR+kaQdCcUwnvu4lnMq1QTAfBgNVHSMEGDAWgBQULrMXt1hWy65QCUDmH6+dixTCxjBVBggrBgEFBQcBAQRJMEcwIQYIKwYBBQUHMAGGFWh0dHA6Ly9yMy5vLmxlbmNyLm9yZzAiBggrBgEFBQcwAoYWaHR0cDovL3IzLmkubGVuY3Iub3JnLzCCCBcGA1UdEQSCCA4wgggKghwqLm1hbm5tb3VudGFpbm91dGZpdHRlcnMuY29tghUqLm1hbm55ZG1hcmtldGluZy5jb22CESoubWFubnlzY2VuY2UuY29tghIqLm1hbm9mbGVnZW5kcy5jb22CDyoubWFub3Jib3dsLm5ldIIVKi5tYW5vcmJ1ZmZldHRvZ28uY29tghoqLm1hbnNmaWVsZG9wdG9tZXRyaXN0LmNvbYIQKi5tYW50YXNsdWtvLmNvbYINKi5tYW50aXN4Lm5ldIIXKi5tYW50cmEyOWdvbGRjb2FzdC5jb22CGCoubWFudWFsZXMtZGUtdGFsbGVyLmNvbYIWKi5tYW51c3Bvd2VybW93ZXJzLmNvbYIOKi5tYW55dS1raS5uZXSCDCoubWFvLTI0LmNvbYIXKi5tYXBhaW50c29ubGluZS1oay5jb22CFCoubWFwY29yZXJld2FyZHMuY29tgg4qLm1hcGZpZ2h0LmNvbYIQKi5tYXBsZWNoZW5nLm9yZ4IaKi5tYXBsZW1hbm9yYXBhcnRtZW50cy5uZXSCDSoubWFwcm9vLmluZm+CFioubWFxdWluYXNtYW5vYnJhcy5jb22CEyoubWFyYWJvb2JlYXV0eS5jb22CDSoubWFyYWNvLmluZm+CDyoubWFyYXBjYW5hLmNvbYIXKi5tYXJhdGhvbmh5ZG1vdG9ycy5jb22CFCoubWFyYmFyc2VjdXJpdHkuY29tghYqLm1hcmJlbGF0ZW1wb3JhZGEubmV0ghcqLm1hcmJsZWRhbGViYXB0aXN0Lm9yZ4INKi5tYXJib29uLmNvbYISKi5tYXJjYWRpZ2l0YWwub3JnghYqLm1hcmNlbGxvc2l0YWxpYW4uY29tgh4qLm1hcmNpc3RoZXJhcGV1dGljbWFzc2FnZS5jb22CFCoubWFyY29qZWdlcmluZ3MuY29tghcqLm1hcmN1bWZ1bmVyYWxob21lLmNvbYIgKi5tYXJjeWhlaXNsZXJseXJpY3dvcmtzaG9wcy5jb22CESoubWFyZW5nby1hcnQuY29tghIqLm1hcmdhZGFyc2luaS5jb22CFyoubWFyZ2F1eGFuZGNvbXBhbnkuY29tghUqLm1hcmdlc29ucm9zZWxheC5jb22CFCoubWFyaWFjaGllbmNpbm8uY29tghEqLm1hcmlhY29yaW5vLmNvbYITKi5tYXJpYWVyaWtzc29uLmNvbYIWKi5tYXJpYWhvbGlkYXlob21lLmNvbYIRKi5tYXJpYWxpZ2F5YS5jb22CGCoubWFyaWF2YWxkZXNzb3ByYW5vLmNvbYIdKi5tYXJpbHluc3VuZGVybGFuZHN0dWRpby5jb22CESoubWFyaW1hcmliYWcuY29tghQqLm1hcmluYWJlYWNoYXB0LmNvbYITKi5tYXJpbmFmb29kdXNhLmNvbYIabWFubm1vdW50YWlub3V0Zml0dGVycy5jb22CE21hbm55ZG1hcmtldGluZy5jb22CD21hbm55c2NlbmNlLmNvbYIQbWFub2ZsZWdlbmRzLmNvbYINbWFub3Jib3dsLm5ldIITbWFub3JidWZmZXR0b2dvLmNvbYIYbWFuc2ZpZWxkb3B0b21ldHJpc3QuY29tgg5tYW50YXNsdWtvLmNvbYILbWFudGlzeC5uZXSCFW1hbnRyYTI5Z29sZGNvYXN0LmNvbYIWbWFudWFsZXMtZGUtdGFsbGVyLmNvbYIUbWFudXNwb3dlcm1vd2Vycy5jb22CDG1hbnl1LWtpLm5ldIIKbWFvLTI0LmNvbYIVbWFwYWludHNvbmxpbmUtaGsuY29tghJtYXBjb3JlcmV3YXJkcy5jb22CDG1hcGZpZ2h0LmNvbYIObWFwbGVjaGVuZy5vcmeCGG1hcGxlbWFub3JhcGFydG1lbnRzLm5ldIILbWFwcm9vLmluZm+CFG1hcXVpbmFzbWFub2JyYXMuY29tghFtYXJhYm9vYmVhdXR5LmNvbYILbWFyYWNvLmluZm+CDW1hcmFwY2FuYS5jb22CFW1hcmF0aG9uaHlkbW90b3JzLmNvbYISbWFyYmFyc2VjdXJpdHkuY29tghRtYXJiZWxhdGVtcG9yYWRhLm5ldIIVbWFyYmxlZGFsZWJhcHRpc3Qub3JnggttYXJib29uLmNvbYIQbWFyY2FkaWdpdGFsLm9yZ4IUbWFyY2VsbG9zaXRhbGlhbi5jb22CHG1hcmNpc3RoZXJhcGV1dGljbWFzc2FnZS5jb22CEm1hcmNvamVnZXJpbmdzLmNvbYIVbWFyY3VtZnVuZXJhbGhvbWUuY29tgh5tYXJjeWhlaXNsZXJseXJpY3dvcmtzaG9wcy5jb22CD21hcmVuZ28tYXJ0LmNvbYIQbWFyZ2FkYXJzaW5pLmNvbYIVbWFyZ2F1eGFuZGNvbXBhbnkuY29tghNtYXJnZXNvbnJvc2VsYXguY29tghJtYXJpYWNoaWVuY2luby5jb22CD21hcmlhY29yaW5vLmNvbYIRbWFyaWFlcmlrc3Nvbi5jb22CFG1hcmlhaG9saWRheWhvbWUuY29tgg9tYXJpYWxpZ2F5YS5jb22CFm1hcmlhdmFsZGVzc29wcmFuby5jb22CG21hcmlseW5zdW5kZXJsYW5kc3R1ZGlvLmNvbYIPbWFyaW1hcmliYWcuY29tghJtYXJpbmFiZWFjaGFwdC5jb22CEW1hcmluYWZvb2R1c2EuY29tMEwGA1UdIARFMEMwCAYGZ4EMAQIBMDcGCysGAQQBgt8TAQEBMCgwJgYIKwYBBQUHAgEWGmh0dHA6Ly9jcHMubGV0c2VuY3J5cHQub3JnMIIBBAYKKwYBBAHWeQIEAgSB9QSB8gDwAHUA36Veq2iCTx9sre64X04+WurNohKkal6OOxLAIERcKnMAAAF/uw5eSQAABAMARjBEAiAhWTAqHX0yYzMUEeyKEIpepGFK5dp86PtIKWa8UBCODAIgUQz5ypexF14vJxpOQ8OyLwJWnIVFTXBTTJELo2ncVnoAdwApeb7wnjk5IfBWc59jpXflvld9nGAK+PlNXSZcJV3HhAAAAX+7Dl56AAAEAwBIMEYCIQCZs5pf3FrCeCKMT2U29DJoSj4R9eNH0XJOnhKHuN+NhwIhAO1QlYh/xThbMO6p7Q6mpxSoNouz+g1VxvojiBb0j0hGMA0GCSqGSIb3DQEBCwUAA4IBAQA94P7Nh1eAmNB/SmRruTiZwTzREy2wPQB3FrkPARDDHikitfYMRX0wQe5sC7MsAt3wM86Anp98T/KAhtZSM9R7TSDqJ5gq2BAs0FH1qlcSjD2Oc+deTLEqN4ees3A65E7aFZR0yGuO2X0wUImCFJcPEjLkJ+FkA+rW964vr+kd9AuBAkyTAunIkaRlwM1yLqbpZk8J1KFJ9qFU4vjKP0V433kAsJwVQhpZoRynqJrRU/IIMbbzAeyjqryZfeVk06yIQhMXsynEk6xenl2Pim2n8nJqqVuTqa6Unp9mLuMfm4dqVNq6akxS3zlrDp+Gev2jJBhq3sap7+a+gpqB8lQR
+      RemoteAddr: 50.28.32.8:443
+      SNI: marapcana.com
+      Started: '2022-03-31T00:47:54.497134+02:00'
+    TCPConnect:
+      Finished: '2022-03-31T00:47:54.492819+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 50.28.32.8:443
+      Started: '2022-03-31T00:47:53.35654+02:00'
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:47:55.424977+02:00'
+testcase/cache/th/dns/07/0788bcd78a1cc3fe4ead0ac92f82d30e1553c81a936cf1b6e997b3a48fc89e9d-d:
+- M:
+    ID: 14
+    Lookup:
+      Domain: f.0.b.5.2.e.e.f.f.f.1.9.c.3.0.f.0.0.0.0.0.0.0.0.2.0.c.3.0.0.6.2.ip6.arpa.
+      Failure: dns_nxdomain_error
+      Finished: '2022-03-31T00:48:09.296773+02:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+    ReverseAddress: 2600:3c02::f03c:91ff:fee2:5b0f
+    RoundTrip:
+    - Finished: '2022-03-31T00:48:09.296773+02:00'
+      Query: hVEBAAABAAAAAAABAWYBMAFiATUBMgFlAWUBZgFmAWYBMQE5AWMBMwEwAWYBMAEwATABMAEwATABMAEwATIBMAFjATMBMAEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: hVGBgwABAAAAAQABAWYBMAFiATUBMgFlAWUBZgFmAWYBMQE5AWMBMwEwAWYBMAEwATABMAEwATABMAEwATIBMAFjATMBMAEwATYBMgNpcDYEYXJwYQAADAABATIBMAFjATMBMAEwATYBMgNpcDYEYXJwYQAABgABAAFRgAA0A25zMQZsaW5vZGUDY29tAANkbnMGbGlub2RlA2NvbQB4dgpqAAA4QAAAOEAAEnUAAAFRgAAAKQTQAACAAAEXAA8AQgAXMTYyLjE1OS4yNi45OTo1MyByY29kZT1SRUZVU0VEIGZvciAwLmMuMy4wLjAuNi4yLmlwNi5hcnBhIEROU0tFWQAMAM0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+  T: '2022-03-31T00:48:09.299355+02:00'
+testcase/cache/th/dns/1c/1c629e4a7bf2b8f6f57774d36f8d75e79a95e8d5e7f59c50217c6eadd87e84b5-d:
+- M:
+    ID: 13
+    Lookup:
+      Domain: 8.32.28.50.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T00:48:09.296773+02:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+    ReverseAddress: 50.28.32.8
+    RoundTrip:
+    - Finished: '2022-03-31T00:48:09.296773+02:00'
+      Query: KLcBAAABAAAAAAABATgCMzICMjgCNTAHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAATAAMAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: KLeBhQABAAAAAAABATgCMzICMjgCNTAHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABoAAMAZwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+  T: '2022-03-31T00:48:09.298947+02:00'
+testcase/cache/th/dns/5e/5ec773f7a00750ea3e174b5aaab4bb12cefb9d8c5e64c385a2a59c85fab61848-d:
+- M:
+    ID: 11
+    Lookup:
+      Addresses:
+      - 50.28.32.8
+      - 2600:3c02::f03c:91ff:fee2:5b0f
+      Domain: marapcana.com
+      Finished: '2022-03-31T00:48:09.296773+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:48:09.296773+02:00'
+      Query: kxQBAAABAAAAAAABCW1hcmFwY2FuYQNjb20AAAEAAQAAKRAAAACAAABWAAwAUgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: kxSBgAABAAEAAAABCW1hcmFwY2FuYQNjb20AAAEAAcAMAAEAAQAAOEAABDIcIAgAACkE0AAAgAABmgAMAZYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+    - Finished: '2022-03-31T00:48:09.296773+02:00'
+      Query: 5hoBAAABAAAAAAABCW1hcmFwY2FuYQNjb20AABwAAQAAKRAAAACAAABWAAwAUgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 5hqBgAABAAEAAAABCW1hcmFwY2FuYQNjb20AABwAAcAMABwAAQAAOEAAECYAPAIAAAAA8DyR//7iWw8AACkE0AAAgAABjgAMAYoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+  T: '2022-03-31T00:48:09.296987+02:00'
+testcase/cache/th/dns/e6/e65f5af2f69cbd448001943f79ebb82086a6a5080637ccf651d4e863aaaf52e8-d:
+- M:
+    ID: 12
+    Lookup:
+      Domain: 74.65.224.83.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T00:48:09.296773+02:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+    ReverseAddress: 83.224.65.74
+    RoundTrip:
+    - Finished: '2022-03-31T00:48:09.296773+02:00'
+      Query: MIwBAAABAAAAAAABAjc0AjY1AzIyNAI4Mwdpbi1hZGRyBGFycGEAAAwAAQAAKRAAAACAAABKAAwARgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: MIyBhQABAAAAAAABAjc0AjY1AzIyNAI4Mwdpbi1hZGRyBGFycGEAAAwAAQAAKQTQAACAAAGeAAwBmgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:48:09.296773+02:00'
+  T: '2022-03-31T00:48:09.298468+02:00'
+testcase/cache/th/endpoint/20/2064dc036a4b770530734c1a8004bb1e30518433ce81836a8138f2bada6d79b6-d:
+- M:
+    Address: 83.224.65.74:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    Finished: '2022-03-31T00:48:09.296773+02:00'
+    ID: 20
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:48:09.30235+02:00'
+testcase/cache/th/endpoint/26/26da28de724e39465c84a350320337607a1df4f6bbdadcaa08931d6dac684b4e-d:
+- M:
+    Address: '[2600:3c02::f03c:91ff:fee2:5b0f]:80'
+    Finished: '2022-03-31T00:48:09.296773+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:48:09.296773+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - marapcana.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 1990
+      ResponseBodyTLSH: 50415481d60c9ca2cc2446688e6ff72eb4bbe50a005f8e54e451b551cdecbeba25083c
+      ResponseHeaders:
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 22:47:54 GMT
+        Server:
+        - Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips PHP/5.5.38
+        X-Powered-By:
+        - PHP/5.5.38
+      Started: '2022-03-31T00:48:09.296773+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://marapcana.com/
+    ID: 15
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:48:09.300007+02:00'
+testcase/cache/th/endpoint/32/3208aa1e2f908db3fb3afd3a2d54c76bd55f522b1efddb5f0f6ee47720e39dd1-d:
+- M:
+    Address: 50.28.32.8:80
+    Finished: '2022-03-31T00:48:09.296773+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:48:09.296773+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - marapcana.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 1930
+      ResponseBodyTLSH: ec4133d4ff4c1ce2e29c2095e47c52d654fff94b944ad8208e98864638c1b5b978623c
+      ResponseHeaders:
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 22:47:55 GMT
+        Server:
+        - Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9
+        X-Powered-By:
+        - PHP/5.4.16
+      Started: '2022-03-31T00:48:09.296773+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://marapcana.com/
+    ID: 19
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:48:09.301973+02:00'
+testcase/cache/th/endpoint/b0/b0aca5ec8d1f1b530cbf41c484fc3775160e6cbd139cc12fc5caa37691e69f06-d:
+- M:
+    Address: '[2600:3c02::f03c:91ff:fee2:5b0f]:443'
+    FailedOperation: tls_handshake
+    Failure: ssl_invalid_hostname
+    Finished: '2022-03-31T00:48:09.296773+02:00'
+    ID: 16
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:48:09.300769+02:00'
+testcase/cache/th/endpoint/ba/baefef0e9bff74615873ca5c9add44d0af78ae7eef9a04c362cbe9637ab7d69a-d:
+- M:
+    Address: 83.224.65.74:80
+    Finished: '2022-03-31T00:48:09.296773+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:48:09.296773+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - marapcana.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 402
+      ResponseBodyTLSH: 24e0f158045ac2c3d1d0c72038f37f9995c342c341c5428cf5a18087c8c8788d473384
+      ResponseHeaders:
+        Accept-Ranges:
+        - bytes
+        Content-Length:
+        - '402'
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 21:54:20 GMT
+        Etag:
+        - '"9fc0a-192-51460a6e504a0"'
+        Last-Modified:
+        - Thu, 23 Apr 2015 09:10:32 GMT
+        Server:
+        - Apache
+      Started: '2022-03-31T00:48:09.296773+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://marapcana.com/
+    HTTPTitle: AGCOM Stop Page
+    ID: 17
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:48:09.301154+02:00'
+testcase/cache/th/endpoint/d2/d2b7b9a00612997ef4cbba16058ab5e656be1ffb90a5855b16144887f4a66b3a-d:
+- M:
+    Address: 50.28.32.8:443
+    FailedOperation: tls_handshake
+    Failure: ssl_unknown_authority
+    Finished: '2022-03-31T00:48:09.296773+02:00'
+    ID: 18
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: marapcana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:48:09.301594+02:00'
+...

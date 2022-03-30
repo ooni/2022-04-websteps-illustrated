@@ -1,0 +1,117 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmp6_piqjyd/cache/probe
+- --th-cache-dir
+- ./tmp6_piqjyd/cache/th
+- --output
+- ./tmpqkn9y_u2/report.jsonl
+- --logfile
+- ./tmpqkn9y_u2/log.txt
+- --input
+- http://www.mnr.gov.cn/
+- --emoji
+created: 20220330T224109Z
+description: 'weird domain with inconsistent DNS results which ends up being inconclusive'
+imported: 20220330T224139Z
+probe_asn: AS30722
+probe_cc: IT
+url: http://www.mnr.gov.cn/
+...
+---
+testcase/cache/probe/dns/b6/b6c75cf96dc417fe9c2fbea7b6d630b61c042259b5e229ad03c99082ad617c60-d:
+- M:
+    ID: 2
+    Lookup:
+      Domain: www.mnr.gov.cn
+      Failure: dns_servfail_error
+      Finished: '2022-03-31T00:41:13.70721+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:41:09.619119+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:41:13.701736+02:00'
+      Query: PCIBAAABAAAAAAAAA3d3dwNtbnIDZ292AmNuAAABAAE=
+      Reply: PCKBggABAAAAAAAAA3d3dwNtbnIDZ292AmNuAAABAAE=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:41:09.619231+02:00'
+    - Finished: '2022-03-31T00:41:13.707144+02:00'
+      Query: BTcBAAABAAAAAAAAA3d3dwNtbnIDZ292AmNuAAAcAAE=
+      Reply: BTeBggABAAAAAAAAA3d3dwNtbnIDZ292AmNuAAAcAAE=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:41:09.619142+02:00'
+  T: '2022-03-31T00:41:13.707854+02:00'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.mnr.gov.cn
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T00:41:13.620261+02:00'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T00:41:09.619126+02:00'
+    RoundTrip:
+    - Failure: context deadline exceeded
+      Finished: '2022-03-31T00:41:13.620206+02:00'
+      Query: 4+sBAAABAAAAAAAAA3d3dwNtbnIDZ292AmNuAAD/AAE=
+      ResolverNetwork: system
+      Started: '2022-03-31T00:41:09.619143+02:00'
+  T: '2022-03-31T00:41:13.620816+02:00'
+- M:
+    ID: 4
+    Lookup:
+      Domain: www.mnr.gov.cn
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:41:09.619409+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:41:09.619178+02:00'
+    RoundTrip:
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:41:09.61934+02:00'
+      Query: DsYBAAABAAAAAAAAA3d3dwNtbnIDZ292AmNuAAAcAAE=
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:41:09.619186+02:00'
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:41:09.619404+02:00'
+      Query: +sQBAAABAAAAAAAAA3d3dwNtbnIDZ292AmNuAAABAAE=
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:41:09.619193+02:00'
+  T: '2022-03-31T00:41:09.619444+02:00'
+testcase/cache/th/dns/b6/b6c75cf96dc417fe9c2fbea7b6d630b61c042259b5e229ad03c99082ad617c60-d:
+- M:
+    ID: 5
+    Lookup:
+      Domain: www.mnr.gov.cn
+      Failure: dns_servfail_error
+      Finished: '2022-03-31T00:41:16.508593+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:41:16.508593+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:41:16.508593+02:00'
+      Query: oKsBAAABAAAAAAABA3d3dwNtbnIDZ292AmNuAAABAAEAACkQAAAAgAAAVQAMAFEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: oKuBggABAAAAAAABA3d3dwNtbnIDZ292AmNuAAABAAEAACkE0AAAgAABqQAPABsAFmF0IGRlbGVnYXRpb24gbW5yLmdvdi5jbi4ADAGGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:41:16.508593+02:00'
+    - Finished: '2022-03-31T00:41:16.508593+02:00'
+      Query: V/sBAAABAAAAAAABA3d3dwNtbnIDZ292AmNuAAAcAAEAACkQAAAAgAAAVQAMAFEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: V/uBggABAAAAAAABA3d3dwNtbnIDZ292AmNuAAAcAAEAACkE0AAAgAABqQAPABsAFmF0IGRlbGVnYXRpb24gbW5yLmdvdi5jbi4ADAGGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:41:16.508593+02:00'
+  T: '2022-03-31T00:41:16.508767+02:00'
+...

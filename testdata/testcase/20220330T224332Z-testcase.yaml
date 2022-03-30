@@ -1,0 +1,705 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmpjtq9767v/cache/probe
+- --th-cache-dir
+- ./tmpjtq9767v/cache/th
+- --output
+- ./tmpx01mkqq_/report.jsonl
+- --logfile
+- ./tmpx01mkqq_/log.txt
+- --input
+- http://tantifilm.net/
+- --emoji
+created: 20220330T224332Z
+description: '#dnsDiff with DNS lying and block pages'
+imported: 20220330T224445Z
+probe_asn: AS30722
+probe_cc: IT
+url: http://tantifilm.net/
+...
+---
+testcase/cache/probe/dns/1a/1a8111120b1dc0fe4eade4ff14f217234a28232defb2efb74b4fd3341cf8baba-d:
+- M:
+    ID: 3
+    Lookup:
+      Addresses:
+      - 2607:fad0:3801:4::1
+      - 72.52.178.23
+      Domain: tantifilm.net
+      Finished: '2022-03-31T00:43:35.280514+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:43:32.132676+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:43:32.284604+02:00'
+      Query: OfsBAAABAAAAAAAACXRhbnRpZmlsbQNuZXQAABwAAQ==
+      Reply: OfuBgAABAAEAAAAACXRhbnRpZmlsbQNuZXQAABwAAcAMABwAAQAAOEAAECYH+tA4AQAEAAAAAAAAAAE=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:43:32.132687+02:00'
+    - Finished: '2022-03-31T00:43:35.280468+02:00'
+      Query: NTUBAAABAAAAAAAACXRhbnRpZmlsbQNuZXQAAAEAAQ==
+      Reply: NTWBgAABAAEAAAAACXRhbnRpZmlsbQNuZXQAAAEAAcAMAAEAAQAAOEAABEg0shc=
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:43:32.132704+02:00'
+  T: '2022-03-31T00:43:35.281146+02:00'
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 83.224.65.74
+      Domain: tantifilm.net
+      Finished: '2022-03-31T00:43:32.160541+02:00'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T00:43:32.132662+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:43:32.160535+02:00'
+      Query: 0qEBAAABAAAAAAAACXRhbnRpZmlsbQNuZXQAAP8AAQ==
+      Reply: 0qGBgAABAAEAAAAACXRhbnRpZmlsbQNuZXQAAP8AAcAMAAEAAQAAAAAABFPgQUo=
+      ResolverNetwork: system
+      Started: '2022-03-31T00:43:32.132686+02:00'
+  T: '2022-03-31T00:43:32.160666+02:00'
+- M:
+    ID: 4
+    Lookup:
+      Domain: tantifilm.net
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:43:32.132918+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:43:32.132686+02:00'
+    RoundTrip:
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:43:32.132886+02:00'
+      Query: xe4BAAABAAAAAAAACXRhbnRpZmlsbQNuZXQAABwAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:43:32.132694+02:00'
+    - Failure: host_unreachable
+      Finished: '2022-03-31T00:43:32.132916+02:00'
+      Query: hHYBAAABAAAAAAAACXRhbnRpZmlsbQNuZXQAAAEAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T00:43:32.132699+02:00'
+  T: '2022-03-31T00:43:32.132955+02:00'
+testcase/cache/probe/endpoint/0e/0e0066ace04041d539b8ab2e450ed2b5f00b5af0c639a88388fea77bc9fc9dea-d:
+- M:
+    Address: '[2607:fad0:3801:4::1]:443'
+    FailedOperation: connect
+    Failure: host_unreachable
+    Finished: '2022-03-31T00:43:35.284912+02:00'
+    ID: 5
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:43:35.28488+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2607:fad0:3801:4::1]:443'
+      Started: '2022-03-31T00:43:35.284502+02:00'
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:43:35.285133+02:00'
+testcase/cache/probe/endpoint/1a/1a846fcb3cea382c2f11e0ef4d2259959ef314863e13a6ea725ebf92d58031a9-d:
+- M:
+    Address: 72.52.178.23:80
+    Finished: '2022-03-31T00:43:37.038691+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:43:37.038484+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - tantifilm.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PGh0bWw+Cgk8aGVhZD4KCQk8c2NyaXB0PgoJCQl2YXIgZm9yd2FyZGluZ1VybCA9ICIvcGFnZS9ib3VuY3kucGhwPyZicGFlPUdiaFdkVHNEdlZ4N2owdnN2dXJFOWltVFNNYk1pSHBvYVdiUEtrMHFBRFc1OTJTZ2U0JTJCaHk4VCUyRlJYM3RKdWpsV3hwZFUwM0glMkJ1SDBvM2tPJTJGUG9HVEpZT2xCeXI5Q1pHcHBLNU52Z2JiJTJGbHgyRjFTOURYV3FSMW1heDhFU09ub3pZVGp3MkUyN3oyejE3blVxSThOcjFYMVpTV2UlMkJyZzQlMkJoWVpoNEMwZSUyQiUyRktmTElTM0hrRjNjUzg1cHlveFJKd0NvY01ac1B1Zk1OUDlnNU5LT08lMkJPQ1lpV1RXeGxuUnpVSldMcEUxa0Z3Yjh4ekxlYWJtT2NNQ2tPMFl5ZUVvQ0MzSnNXNENDR0l2WWNiaG5FZGRPZENLVnZ0JTJGeXdnQ0dIWkgyZXRHMmQ1cUw0SnBVdjNLNkwlMkJnUzBqNHd4bnEyRVJDS2NUekxWNGh0WVlmRXU1eE1DZ2xwZVpCaVhtOWVFVmthcTdaTlBEckp4T2ZQWCUyRnc3bkduWXQwWEFIOThwYXBTUEdBb0hTaDdmM0xWZm5vSDZ4NUNZQ2lZblM2akluMlJmeUtNckNIbXBNOWI4Q1doTHliVjg0eUxQRU9abmpCUWNMRCUyQjhhU24lMkZjbSUyQmdFT0ZUaTZ3TCUyRjBQSXAlMkJHckVUa2olMkZmaiUyQnZOaDZiMkdRcyUyRko1dUF1aEJMS0c5SUxNQlVNSEtYYTd4bG9yYUNWTkFIN3o5TGl2S0g3dEx3MFVxQ0tBVGpMbU81MlBQa1JvRWRCOTRQNk02M3JQWDFqd3NBbDJtakxDQ2VRcFZEZWhvUFRrSXQ3ZCUyQlpQaDlaYXE3TTY1b3d2M1BDdEclMkZmU1JWdVFzTVRVZ3ZaNWpYMXNpZTV1SzFCSnh1ZFpXZ1drckdzZ1dFbFhDcUtwbzNkQWNyWkdaV3RCdmpkaVNsUjVEcHJDdyUyRjhINjFRZ2hmYlUyVVJjVzR0MXpPN1dqcmk3d3pSYTZkJTJGQ3VqTW95bWxoS1l3JTNEJTNEJnJlZGlyZWN0VHlwZT1qcyI7CgkJCXZhciBkZXN0aW5hdGlvblVybCA9ICIvcGFnZS9ib3VuY3kucGhwPyZicGFlPUdiaFdkVHNEdlZ4N2owdnN2dXJFOWltVFNNYk1pSHBvYVdiUEtrMHFBRFc1OTJTZ2U0JTJCaHk4VCUyRlJYM3RKdWpsV3hwZFUwM0glMkJ1SDBvM2tPJTJGUG9HVEpZT2xCeXI5Q1pHcHBLNU52Z2JiJTJGbHgyRjFTOURYV3FSMW1heDhFU09ub3pZVGp3MkUyN3oyejE3blVxSThOcjFYMVpTV2UlMkJyZzQlMkJoWVpoNEMwZSUyQiUyRktmTElTM0hrRjNjUzg1cHlveFJKd0NvY01ac1B1Zk1OUDlnNU5LT08lMkJPQ1lpV1RXeGxuUnpVSldMcEUxa0Z3Yjh4ekxlYWJtT2NNQ2tPMFl5ZUVvQ0MzSnNXNENDR0l2WWNiaG5FZGRPZENLVnZ0JTJGeXdnQ0dIWkgyZXRHMmQ1cUw0SnBVdjNLNkwlMkJnUzBqNHd4bnEyRVJDS2NUekxWNGh0WVlmRXU1eE1DZ2xwZVpCaVhtOWVFVmthcTdaTlBEckp4T2ZQWCUyRnc3bkduWXQwWEFIOThwYXBTUEdBb0hTaDdmM0xWZm5vSDZ4NUNZQ2lZblM2akluMlJmeUtNckNIbXBNOWI4Q1doTHliVjg0eUxQRU9abmpCUWNMRCUyQjhhU24lMkZjbSUyQmdFT0ZUaTZ3TCUyRjBQSXAlMkJHckVUa2olMkZmaiUyQnZOaDZiMkdRcyUyRko1dUF1aEJMS0c5SUxNQlVNSEtYYTd4bG9yYUNWTkFIN3o5TGl2S0g3dEx3MFVxQ0tBVGpMbU81MlBQa1JvRWRCOTRQNk02M3JQWDFqd3NBbDJtakxDQ2VRcFZEZWhvUFRrSXQ3ZCUyQlpQaDlaYXE3TTY1b3d2M1BDdEclMkZmU1JWdVFzTVRVZ3ZaNWpYMXNpZTV1SzFCSnh1ZFpXZ1drckdzZ1dFbFhDcUtwbzNkQWNyWkdaV3RCdmpkaVNsUjVEcHJDdyUyRjhINjFRZ2hmYlUyVVJjVzR0MXpPN1dqcmk3d3pSYTZkJTJGQ3VqTW95bWxoS1l3JTNEJTNEJnJlZGlyZWN0VHlwZT1tZXRhIjsKCQkJdmFyIGFkZERldGVjdGlvbiA9IHRydWU7CgkJCWlmIChhZGREZXRlY3Rpb24pIHsKCQkJCXZhciBpbklmcmFtZSA9IHdpbmRvdy5zZWxmICE9PSB3aW5kb3cudG9wOwoJCQkJZm9yd2FyZGluZ1VybCArPSAiJmluSWZyYW1lPSIgKyBpbklmcmFtZTsKCQkJCXZhciBpblBvcFVwID0gKHdpbmRvdy5vcGVuZXIgIT09IHVuZGVmaW5lZCAmJiB3aW5kb3cub3BlbmVyICE9PSBudWxsICYmIHdpbmRvdy5vcGVuZXIgIT09IHdpbmRvdyk7CgkJCQlmb3J3YXJkaW5nVXJsICs9ICImaW5Qb3BVcD0iICsgaW5Qb3BVcDsKCQkJfQoJCQl3aW5kb3cubG9jYXRpb24ucmVwbGFjZShmb3J3YXJkaW5nVXJsKTsKCQk8L3NjcmlwdD4KCQk8bm9zY3JpcHQ+CgkJCTxtZXRhIGh0dHAtZXF1aXY9InJlZnJlc2giIGNvbnRlbnQ9IjE7dXJsPS9wYWdlL2JvdW5jeS5waHA/JmJwYWU9R2JoV2RUc0R2Vng3ajB2c3Z1ckU5aW1UU01iTWlIcG9hV2JQS2swcUFEVzU5MlNnZTQlMkJoeThUJTJGUlgzdEp1amxXeHBkVTAzSCUyQnVIMG8za08lMkZQb0dUSllPbEJ5cjlDWkdwcEs1TnZnYmIlMkZseDJGMVM5RFhXcVIxbWF4OEVTT25vellUancyRTI3ejJ6MTduVXFJOE5yMVgxWlNXZSUyQnJnNCUyQmhZWmg0QzBlJTJCJTJGS2ZMSVMzSGtGM2NTODVweW94Ukp3Q29jTVpzUHVmTU5QOWc1TktPTyUyQk9DWWlXVFd4bG5SelVKV0xwRTFrRndiOHh6TGVhYm1PY01Da08wWXllRW9DQzNKc1c0Q0NHSXZZY2JobkVkZE9kQ0tWdnQlMkZ5d2dDR0haSDJldEcyZDVxTDRKcFV2M0s2TCUyQmdTMGo0d3hucTJFUkNLY1R6TFY0aHRZWWZFdTV4TUNnbHBlWkJpWG05ZUVWa2FxN1pOUERySnhPZlBYJTJGdzduR25ZdDBYQUg5OHBhcFNQR0FvSFNoN2YzTFZmbm9INng1Q1lDaVluUzZqSW4yUmZ5S01yQ0htcE05YjhDV2hMeWJWODR5TFBFT1puakJRY0xEJTJCOGFTbiUyRmNtJTJCZ0VPRlRpNndMJTJGMFBJcCUyQkdyRVRraiUyRmZqJTJCdk5oNmIyR1FzJTJGSjV1QXVoQkxLRzlJTE1CVU1IS1hhN3hsb3JhQ1ZOQUg3ejlMaXZLSDd0THcwVXFDS0FUakxtTzUyUFBrUm9FZEI5NFA2TTYzclBYMWp3c0FsMm1qTENDZVFwVkRlaG9QVGtJdDdkJTJCWlBoOVphcTdNNjVvd3YzUEN0RyUyRmZTUlZ1UXNNVFVndlo1algxc2llNXVLMUJKeHVkWldnV2tyR3NnV0VsWENxS3BvM2RBY3JaR1pXdEJ2amRpU2xSNURwckN3JTJGOEg2MVFnaGZiVTJVUmNXNHQxek83V2pyaTd3elJhNmQlMkZDdWpNb3ltbGhLWXclM0QlM0QmcmVkaXJlY3RUeXBlPW1ldGEiIC8+CgkJPC9ub3NjcmlwdD4KCTwvaGVhZD4KPC9odG1sPg==
+      ResponseBodyLength: 3028
+      ResponseBodyTLSH: c35196f67e953c56d7b43d299f7d2741334b204105dae881ca48f1c19e9e2ab825693c
+      ResponseHeaders:
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 22:43:36 GMT
+        Server:
+        - Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9
+        X-Powered-By:
+        - PHP/5.4.16
+      Started: '2022-03-31T00:43:36.419357+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://tantifilm.net/
+    ID: 6
+    Network: tcp
+    NetworkEvent:
+    - Count: 274
+      Finished: '2022-03-31T00:43:36.419647+02:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 72.52.178.23:80
+      Started: '2022-03-31T00:43:36.419502+02:00'
+    - Count: 3257
+      Finished: '2022-03-31T00:43:37.037826+02:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 72.52.178.23:80
+      Started: '2022-03-31T00:43:36.419487+02:00'
+    - Count: 3257
+      Finished: '2022-03-31T00:43:37.038636+02:00'
+      Operation: bytes_read
+      Started: '2022-03-31T00:43:37.038636+02:00'
+    - Count: 274
+      Finished: '2022-03-31T00:43:37.038636+02:00'
+      Operation: bytes_written
+      Started: '2022-03-31T00:43:37.038636+02:00'
+    - Finished: '2022-03-31T00:43:37.038688+02:00'
+      Operation: bytes_read
+      Started: '2022-03-31T00:43:37.038688+02:00'
+    - Finished: '2022-03-31T00:43:37.038688+02:00'
+      Operation: bytes_written
+      Started: '2022-03-31T00:43:37.038688+02:00'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T00:43:36.419253+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 72.52.178.23:80
+      Started: '2022-03-31T00:43:35.284493+02:00'
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:43:37.040617+02:00'
+testcase/cache/probe/endpoint/8a/8a48838737740c6606427c554ddf8c3aacf5746cb3b160c3e9b6494c2ba1a853-d:
+- M:
+    Address: 72.52.178.23:443
+    FailedOperation: connect
+    Failure: connection_refused
+    Finished: '2022-03-31T00:43:35.422536+02:00'
+    ID: 7
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: connection_refused
+      Finished: '2022-03-31T00:43:35.422484+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 72.52.178.23:443
+      Started: '2022-03-31T00:43:35.284583+02:00'
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:43:35.422743+02:00'
+testcase/cache/probe/endpoint/93/93fc1ed971064588e084c50363cccbc2211f1544018a159c16d53ee6aba4e6b6-d:
+- M:
+    Address: '[2607:fad0:3801:4::1]:80'
+    FailedOperation: connect
+    Failure: host_unreachable
+    Finished: '2022-03-31T00:43:35.285011+02:00'
+    ID: 9
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: host_unreachable
+      Finished: '2022-03-31T00:43:35.284969+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2607:fad0:3801:4::1]:80'
+      Started: '2022-03-31T00:43:35.284894+02:00'
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:43:35.286487+02:00'
+testcase/cache/probe/endpoint/b0/b0dcd8ee11b20655f9ad52c9486836156269a808a5f941b82349bc2d92ed6521-d:
+- M:
+    Address: 83.224.65.74:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    Finished: '2022-03-31T00:43:50.285394+02:00'
+    ID: 8
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T00:43:50.285355+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 83.224.65.74:443
+      Started: '2022-03-31T00:43:35.284607+02:00'
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:43:50.28563+02:00'
+testcase/cache/probe/endpoint/ce/ce864cadc5c0d9c0b672a2e152ea3b9d003d057d01097e069293417af1e960df-d:
+- M:
+    Address: 83.224.65.74:80
+    Finished: '2022-03-31T00:43:35.338139+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:43:35.338056+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - tantifilm.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PCFET0NUWVBFIGh0bWwgUFVCTElDICItLy9XM0MvL0RURCBYSFRNTCAxLjAgU3RyaWN0Ly9FTiIgImh0dHA6Ly93d3cudzMub3JnL1RSL3hodG1sMS9EVEQveGh0bWwxLXN0cmljdC5kdGQiPgo8aHRtbCB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgbGFuZz0iZW4iIHhtbDpsYW5nPSJlbiI+CjxoZWFkPgogICA8bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRtbDtjaGFyc2V0PWlzby04ODU5LTEiIC8+CiAgIDx0aXRsZT5BR0NPTSBTdG9wIFBhZ2U8L3RpdGxlPgoKPGJvZHk+CiAgIDxwIGFsaWduPWNlbnRlcj48aW1nIHdpZHRoPTExMjIgaGVpZ2h0PTc0NSBzcmM9Ii4vaW1hZ2UwMDEuanBnIiBhbHQ9IiIgLz48L3A+CjwvYm9keT4KPC9odG1sPgoK
+      ResponseBodyLength: 402
+      ResponseBodyTLSH: 24e0f158045ac2c3d1d0c72038f37f9995c342c341c5428cf5a18087c8c8788d473384
+      ResponseHeaders:
+        Accept-Ranges:
+        - bytes
+        Content-Length:
+        - '402'
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 21:50:01 GMT
+        Etag:
+        - '"9fc0a-192-51460a6e504a0"'
+        Last-Modified:
+        - Thu, 23 Apr 2015 09:10:32 GMT
+        Server:
+        - Apache
+      Started: '2022-03-31T00:43:35.312162+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://tantifilm.net/
+    HTTPTitle: AGCOM Stop Page
+    ID: 10
+    Network: tcp
+    NetworkEvent:
+    - Count: 274
+      Finished: '2022-03-31T00:43:35.312452+02:00'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 83.224.65.74:80
+      Started: '2022-03-31T00:43:35.312389+02:00'
+    - Count: 655
+      Finished: '2022-03-31T00:43:35.3378+02:00'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 83.224.65.74:80
+      Started: '2022-03-31T00:43:35.312306+02:00'
+    - Count: 655
+      Finished: '2022-03-31T00:43:35.338137+02:00'
+      Operation: bytes_read
+      Started: '2022-03-31T00:43:35.338137+02:00'
+    - Count: 274
+      Finished: '2022-03-31T00:43:35.338137+02:00'
+      Operation: bytes_written
+      Started: '2022-03-31T00:43:35.338137+02:00'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T00:43:35.31194+02:00'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 83.224.65.74:80
+      Started: '2022-03-31T00:43:35.285054+02:00'
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:43:35.339499+02:00'
+testcase/cache/th/dns/1a/1a8111120b1dc0fe4eade4ff14f217234a28232defb2efb74b4fd3341cf8baba-d:
+- M:
+    ID: 11
+    Lookup:
+      Addresses:
+      - 2607:fad0:3801:4::1
+      - 72.52.178.23
+      Domain: tantifilm.net
+      Finished: '2022-03-31T00:43:51.280591+02:00'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+    RoundTrip:
+    - Finished: '2022-03-31T00:43:51.280591+02:00'
+      Query: FusBAAABAAAAAAABCXRhbnRpZmlsbQNuZXQAABwAAQAAKRAAAACAAABWAAwAUgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: FuuBgAABAAEAAAABCXRhbnRpZmlsbQNuZXQAABwAAcAMABwAAQAAOEAAECYH+tA4AQAEAAAAAAAAAAEAACkE0AAAgAABjgAMAYoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+    - Finished: '2022-03-31T00:43:51.280591+02:00'
+      Query: xnYBAAABAAAAAAABCXRhbnRpZmlsbQNuZXQAAAEAAQAAKRAAAACAAABWAAwAUgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: xnaBgAABAAEAAAABCXRhbnRpZmlsbQNuZXQAAAEAAcAMAAEAAQAAOEAABEg0shcAACkE0AAAgAABmgAMAZYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+  T: '2022-03-31T00:43:51.280915+02:00'
+testcase/cache/th/dns/e4/e411a6050f22f3767a36e9613f908cdd00bc936ccedd826461b2ef8d68246349-d:
+- M:
+    ID: 12
+    Lookup:
+      Domain: 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.4.0.0.0.1.0.8.3.0.d.a.f.7.0.6.2.ip6.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T00:43:51.280591+02:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+    ReverseAddress: 2607:fad0:3801:4::1
+    RoundTrip:
+    - Finished: '2022-03-31T00:43:51.280591+02:00'
+      Query: QlABAAABAAAAAAABATEBMAEwATABMAEwATABMAEwATABMAEwATABMAEwATABNAEwATABMAExATABOAEzATABZAFhAWYBNwEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: QlCBhQABAAAAAAABATEBMAEwATABMAEwATABMAEwATABMAEwATABMAEwATABNAEwATABMAExATABOAEzATABZAFhAWYBNwEwATYBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+  T: '2022-03-31T00:43:51.282264+02:00'
+testcase/cache/th/dns/e6/e65f5af2f69cbd448001943f79ebb82086a6a5080637ccf651d4e863aaaf52e8-d:
+- M:
+    ID: 13
+    Lookup:
+      Domain: 74.65.224.83.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T00:43:51.280591+02:00'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+    ReverseAddress: 83.224.65.74
+    RoundTrip:
+    - Finished: '2022-03-31T00:43:51.280591+02:00'
+      Query: MIwBAAABAAAAAAABAjc0AjY1AzIyNAI4Mwdpbi1hZGRyBGFycGEAAAwAAQAAKRAAAACAAABKAAwARgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: MIyBhQABAAAAAAABAjc0AjY1AzIyNAI4Mwdpbi1hZGRyBGFycGEAAAwAAQAAKQTQAACAAAGeAAwBmgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+  T: '2022-03-31T00:43:51.282707+02:00'
+testcase/cache/th/dns/f4/f4674945969c3629793770f0229315cc8cf01b3b444fb21ab9957ceec3c53911-d:
+- M:
+    ID: 14
+    Lookup:
+      Domain: 23.178.52.72.in-addr.arpa.
+      Finished: '2022-03-31T00:43:51.280591+02:00'
+      LookupType: reverse
+      PTRs:
+      - lb01.parklogic.com.
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+    ReverseAddress: 72.52.178.23
+    RoundTrip:
+    - Finished: '2022-03-31T00:43:51.280591+02:00'
+      Query: WrgBAAABAAAAAAABAjIzAzE3OAI1MgI3Mgdpbi1hZGRyBGFycGEAAAwAAQAAKRAAAACAAABKAAwARgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: WriBgAABAAEAAAABAjIzAzE3OAI1MgI3Mgdpbi1hZGRyBGFycGEAAAwAAcAMAAwAAQAADhAAFARsYjAxCXBhcmtsb2dpYwNjb20AAAApBNAAAIAAAX4ADAF6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T00:43:51.280591+02:00'
+  T: '2022-03-31T00:43:51.283116+02:00'
+testcase/cache/th/endpoint/0e/0e0066ace04041d539b8ab2e450ed2b5f00b5af0c639a88388fea77bc9fc9dea-d:
+- M:
+    Address: '[2607:fad0:3801:4::1]:443'
+    FailedOperation: tls_handshake
+    Failure: 'unknown_failure: tls: first record does not look like a TLS handshake'
+    Finished: '2022-03-31T00:43:51.280591+02:00'
+    ID: 15
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:43:51.28352+02:00'
+testcase/cache/th/endpoint/1a/1a846fcb3cea382c2f11e0ef4d2259959ef314863e13a6ea725ebf92d58031a9-d:
+- M:
+    Address: 72.52.178.23:80
+    Finished: '2022-03-31T00:43:51.280591+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:43:51.280591+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - tantifilm.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 1936
+      ResponseBodyTLSH: ff413149bf28e82de210871bdab9be55b02b520a0c098d517c07c6e43e4527745d27f6
+      ResponseHeaders:
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 22:43:39 GMT
+        Server:
+        - Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9
+        X-Powered-By:
+        - PHP/5.4.16
+      Started: '2022-03-31T00:43:51.280591+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://tantifilm.net/
+    ID: 19
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:43:51.285114+02:00'
+testcase/cache/th/endpoint/8a/8a48838737740c6606427c554ddf8c3aacf5746cb3b160c3e9b6494c2ba1a853-d:
+- M:
+    Address: 72.52.178.23:443
+    FailedOperation: connect
+    Failure: connection_refused
+    Finished: '2022-03-31T00:43:51.280591+02:00'
+    ID: 18
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:43:51.284783+02:00'
+testcase/cache/th/endpoint/93/93fc1ed971064588e084c50363cccbc2211f1544018a159c16d53ee6aba4e6b6-d:
+- M:
+    Address: '[2607:fad0:3801:4::1]:80'
+    Finished: '2022-03-31T00:43:51.280591+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:43:51.280591+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - tantifilm.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 1978
+      ResponseBodyTLSH: b7415658bf4dbc35d1293589b4ab87982537f543007898f1a8d0c08c5d6672f1e655fb
+      ResponseHeaders:
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 22:43:36 GMT
+        Server:
+        - Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9
+        X-Powered-By:
+        - PHP/5.4.16
+      Started: '2022-03-31T00:43:51.280591+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://tantifilm.net/
+    ID: 16
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:43:51.284029+02:00'
+testcase/cache/th/endpoint/b0/b0dcd8ee11b20655f9ad52c9486836156269a808a5f941b82349bc2d92ed6521-d:
+- M:
+    Address: 83.224.65.74:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    Finished: '2022-03-31T00:43:51.280591+02:00'
+    ID: 20
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: https
+  T: '2022-03-31T00:43:51.285436+02:00'
+testcase/cache/th/endpoint/ce/ce864cadc5c0d9c0b672a2e152ea3b9d003d057d01097e069293417af1e960df-d:
+- M:
+    Address: 83.224.65.74:80
+    Finished: '2022-03-31T00:43:51.280591+02:00'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T00:43:51.280591+02:00'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - tantifilm.net
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 402
+      ResponseBodyTLSH: 24e0f158045ac2c3d1d0c72038f37f9995c342c341c5428cf5a18087c8c8788d473384
+      ResponseHeaders:
+        Accept-Ranges:
+        - bytes
+        Content-Length:
+        - '402'
+        Content-Type:
+        - text/html; charset=UTF-8
+        Date:
+        - Wed, 30 Mar 2022 21:50:02 GMT
+        Etag:
+        - '"9fc0a-192-51460a6e504a0"'
+        Last-Modified:
+        - Thu, 23 Apr 2015 09:10:32 GMT
+        Server:
+        - Apache
+      Started: '2022-03-31T00:43:51.280591+02:00'
+      StatusCode: 200
+      Transport: tcp
+      URL: http://tantifilm.net/
+    HTTPTitle: AGCOM Stop Page
+    ID: 17
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: tantifilm.net
+      Path: /
+      Scheme: http
+  T: '2022-03-31T00:43:51.284409+02:00'
+...
