@@ -1,0 +1,414 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmpb6_we43l/cache/probe
+- --th-cache-dir
+- ./tmpb6_we43l/cache/th
+- --output
+- ./tmp4bicnp_l/report.jsonl
+- --logfile
+- ./tmp4bicnp_l/log.txt
+- --input
+- https://www.rafael.co.il/
+- --emoji
+created: 20220330T204041Z
+description: '#tlsTimeout plus blockpage missed because we stop early'
+imported: 20220330T204822Z
+probe_asn: AS60178
+probe_cc: IR
+url: https://www.rafael.co.il/
+...
+---
+testcase/cache/probe/dns/41/41bb6fe65ce5c2c2c07ddff4d1834ff39941113e7fd0c9eccb6774a637a5f9e3-d:
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 34.95.83.116
+      Domain: www.rafael.co.il
+      Finished: '2022-03-31T02:10:41.577400018+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:10:41.175708774+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:10:41.514133663+05:30'
+      Query: p34BAAABAAAAAAAAA3d3dwZyYWZhZWwCY28CaWwAABwAAQ==
+      Reply: p36BgAABAAMAAQAAA3d3dwZyYWZhZWwCY28CaWwAABwAAcAMAAUAAQAAOEAAJBB3d3ctcmFmYWVsLWNvLWlsBXByb2QyB3JlYmxhemUDY29tAMAuAAUAAQAAADwAFxB3d3ctcmFmYWVsLWNvLWlsA2FkacA/wF4ABQABAAAAPAAaEHd3dy1yYWZhZWwtY28taWwGcmFmYWVswD/AkgAGAAEAAAOEAEEFbnMtNzIJYXdzZG5zLTA5wE0RYXdzZG5zLWhvc3RtYXN0ZXIGYW1hem9uwE0AAAABAAAcIAAAA4QAEnUAAAFRgA==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:10:41.17586957+05:30'
+    - Finished: '2022-03-31T02:10:41.577377655+05:30'
+      Query: YugBAAABAAAAAAAAA3d3dwZyYWZhZWwCY28CaWwAAAEAAQ==
+      Reply: YuiBgAABAAQAAAAAA3d3dwZyYWZhZWwCY28CaWwAAAEAAcAMAAUAAQAAOEAAJBB3d3ctcmFmYWVsLWNvLWlsBXByb2QyB3JlYmxhemUDY29tAMAuAAUAAQAAADwAFxB3d3ctcmFmYWVsLWNvLWlsA2FkacA/wF4ABQABAAAAPAAaEHd3dy1yYWZhZWwtY28taWwGcmFmYWVswD/AgQABAAEAAAEsAAQiX1N0
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:10:41.176615782+05:30'
+  T: '2022-03-31T02:10:41.577627581+05:30'
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 34.95.83.116
+      Domain: www.rafael.co.il
+      Finished: '2022-03-31T02:10:41.520237502+05:30'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T02:10:41.177127472+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:10:41.520220375+05:30'
+      Query: cCcBAAABAAAAAAAAA3d3dwZyYWZhZWwCY28CaWwAAP8AAQ==
+      Reply: cCeBgAABAAEAAAAAA3d3dwZyYWZhZWwCY28CaWwAAP8AAcAMAAEAAQAAAAAABCJfU3Q=
+      ResolverNetwork: system
+      Started: '2022-03-31T02:10:41.177137838+05:30'
+  T: '2022-03-31T02:10:41.520742081+05:30'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.rafael.co.il
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:10:41.178032252+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:10:41.176929607+05:30'
+    RoundTrip:
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:10:41.177105419+05:30'
+      Query: 6xUBAAABAAAAAAAAA3d3dwZyYWZhZWwCY28CaWwAABwAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:10:41.176948921+05:30'
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:10:41.178025362+05:30'
+      Query: IP0BAAABAAAAAAAAA3d3dwZyYWZhZWwCY28CaWwAAAEAAQ==
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:10:41.177955126+05:30'
+  T: '2022-03-31T02:10:41.17839347+05:30'
+testcase/cache/probe/endpoint/42/42b1341f3321d53fb5f26db3dbaa91865fb9dddbe3d61e9668333d6061327ed9-d:
+- M:
+    Address: 34.95.83.116:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:10:41.680118286+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.rafael.co.il
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9d2luZG93cy0xMjU2Ij48dGl0bGU+QkUxKDEpPC90aXRsZT48L2hlYWQ+PGJvZHk+PGlmcmFtZSBzcmM9Imh0dHA6Ly8xMC4xMC4zNC4zNTo4MCIgc3R5bGU9IndpZHRoOiAxMDAlOyBoZWlnaHQ6IDEwMCUiIHNjcm9sbGluZz0ibm8iIG1hcmdpbndpZHRoPSIwIiBtYXJnaW5oZWlnaHQ9IjAiIGZyYW1lYm9yZGVyPSIwIiB2c3BhY2U9IjAiIGhzcGFjZT0iMCI+PC9pZnJhbWU+PC9ib2R5PjwvaHRtbD4NCg0K
+      ResponseBodyLength: 303
+      ResponseBodyTLSH: 5de0ebf1b0495d0cd232d174c4f7710cab888882b2968e10bab038b4704c226dcb33fe
+      Started: '2022-03-31T02:10:41.676216988+05:30'
+      StatusCode: 403
+      Transport: tcp
+      URL: http://www.rafael.co.il/
+    HTTPTitle: BE1(1)
+    ID: 5
+    Network: tcp
+    NetworkEvent:
+    - Count: 277
+      Finished: '2022-03-31T02:10:41.676924453+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 34.95.83.116:80
+      Started: '2022-03-31T02:10:41.676675854+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:10:41.679924926+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 34.95.83.116:80
+      Started: '2022-03-31T02:10:41.67657487+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:10:41.680471977+05:30'
+      Operation: bytes_read
+      Started: '2022-03-31T02:10:41.680471977+05:30'
+    - Count: 277
+      Finished: '2022-03-31T02:10:41.680471977+05:30'
+      Operation: bytes_written
+      Started: '2022-03-31T02:10:41.680471977+05:30'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T02:10:41.675906005+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 34.95.83.116:80
+      Started: '2022-03-31T02:10:41.584063182+05:30'
+    URL:
+      Host: www.rafael.co.il
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:10:41.682305163+05:30'
+testcase/cache/probe/endpoint/a5/a500f6bdd488715fe6a97410a9b5bd4d0606d958d4e56d4fcb790148e4a4e4d6-d:
+- M:
+    Address: 34.95.83.116:443
+    FailedOperation: tls_handshake
+    Failure: generic_timeout_error
+    ID: 6
+    Network: tcp
+    NetworkEvent:
+    - Count: 286
+      Finished: '2022-03-31T02:10:41.697548264+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 34.95.83.116:443
+      Started: '2022-03-31T02:10:41.697323448+05:30'
+    - Failure: generic_timeout_error
+      Finished: '2022-03-31T02:10:51.697543457+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 34.95.83.116:443
+      Started: '2022-03-31T02:10:41.697588655+05:30'
+    Options: {}
+    QUICTLSHandshake:
+      ALPN:
+      - h2
+      - http/1.1
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:10:51.697655095+05:30'
+      Network: tcp
+      RemoteAddr: 34.95.83.116:443
+      SNI: www.rafael.co.il
+      Started: '2022-03-31T02:10:41.696988249+05:30'
+    TCPConnect:
+      Finished: '2022-03-31T02:10:41.690884354+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 34.95.83.116:443
+      Started: '2022-03-31T02:10:41.584474507+05:30'
+    URL:
+      Host: www.rafael.co.il
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:10:51.699048696+05:30'
+testcase/cache/th/dns/2c/2c62dabe9a4c5172e9d70e3c725f2cb7371229485df6d181f3a54dfd323fc99c-d:
+- M:
+    ID: 8
+    Lookup:
+      Domain: 116.83.95.34.in-addr.arpa.
+      Finished: '2022-03-31T02:10:51.699908444+05:30'
+      LookupType: reverse
+      PTRs:
+      - 116.83.95.34.bc.googleusercontent.com.
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:10:51.699908444+05:30'
+    ReverseAddress: 34.95.83.116
+    RoundTrip:
+    - Finished: '2022-03-31T02:10:51.699908444+05:30'
+      Query: C64BAAABAAAAAAABAzExNgI4MwI5NQIzNAdpbi1hZGRyBGFycGEAAAwAAQAAKRAAAACAAABKAAwARgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: C66BgAABAAIAAAABAzExNgI4MwI5NQIzNAdpbi1hZGRyBGFycGEAAAwAAcAMAAwAAQAAAHgAJwMxMTYCODMCOTUCMzQCYmMRZ29vZ2xldXNlcmNvbnRlbnQDY29tAMAMAC4AAQAAAHgAqQAMCAYAAAB4YlznXWI/5l0Q8gI4MwI5NQIzNAdpbi1hZGRyBGFycGEAVTFftjKQ+ERdXNSxlSjac8G0ozJDyPvUjYX9nCvX2yKJYcu2LAVsB2fk7iONPHedCmaQUc4Hxk0rf7uJHbvPH3o529r4kF6/oJleJ1sCCKEJFCOxLfxE/6ZuzzlyeXX86m5QCUdItJAKfJBalGZAh3jl8kNNghzA48ick23QHwIAACkE0AAAgAAAtgAPAEgAF1syMDAxOjQ4NjA6NDgwMjozNDo6NjZdOjUzIHJjb2RlPVJFRlVTRUQgZm9yIDk1LjM0LmluLWFkZHIuYXJwYSBETlNLRVkADABmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:10:51.699908444+05:30'
+  T: '2022-03-31T02:10:51.700637353+05:30'
+testcase/cache/th/dns/41/41bb6fe65ce5c2c2c07ddff4d1834ff39941113e7fd0c9eccb6774a637a5f9e3-d:
+- M:
+    ID: 7
+    Lookup:
+      Addresses:
+      - 34.95.83.116
+      Domain: www.rafael.co.il
+      Finished: '2022-03-31T02:10:51.699908444+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:10:51.699908444+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:10:51.699908444+05:30'
+      Query: 3MQBAAABAAAAAAABA3d3dwZyYWZhZWwCY28CaWwAAAEAAQAAKRAAAACAAABTAAwATwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 3MSBgAABAAQAAAABA3d3dwZyYWZhZWwCY28CaWwAAAEAAcAMAAUAAQAAOEAAJBB3d3ctcmFmYWVsLWNvLWlsBXByb2QyB3JlYmxhemUDY29tAMAuAAUAAQAAADwAFxB3d3ctcmFmYWVsLWNvLWlsA2FkacA/wF4ABQABAAAAPAAaEHd3dy1yYWZhZWwtY28taWwGcmFmYWVswD/AgQABAAEAAAEsAAQiX1N0AAApBNAAAIAAAR4ADAEaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:10:51.699908444+05:30'
+    - Finished: '2022-03-31T02:10:51.699908444+05:30'
+      Query: 04YBAAABAAAAAAABA3d3dwZyYWZhZWwCY28CaWwAABwAAQAAKRAAAACAAABTAAwATwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 04aBgAABAAMAAQABA3d3dwZyYWZhZWwCY28CaWwAABwAAcAMAAUAAQAAOEAAJBB3d3ctcmFmYWVsLWNvLWlsBXByb2QyB3JlYmxhemUDY29tAMAuAAUAAQAAADwAFxB3d3ctcmFmYWVsLWNvLWlsA2FkacA/wF4ABQABAAAAPAAaEHd3dy1yYWZhZWwtY28taWwGcmFmYWVswD/AkgAGAAEAAAOEAEEFbnMtNzIJYXdzZG5zLTA5wE0RYXdzZG5zLWhvc3RtYXN0ZXIGYW1hem9uwE0AAAABAAAcIAAAA4QAEnUAAAFRgAAAKQTQAACAAADhAAwA3QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:10:51.699908444+05:30'
+  T: '2022-03-31T02:10:51.699986273+05:30'
+testcase/cache/th/endpoint/42/42b1341f3321d53fb5f26db3dbaa91865fb9dddbe3d61e9668333d6061327ed9-d:
+- M:
+    Address: 34.95.83.116:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:10:51.699908444+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.rafael.co.il
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 174
+      ResponseBodyTLSH: dec0125a5b012cc864973a3950836150e2ad90201699041141a04a5bf58f1974ec23d1
+      ResponseHeaders:
+        Cache-Control:
+        - public, max-age=3600, s-maxage=3600
+        Content-Length:
+        - '174'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 20:40:43 GMT
+        Location:
+        - https://www.rafael.co.il/
+        Server:
+        - rhino-core-shield
+        Set-Cookie:
+        - GCLB=CKKh6Oft4oOToQE; path=/; HttpOnly
+        Via:
+        - 1.1 google
+      Started: '2022-03-31T02:10:51.699908444+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.rafael.co.il/
+    HTTPTitle: 301 Moved Permanently
+    ID: 9
+    Location:
+      Host: www.rafael.co.il
+      Path: /
+      Scheme: https
+    Network: tcp
+    NewCookies:
+    - Domain: ''
+      Expires: '0001-01-01T00:00:00Z'
+      HttpOnly: false
+      MaxAge: 0
+      Name: GCLB
+      Path: ''
+      Raw: ''
+      RawExpires: ''
+      SameSite: 0
+      Secure: false
+      Unparsed: null
+      Value: CKKh6Oft4oOToQE
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.rafael.co.il
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:10:51.701065648+05:30'
+testcase/cache/th/endpoint/a5/a500f6bdd488715fe6a97410a9b5bd4d0606d958d4e56d4fcb790148e4a4e4d6-d:
+- M:
+    Address: 34.95.83.116:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:10:51.699908444+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.rafael.co.il
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyIsTruncated: true
+      ResponseBodyLength: 4096
+      ResponseBodyTLSH: b68188d49483304a5442fafc411b75c28daecc04d5888db3a9b1e7e2dc751cb66e76e6
+      ResponseHeaders:
+        Alt-Svc:
+        - clear
+        Cache-Control:
+        - no-cache, private, no-transform, no-store
+        Content-Type:
+        - text/html; charset=utf-8
+        Date:
+        - Wed, 30 Mar 2022 20:40:43 GMT
+        Expires:
+        - Thu, 01 Jan 1970 00:01:48 GMT
+        P3p:
+        - CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"
+        Pragma:
+        - no-cache
+        Server:
+        - rhino-core-shield
+        Set-Cookie:
+        - GCLB=CPTstKP435aO_QE; path=/; HttpOnly
+        Vary:
+        - Accept-Encoding
+        Via:
+        - 1.1 google
+      Started: '2022-03-31T02:10:51.699908444+05:30'
+      StatusCode: 200
+      Transport: tcp
+      URL: https://www.rafael.co.il/
+    ID: 10
+    Network: tcp
+    NewCookies:
+    - Domain: ''
+      Expires: '0001-01-01T00:00:00Z'
+      HttpOnly: false
+      MaxAge: 0
+      Name: GCLB
+      Path: ''
+      Raw: ''
+      RawExpires: ''
+      SameSite: 0
+      Secure: false
+      Unparsed: null
+      Value: CPTstKP435aO_QE
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.rafael.co.il
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:10:51.701791262+05:30'
+...

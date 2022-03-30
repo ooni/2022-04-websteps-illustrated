@@ -1,0 +1,868 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmp68l6fym0/cache/probe
+- --th-cache-dir
+- ./tmp68l6fym0/cache/th
+- --output
+- ./tmpj7jo7tor/report.jsonl
+- --logfile
+- ./tmpj7jo7tor/log.txt
+- --input
+- https://www.joinclubhouse.com/
+- --emoji
+created: 20220330T203841Z
+description: '#bogon #blockpage #tlsTimeout'
+imported: 20220330T204822Z
+probe_asn: AS60178
+probe_cc: IR
+url: https://www.joinclubhouse.com/
+...
+---
+testcase/cache/probe/dns/88/88db4b89ad4fbe0cbabeeea0fcf8b990cee428028aac1f9146405c3e7c989d13-d:
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.joinclubhouse.com
+      Finished: '2022-03-31T02:08:41.15296799+05:30'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T02:08:41.14509618+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:08:41.152960845+05:30'
+      Query: 1wQBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAA/wAB
+      Reply: 1wSBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAA/wABwAwAAQABAAAAAAAECgoiIw==
+      ResolverNetwork: system
+      Started: '2022-03-31T02:08:41.145109578+05:30'
+  T: '2022-03-31T02:08:41.153219198+05:30'
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.joinclubhouse.com
+      Finished: '2022-03-31T02:08:41.148691237+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:08:41.141356791+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:08:41.148564747+05:30'
+      Query: xtwBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQAB
+      Reply: xtyBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:08:41.144455842+05:30'
+    - Finished: '2022-03-31T02:08:41.148665458+05:30'
+      Query: yfkBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAAB
+      Reply: yfmBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:08:41.14360544+05:30'
+  T: '2022-03-31T02:08:41.148959181+05:30'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.joinclubhouse.com
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:08:41.146580766+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:08:41.144903616+05:30'
+    RoundTrip:
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:08:41.145065955+05:30'
+      Query: SvMBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:08:41.144930895+05:30'
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:08:41.146572072+05:30'
+      Query: FPQBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:08:41.146472742+05:30'
+  T: '2022-03-31T02:08:41.147049012+05:30'
+testcase/cache/probe/dnsping/0e/0efce93f6bf29526009b926c4e6daa8076a994448307fa5c26e4e43b7bd1b7e2-d:
+- Delay: 500000000
+  Domain: www.joinclubhouse.com
+  ID: 37
+  Query: 8xIBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAAB
+  QueryID: 62226
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.661743389+05:30'
+    ID: 40
+    Rcode: NOERROR
+    Reply: 8xKBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.661778927+05:30'
+    ID: 42
+    Rcode: NOERROR
+    Reply: 8xKBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.658015468+05:30'
+testcase/cache/probe/dnsping/12/121195f85aa6ef1e40b27f226b0055dbffb27849e7ff7cf179ee3e4917d8c463-d:
+- Delay: 0
+  Domain: www.joinclubhouse.com
+  ID: 10
+  Query: gJEBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQAB
+  QueryID: 32913
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.183629977+05:30'
+    ID: 14
+    Rcode: NOERROR
+    Reply: gJGBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.183661174+05:30'
+    ID: 16
+    Rcode: NOERROR
+    Reply: gJGBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.180914956+05:30'
+testcase/cache/probe/dnsping/21/217601ad5d95609c510346acd55f33ac35bccf15b5feb6893781769a5a948d89-d:
+- Delay: 100000000
+  Domain: www.joinclubhouse.com
+  ID: 18
+  Query: BDIBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQAB
+  QueryID: 1074
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.259785336+05:30'
+    ID: 20
+    Rcode: NOERROR
+    Reply: BDKBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.259819025+05:30'
+    ID: 22
+    Rcode: NOERROR
+    Reply: BDKBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.256561898+05:30'
+testcase/cache/probe/dnsping/4c/4cdcdb1f005c7df15611ee88f39d6024a23a42fc3f80f9e11877d9994f90c118-d:
+- Delay: 200000000
+  Domain: www.joinclubhouse.com
+  ID: 27
+  Query: YiEBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAAB
+  QueryID: 25121
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.360182487+05:30'
+    ID: 34
+    Rcode: NOERROR
+    Reply: YiGBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.360204841+05:30'
+    ID: 36
+    Rcode: NOERROR
+    Reply: YiGBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.357582565+05:30'
+testcase/cache/probe/dnsping/76/76aff7bfb2518fc198de7c9399bcf6e3e4dc0b76a2fcfb65f65409559b3bb20d-d:
+- Delay: 100000000
+  Domain: www.joinclubhouse.com
+  ID: 17
+  Query: OGMBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAAB
+  QueryID: 14435
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.259892778+05:30'
+    ID: 24
+    Rcode: NOERROR
+    Reply: OGOBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.259919667+05:30'
+    ID: 26
+    Rcode: NOERROR
+    Reply: OGOBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.256070851+05:30'
+testcase/cache/probe/dnsping/82/82c93311110c8e1f8dc23acc8b64bb39efed2d272c7046149d80274e852afd30-d:
+- Delay: 500000000
+  Domain: www.joinclubhouse.com
+  ID: 38
+  Query: uMIBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQAB
+  QueryID: 47298
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.662344665+05:30'
+    ID: 44
+    Rcode: NOERROR
+    Reply: uMKBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.662376416+05:30'
+    ID: 46
+    Rcode: NOERROR
+    Reply: uMKBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.658549636+05:30'
+testcase/cache/probe/dnsping/b5/b5a8fd768e0b1143dcde536249d61a76dbde866ee2c79976fc98cb2e93968be4-d:
+- Delay: 0
+  Domain: www.joinclubhouse.com
+  ID: 5
+  Query: BnYBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAAB
+  QueryID: 1654
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.172712522+05:30'
+    ID: 9
+    Rcode: NOERROR
+    Reply: BnaBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:08:41.181575547+05:30'
+    ID: 12
+    Rcode: NOERROR
+    Reply: BnaBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.155009699+05:30'
+testcase/cache/probe/dnsping/d3/d30bc341d27e8f4ba64e120a8514a51a59e6af559e986fbb9c92782d2d5f9ee8-d:
+- Delay: 200000000
+  Domain: www.joinclubhouse.com
+  ID: 28
+  Query: /YgBAAABAAAAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQAB
+  QueryID: 64904
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.360090957+05:30'
+    ID: 30
+    Rcode: NOERROR
+    Reply: /YiBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:08:41.360120556+05:30'
+    ID: 32
+    Rcode: NOERROR
+    Reply: /YiBgAABAAEAAAAAA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:08:41.357913631+05:30'
+testcase/cache/probe/endpoint/22/22ab4751d7bbd78412008ac6a8cb285aef576f54099a0fed85eaf5d431fbf09f-d:
+- M:
+    Address: 104.18.20.150:443
+    FailedOperation: tls_handshake
+    Failure: generic_timeout_error
+    ID: 57
+    Network: tcp
+    NetworkEvent:
+    - Count: 291
+      Finished: '2022-03-31T02:08:56.309991366+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 104.18.20.150:443
+      Started: '2022-03-31T02:08:56.309730179+05:30'
+    - Failure: generic_timeout_error
+      Finished: '2022-03-31T02:09:06.31639673+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 104.18.20.150:443
+      Started: '2022-03-31T02:08:56.310045214+05:30'
+    Options: {}
+    QUICTLSHandshake:
+      ALPN:
+      - h2
+      - http/1.1
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:09:06.31674692+05:30'
+      Network: tcp
+      RemoteAddr: 104.18.20.150:443
+      SNI: www.joinclubhouse.com
+      Started: '2022-03-31T02:08:56.309241555+05:30'
+    TCPConnect:
+      Finished: '2022-03-31T02:08:56.295949862+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 104.18.20.150:443
+      Started: '2022-03-31T02:08:56.184940249+05:30'
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:09:06.317729425+05:30'
+testcase/cache/probe/endpoint/39/39ac38320aea7d072bbed7b13379f0aec99e661dfd2a84480115deb28b1d5985-d:
+- M:
+    Address: 104.18.20.150:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:08:56.315350855+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.joinclubhouse.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9d2luZG93cy0xMjU2Ij48dGl0bGU+QkUxKDEpPC90aXRsZT48L2hlYWQ+PGJvZHk+PGlmcmFtZSBzcmM9Imh0dHA6Ly8xMC4xMC4zNC4zNTo4MCIgc3R5bGU9IndpZHRoOiAxMDAlOyBoZWlnaHQ6IDEwMCUiIHNjcm9sbGluZz0ibm8iIG1hcmdpbndpZHRoPSIwIiBtYXJnaW5oZWlnaHQ9IjAiIGZyYW1lYm9yZGVyPSIwIiB2c3BhY2U9IjAiIGhzcGFjZT0iMCI+PC9pZnJhbWU+PC9ib2R5PjwvaHRtbD4NCg0K
+      ResponseBodyLength: 303
+      ResponseBodyTLSH: 5de0ebf1b0495d0cd232d174c4f7710cab888882b2968e10bab038b4704c226dcb33fe
+      Started: '2022-03-31T02:08:56.310632309+05:30'
+      StatusCode: 403
+      Transport: tcp
+      URL: http://www.joinclubhouse.com/
+    HTTPTitle: BE1(1)
+    ID: 56
+    Network: tcp
+    NetworkEvent:
+    - Count: 282
+      Finished: '2022-03-31T02:08:56.311478394+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 104.18.20.150:80
+      Started: '2022-03-31T02:08:56.311177591+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:08:56.315013082+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 104.18.20.150:80
+      Started: '2022-03-31T02:08:56.311051396+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:08:56.315861744+05:30'
+      Operation: bytes_read
+      Started: '2022-03-31T02:08:56.315861744+05:30'
+    - Count: 282
+      Finished: '2022-03-31T02:08:56.315861744+05:30'
+      Operation: bytes_written
+      Started: '2022-03-31T02:08:56.315861744+05:30'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T02:08:56.310210937+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 104.18.20.150:80
+      Started: '2022-03-31T02:08:56.182135753+05:30'
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:08:56.320151169+05:30'
+testcase/cache/probe/endpoint/58/589adb0fae77a7749839a861816389d01cd3ea9e1d8a649ea7c2feb718a0c423-d:
+- M:
+    Address: 10.10.34.35:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 7
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:08:56.172844766+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:443
+      Started: '2022-03-31T02:08:41.172316702+05:30'
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:08:56.173810564+05:30'
+testcase/cache/probe/endpoint/5d/5d546c764fd89614407118f0a9506a2df74495557aff69d83bb4583f0c6cd3d8-d:
+- M:
+    Address: '[2606:4700::6812:1496]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 59
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:08:56.185773248+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2606:4700::6812:1496]:443'
+      Started: '2022-03-31T02:08:56.185691421+05:30'
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:08:56.18647754+05:30'
+testcase/cache/probe/endpoint/e4/e465579d8789f0a1b8ba58e08042f2f4fe70bd51ac8844fe364d6bd0d3405a52-d:
+- M:
+    Address: 10.10.34.35:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 6
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:08:56.173087903+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:80
+      Started: '2022-03-31T02:08:41.171827872+05:30'
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:08:56.174960073+05:30'
+testcase/cache/probe/endpoint/e9/e9f5f9326623519c00f2e4cc0689f31b4ef17311b21cc74e75658f106c88dc0a-d:
+- M:
+    Address: '[2606:4700::6812:1496]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 58
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:08:56.185648966+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2606:4700::6812:1496]:80'
+      Started: '2022-03-31T02:08:56.185469092+05:30'
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:08:56.185955851+05:30'
+testcase/cache/th/dns/2c/2cd0ae1f509a8d6412936bc29d76d5a32f6173ac6409030c01a99afafde7b44b-d:
+- M:
+    ID: 49
+    Lookup:
+      Domain: 150.20.18.104.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+    ReverseAddress: 104.18.20.150
+    RoundTrip:
+    - Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Query: C5ABAAABAAAAAAABAzE1MAIyMAIxOAMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: C5CBhQABAAAAAAABAzE1MAIyMAIxOAMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABnQAMAZkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+  T: '2022-03-31T02:08:56.176920583+05:30'
+testcase/cache/th/dns/61/619cd92abf8ff8f8e6cf042a93e39881e083d96a57fba99264ebcef2105af933-d:
+- M:
+    ID: 50
+    Lookup:
+      Domain: 150.21.18.104.in-addr.arpa.
+      Failure: dns_nxdomain_error
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+    ReverseAddress: 104.18.21.150
+    RoundTrip:
+    - Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Query: nbABAAABAAAAAAABAzE1MAIyMQIxOAMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: nbCBgwABAAAAAQABAzE1MAIyMQIxOAMxMDQHaW4tYWRkcgRhcnBhAAAMAAHAEwAGAAEAAA4QADIEY3J1egJucwpjbG91ZGZsYXJlA2NvbQADZG5zwEB5RTqYAAAnEAAACWAACTqAAAAOEAAAKQTQAACAAAFfAAwBWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+  T: '2022-03-31T02:08:56.177450037+05:30'
+testcase/cache/th/dns/88/88db4b89ad4fbe0cbabeeea0fcf8b990cee428028aac1f9146405c3e7c989d13-d:
+- M:
+    ID: 47
+    Lookup:
+      Addresses:
+      - 2606:4700::6812:1496
+      - 2606:4700::6812:1596
+      - 104.18.20.150
+      - 104.18.21.150
+      Domain: www.joinclubhouse.com
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Query: YVQBAAABAAAAAAABA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABAAApEAAAAIAAAE4ADABKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: YVSBgAABAAIAAAABA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAHAABwAwAHAABAAABLAAQJgZHAAAAAAAAAAAAaBIUlsAMABwAAQAAASwAECYGRwAAAAAAAAAAAGgSFZYAACkE0AAAgAABagAMAWYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+    - Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Query: LpEBAAABAAAAAAABA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABAAApEAAAAIAAAE4ADABKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: LpGBgAABAAIAAAABA3d3dw1qb2luY2x1YmhvdXNlA2NvbQAAAQABwAwAAQABAAABLAAEaBIUlsAMAAEAAQAAASwABGgSFZYAACkE0AAAgAABggAMAX4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+  T: '2022-03-31T02:08:56.175849433+05:30'
+testcase/cache/th/dns/ba/ba8543ab8cd77737cc92f1dcd45cfb55baea653db17da248bd69ccdd9f0cfe2a-d:
+- M:
+    ID: 48
+    Lookup:
+      Domain: 6.9.4.1.2.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.7.4.6.0.6.2.ip6.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+    ReverseAddress: 2606:4700::6812:1496
+    RoundTrip:
+    - Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Query: gL4BAAABAAAAAAABATYBOQE0ATEBMgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: gL6BhQABAAAAAAABATYBOQE0ATEBMgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+  T: '2022-03-31T02:08:56.176619561+05:30'
+testcase/cache/th/dns/f0/f0ed86b996a6706ee98ad0a10ccb9037296e3a287a998d6fe6a9c1d3707b08e2-d:
+- M:
+    ID: 51
+    Lookup:
+      Domain: 6.9.5.1.2.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.7.4.6.0.6.2.ip6.arpa.
+      Failure: dns_nxdomain_error
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+    ReverseAddress: 2606:4700::6812:1596
+    RoundTrip:
+    - Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Query: s6wBAAABAAAAAAABATYBOQE1ATEBMgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: s6yBgwABAAAAAQABATYBOQE1ATEBMgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAABgABAAAOEABABGxlYWgCbnMKY2xvdWRmbGFyZQNjb20AA2RucwpjbG91ZGZsYXJlA2NvbQCG/+BqAAAnEAAACWAACTqAAAAOEAAAKQTQAACAAAELAAwBBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+  T: '2022-03-31T02:08:56.177855178+05:30'
+testcase/cache/th/endpoint/22/22ab4751d7bbd78412008ac6a8cb285aef576f54099a0fed85eaf5d431fbf09f-d:
+- M:
+    Address: 104.18.20.150:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.joinclubhouse.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=3600
+        Cf-Ray:
+        - 6f43a683ef2324dc-SJC
+        Date:
+        - Wed, 30 Mar 2022 20:38:42 GMT
+        Expect-Ct:
+        - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+        Expires:
+        - Wed, 30 Mar 2022 21:38:42 GMT
+        Location:
+        - https://www.clubhouse.com/
+        Server:
+        - cloudflare
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: https://www.joinclubhouse.com/
+    ID: 55
+    Location:
+      Host: www.clubhouse.com
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:08:56.180012719+05:30'
+testcase/cache/th/endpoint/39/39ac38320aea7d072bbed7b13379f0aec99e661dfd2a84480115deb28b1d5985-d:
+- M:
+    Address: 104.18.20.150:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.joinclubhouse.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=3600
+        Cf-Ray:
+        - 6f43a683cbf796ba-SJC
+        Connection:
+        - keep-alive
+        Date:
+        - Wed, 30 Mar 2022 20:38:42 GMT
+        Expires:
+        - Wed, 30 Mar 2022 21:38:42 GMT
+        Location:
+        - https://www.joinclubhouse.com/
+        Server:
+        - cloudflare
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.joinclubhouse.com/
+    ID: 52
+    Location:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:08:56.178348629+05:30'
+testcase/cache/th/endpoint/5d/5d546c764fd89614407118f0a9506a2df74495557aff69d83bb4583f0c6cd3d8-d:
+- M:
+    Address: '[2606:4700::6812:1496]:443'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.joinclubhouse.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=3600
+        Cf-Ray:
+        - 6f43a683dc73943e-SJC
+        Date:
+        - Wed, 30 Mar 2022 20:38:42 GMT
+        Expect-Ct:
+        - max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+        Expires:
+        - Wed, 30 Mar 2022 21:38:42 GMT
+        Location:
+        - https://www.clubhouse.com/
+        Server:
+        - cloudflare
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: https://www.joinclubhouse.com/
+    ID: 54
+    Location:
+      Host: www.clubhouse.com
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:08:56.179552855+05:30'
+testcase/cache/th/endpoint/e9/e9f5f9326623519c00f2e4cc0689f31b4ef17311b21cc74e75658f106c88dc0a-d:
+- M:
+    Address: '[2606:4700::6812:1496]:80'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:08:56.175490681+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.joinclubhouse.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=3600
+        Cf-Ray:
+        - 6f43a683dbc396c3-SJC
+        Connection:
+        - keep-alive
+        Date:
+        - Wed, 30 Mar 2022 20:38:42 GMT
+        Expires:
+        - Wed, 30 Mar 2022 21:38:42 GMT
+        Location:
+        - https://www.joinclubhouse.com/
+        Server:
+        - cloudflare
+      Started: '2022-03-31T02:08:56.175490681+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.joinclubhouse.com/
+    ID: 53
+    Location:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.joinclubhouse.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:08:56.178966789+05:30'
+...

@@ -1,0 +1,914 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmpkpw_ezyy/cache/probe
+- --th-cache-dir
+- ./tmpkpw_ezyy/cache/th
+- --output
+- ./tmp96rp0vfh/report.jsonl
+- --logfile
+- ./tmp96rp0vfh/log.txt
+- --input
+- https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+- --emoji
+created: 20220330T204145Z
+description: '#bogon #tlsTimeout #blockpage'
+imported: 20220330T204822Z
+probe_asn: AS60178
+probe_cc: IR
+url: https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+...
+---
+testcase/cache/probe/dns/65/65053fff57b5cff7d2d7cc8f53ce5a96dcc55f71333eb894de54612ac30ab5ba-d:
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.cdc.gov
+      Finished: '2022-03-31T02:11:45.789450078+05:30'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T02:11:45.784897477+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:11:45.789444541+05:30'
+      Query: U/QBAAABAAAAAAAAA3d3dwNjZGMDZ292AAD/AAE=
+      Reply: U/SBgAABAAEAAAAAA3d3dwNjZGMDZ292AAD/AAHADAABAAEAAAAAAAQKCiIj
+      ResolverNetwork: system
+      Started: '2022-03-31T02:11:45.784908109+05:30'
+  T: '2022-03-31T02:11:45.790144335+05:30'
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.cdc.gov
+      Finished: '2022-03-31T02:11:45.787855942+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:11:45.783387346+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:11:45.787783379+05:30'
+      Query: FdQBAAABAAAAAAAAA3d3dwNjZGMDZ292AAABAAE=
+      Reply: FdSBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:11:45.784375342+05:30'
+    - Finished: '2022-03-31T02:11:45.787848295+05:30'
+      Query: xUIBAAABAAAAAAAAA3d3dwNjZGMDZ292AAAcAAE=
+      Reply: xUKBgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:11:45.783556484+05:30'
+  T: '2022-03-31T02:11:45.788050825+05:30'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.cdc.gov
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:11:45.785864869+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:11:45.784692306+05:30'
+    RoundTrip:
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:11:45.784874481+05:30'
+      Query: tYQBAAABAAAAAAAAA3d3dwNjZGMDZ292AAAcAAE=
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:11:45.784711356+05:30'
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:11:45.785858112+05:30'
+      Query: fQkBAAABAAAAAAAAA3d3dwNjZGMDZ292AAABAAE=
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:11:45.785802766+05:30'
+  T: '2022-03-31T02:11:45.786260986+05:30'
+testcase/cache/probe/dnsping/06/060c46b7bce46690b2383c35467c5238e7978f76c619d80daab6831aec47f8bc-d:
+- Delay: 0
+  Domain: www.cdc.gov
+  ID: 7
+  Query: rxoBAAABAAAAAAAAA3d3dwNjZGMDZ292AAABAAE=
+  QueryID: 44826
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:45.803886363+05:30'
+    ID: 12
+    Rcode: NOERROR
+    Reply: rxqBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:45.803966996+05:30'
+    ID: 14
+    Rcode: NOERROR
+    Reply: rxqBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:45.797330526+05:30'
+testcase/cache/probe/dnsping/49/493c083c8eb32fa2081f2308ce35ae80b0e36a3eaeead049f3368a911f6f4c5e-d:
+- Delay: 100000000
+  Domain: www.cdc.gov
+  ID: 17
+  Query: 2fABAAABAAAAAAAAA3d3dwNjZGMDZ292AAAcAAE=
+  QueryID: 55792
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:45.895933421+05:30'
+    ID: 24
+    Rcode: NOERROR
+    Reply: 2fCBgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:45.895962483+05:30'
+    ID: 26
+    Rcode: NOERROR
+    Reply: 2fCBgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:45.892717448+05:30'
+testcase/cache/probe/dnsping/4a/4ab4840a9b396f00bba933b8aabe9ff1712967c99b460c1c8bd5079916348f4e-d:
+- Delay: 200000000
+  Domain: www.cdc.gov
+  ID: 28
+  Query: OoEBAAABAAAAAAAAA3d3dwNjZGMDZ292AAABAAE=
+  QueryID: 14977
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:45.996602067+05:30'
+    ID: 34
+    Rcode: NOERROR
+    Reply: OoGBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:45.996648006+05:30'
+    ID: 36
+    Rcode: NOERROR
+    Reply: OoGBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:45.993368065+05:30'
+testcase/cache/probe/dnsping/4e/4e4dee613f81bd589e77b40516c54de8ad90a2a1c8ad9db90ff12c331c46e8c9-d:
+- Delay: 100000000
+  Domain: www.cdc.gov
+  ID: 18
+  Query: GXABAAABAAAAAAAAA3d3dwNjZGMDZ292AAABAAE=
+  QueryID: 6512
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:45.895805515+05:30'
+    ID: 20
+    Rcode: NOERROR
+    Reply: GXCBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:45.895858868+05:30'
+    ID: 22
+    Rcode: NOERROR
+    Reply: GXCBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:45.893069162+05:30'
+testcase/cache/probe/dnsping/5a/5a229d729cae0ecbabd9d534733ed20843db8ffd6c61654252a0292ea6da1eb4-d:
+- Delay: 500000000
+  Domain: www.cdc.gov
+  ID: 37
+  Query: 6e8BAAABAAAAAAAAA3d3dwNjZGMDZ292AAAcAAE=
+  QueryID: 59887
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:46.296703809+05:30'
+    ID: 44
+    Rcode: NOERROR
+    Reply: 6e+BgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:46.296726904+05:30'
+    ID: 46
+    Rcode: NOERROR
+    Reply: 6e+BgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:46.292981989+05:30'
+testcase/cache/probe/dnsping/7f/7f36ab4481a1b746ae1d8104deae062c12583693bf881f2b58d8271ebf4a42df-d:
+- Delay: 500000000
+  Domain: www.cdc.gov
+  ID: 38
+  Query: HmUBAAABAAAAAAAAA3d3dwNjZGMDZ292AAABAAE=
+  QueryID: 7781
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:46.296575817+05:30'
+    ID: 40
+    Rcode: NOERROR
+    Reply: HmWBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:11:46.296618854+05:30'
+    ID: 42
+    Rcode: NOERROR
+    Reply: HmWBgAABAAEAAAAAA3d3dwNjZGMDZ292AAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:46.293346881+05:30'
+testcase/cache/probe/dnsping/c6/c64ba8bc1a7598a526572820dd4568f1ea13ccd33de47151332976a8d75b22cc-d:
+- Delay: 0
+  Domain: www.cdc.gov
+  ID: 5
+  Query: sDgBAAABAAAAAAAAA3d3dwNjZGMDZ292AAAcAAE=
+  QueryID: 45112
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:45.797741549+05:30'
+    ID: 10
+    Rcode: NOERROR
+    Reply: sDiBgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:45.80427571+05:30'
+    ID: 16
+    Rcode: NOERROR
+    Reply: sDiBgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:45.791780855+05:30'
+testcase/cache/probe/dnsping/c7/c7779c1dcf8ebccd60b2d99e1e1d87dd37fb9c67f50c2e07530b393271ac92b0-d:
+- Delay: 200000000
+  Domain: www.cdc.gov
+  ID: 27
+  Query: QxsBAAABAAAAAAAAA3d3dwNjZGMDZ292AAAcAAE=
+  QueryID: 17179
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:45.994672468+05:30'
+    ID: 30
+    Rcode: NOERROR
+    Reply: QxuBgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:11:45.995139637+05:30'
+    ID: 32
+    Rcode: NOERROR
+    Reply: QxuBgAABAAEAAAAAA3d3dwNjZGMDZ292AAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:11:45.992920027+05:30'
+testcase/cache/probe/endpoint/1a/1acbbf49cfca74cab3a89df1097ae2fe6c1f5487bf8146e6212251ae19834694-d:
+- M:
+    Address: 104.100.61.241:443
+    FailedOperation: tls_handshake
+    Failure: generic_timeout_error
+    ID: 56
+    Network: tcp
+    NetworkEvent:
+    - Count: 281
+      Finished: '2022-03-31T02:12:01.067182034+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 104.100.61.241:443
+      Started: '2022-03-31T02:12:01.06683779+05:30'
+    - Failure: generic_timeout_error
+      Finished: '2022-03-31T02:12:11.066592406+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 104.100.61.241:443
+      Started: '2022-03-31T02:12:01.067233993+05:30'
+    Options: {}
+    QUICTLSHandshake:
+      ALPN:
+      - h2
+      - http/1.1
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:12:11.06666114+05:30'
+      Network: tcp
+      RemoteAddr: 104.100.61.241:443
+      SNI: www.cdc.gov
+      Started: '2022-03-31T02:12:01.066331407+05:30'
+    TCPConnect:
+      Finished: '2022-03-31T02:12:01.053682279+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 104.100.61.241:443
+      Started: '2022-03-31T02:12:00.809369278+05:30'
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: https
+  T: '2022-03-31T02:12:11.066875152+05:30'
+testcase/cache/probe/endpoint/71/71d518999af3fdb33781e5d95e2241bd3fabb62a3863007d0e31d3a3eac25e6d-d:
+- M:
+    Address: '[2600:1406:e800:68d::2461]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 57
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:12:00.810008891+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2600:1406:e800:68d::2461]:80'
+      Started: '2022-03-31T02:12:00.809855179+05:30'
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: http
+  T: '2022-03-31T02:12:00.810331202+05:30'
+testcase/cache/probe/endpoint/97/976077beea032da7ce72007a1a4951c830dd1147f8af9d4abe41419721074aad-d:
+- M:
+    Address: 10.10.34.35:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 8
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:12:00.801756482+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:443
+      Started: '2022-03-31T02:11:45.797404425+05:30'
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: https
+  T: '2022-03-31T02:12:00.803309879+05:30'
+testcase/cache/probe/endpoint/b6/b67d88eddf4de5e7f7fc75ae6a5f9faf64abd21c19a59a64ec80a7577ca883a4-d:
+- M:
+    Address: 104.100.61.241:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:12:01.072766114+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.cdc.gov
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9d2luZG93cy0xMjU2Ij48dGl0bGU+QkUxKDEpPC90aXRsZT48L2hlYWQ+PGJvZHk+PGlmcmFtZSBzcmM9Imh0dHA6Ly8xMC4xMC4zNC4zNTo4MCIgc3R5bGU9IndpZHRoOiAxMDAlOyBoZWlnaHQ6IDEwMCUiIHNjcm9sbGluZz0ibm8iIG1hcmdpbndpZHRoPSIwIiBtYXJnaW5oZWlnaHQ9IjAiIGZyYW1lYm9yZGVyPSIwIiB2c3BhY2U9IjAiIGhzcGFjZT0iMCI+PC9pZnJhbWU+PC9ib2R5PjwvaHRtbD4NCg0K
+      ResponseBodyLength: 303
+      ResponseBodyTLSH: 5de0ebf1b0495d0cd232d174c4f7710cab888882b2968e10bab038b4704c226dcb33fe
+      Started: '2022-03-31T02:12:01.067695231+05:30'
+      StatusCode: 403
+      Transport: tcp
+      URL: http://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+    HTTPTitle: BE1(1)
+    ID: 55
+    Network: tcp
+    NetworkEvent:
+    - Count: 322
+      Finished: '2022-03-31T02:12:01.06862412+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 104.100.61.241:80
+      Started: '2022-03-31T02:12:01.068332754+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:12:01.072417972+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 104.100.61.241:80
+      Started: '2022-03-31T02:12:01.068179017+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:12:01.072621428+05:30'
+      Operation: bytes_read
+      Started: '2022-03-31T02:12:01.072621428+05:30'
+    - Count: 322
+      Finished: '2022-03-31T02:12:01.072621428+05:30'
+      Operation: bytes_written
+      Started: '2022-03-31T02:12:01.072621428+05:30'
+    - Finished: '2022-03-31T02:12:01.073274825+05:30'
+      Operation: bytes_read
+      Started: '2022-03-31T02:12:01.073274825+05:30'
+    - Finished: '2022-03-31T02:12:01.073274825+05:30'
+      Operation: bytes_written
+      Started: '2022-03-31T02:12:01.073274825+05:30'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T02:12:01.067375713+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 104.100.61.241:80
+      Started: '2022-03-31T02:12:00.808800216+05:30'
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: http
+  T: '2022-03-31T02:12:01.075849999+05:30'
+testcase/cache/probe/endpoint/d0/d032e0b09c16f18be4346c31c354365cb8288ef9f7302d97ea01b9b8259e68e0-d:
+- M:
+    Address: '[2600:1406:e800:68d::2461]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 58
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:12:00.810116606+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2600:1406:e800:68d::2461]:443'
+      Started: '2022-03-31T02:12:00.81004495+05:30'
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: https
+  T: '2022-03-31T02:12:00.810814508+05:30'
+testcase/cache/probe/endpoint/fe/fea326a25ba16e09fadd5aa25af44a81b1b0656314a6a181fef1454b570873bf-d:
+- M:
+    Address: 10.10.34.35:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 6
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:12:00.801492038+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:80
+      Started: '2022-03-31T02:11:45.797013775+05:30'
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: http
+  T: '2022-03-31T02:12:00.802249718+05:30'
+testcase/cache/th/dns/65/65053fff57b5cff7d2d7cc8f53ce5a96dcc55f71333eb894de54612ac30ab5ba-d:
+- M:
+    ID: 47
+    Lookup:
+      Addresses:
+      - 104.100.61.241
+      - 2600:1406:e800:68d::2461
+      - 2600:1406:e800:6a5::2461
+      CNAME: www.akam.cdc.gov.
+      Domain: www.cdc.gov
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Query: UHMBAAABAAAAAAABA3d3dwNjZGMDZ292AAABAAEAACkQAAAAgAAAWAAMAFQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: UHOBgAABAAQAAAABA3d3dwNjZGMDZ292AAABAAHADAAFAAEAAACLAAsDd3d3BGFrYW3AEMAMAC4AAQAAAIsAmwAFBwMAAAEsYkxnAWI/L3sVdANjZGMDZ292AKXVVJ3mVP65/L9HnFA4mP6vgiOwECsRU6pWKL4hOl1vSfbI65/ZoBBAiSloipn8SuoGQqgKzcEmOP/fIdGOZcS/eSwerSIxNwI7D8n0DdtB5OamY05fPj/XaTByhdiF47CMRIY5FspytjPLTlgg8crQvWabV6tRoCa4CSbutaGzwCkAAQABAAAAFAAEaGQ98cApAC4AAQAAABQAoAABCgQAAAAUYkirEmJEqIKDvgRha2FtA2NkYwNnb3YAtxvAWqhKL5WpNQIJw3u9h5hi2cb+2qD7G0DMhhNGRxfA9pAuKF1JAGb1po4K4n3LXygFLVUBK3uNHHVUg6S3AKNIbGhXzxIz6NxoMmiVyer93IDqIJmMZbA3TyL7LeWgwUpLjNEDqFhA+hSk2XeS56iJbfNOC4kzS8elDNKStXEAACkE0AAAgAAAMgAMAC4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+    - Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Query: pCkBAAABAAAAAAABA3d3dwNjZGMDZ292AAAcAAEAACkQAAAAgAAAWAAMAFQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: pCmBgAABAAUAAAABA3d3dwNjZGMDZ292AAAcAAHADAAFAAEAAAB5AAsDd3d3BGFrYW3AEMAMAC4AAQAAAHkAmwAFBwMAAAEsYkxnAWI/L3sVdANjZGMDZ292AKXVVJ3mVP65/L9HnFA4mP6vgiOwECsRU6pWKL4hOl1vSfbI65/ZoBBAiSloipn8SuoGQqgKzcEmOP/fIdGOZcS/eSwerSIxNwI7D8n0DdtB5OamY05fPj/XaTByhdiF47CMRIY5FspytjPLTlgg8crQvWabV6tRoCa4CSbutaGzwCkAHAABAAAAFAAQJgAUBugABo0AAAAAAAAkYcApABwAAQAAABQAECYAFAboAAalAAAAAAAAJGHAKQAuAAEAAAAUAKAAHAoEAAAAFGJIqxJiRKiCg74EYWthbQNjZGMDZ292ALiDR/mAOqEhxp7FJgDQO3tzfKbmBSWHBr133Z6o9rryYOfTbQzRUzERatsqPNsrbLS+2KRlDsPA8hFo8Bw7gL6k6ALkBvL3Dq6wqU8bIJZRMZ3DbhkyDQ2hqAjbYLeyUMC/TNiGQKSRlfcIGBe4NHuQ3FGnJakkZBY7s9LWiMNjAAApBNAAAIAAAAoADAAGAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+  T: '2022-03-31T02:12:00.803995827+05:30'
+testcase/cache/th/dns/7b/7b7ccc89eadb3e75b6cda35394b612075ff5a0ed2539a8000fe7b69e395945e2-d:
+- M:
+    ID: 48
+    Lookup:
+      Domain: 241.61.100.104.in-addr.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+    ReverseAddress: 104.100.61.241
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Query: C80BAAABAAAAAAABAzI0MQI2MQMxMDADMTA0B2luLWFkZHIEYXJwYQAADAABAAApEAAAAIAAAEgADABEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: C82BhQABAAAAAAABAzI0MQI2MQMxMDADMTA0B2luLWFkZHIEYXJwYQAADAABAAApBNAAAIAAAZwADAGYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+  T: '2022-03-31T02:12:00.804630388+05:30'
+testcase/cache/th/dns/a1/a17ca0571bf668bb447f1efd5019e2047a2c041b58d2e2dc64fc6babd17bb6b2-d:
+- M:
+    ID: 50
+    Lookup:
+      Domain: 1.6.4.2.0.0.0.0.0.0.0.0.0.0.0.0.5.a.6.0.0.0.8.e.6.0.4.1.0.0.6.2.ip6.arpa.
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      LookupType: reverse
+      PTRs:
+      - g2600-1406-e800-06a5-0000-0000-0000-2461.deploy.static.akamaitechnologies.com.
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+    ReverseAddress: 2600:1406:e800:6a5::2461
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Query: pEUBAAABAAAAAAABATEBNgE0ATIBMAEwATABMAEwATABMAEwATABMAEwATABNQFhATYBMAEwATABOAFlATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: pEWBgAABAAEAAAABATEBNgE0ATIBMAEwATABMAEwATABMAEwATABMAEwATABNQFhATYBMAEwATABOAFlATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABwAwADAABAACowABPKGcyNjAwLTE0MDYtZTgwMC0wNmE1LTAwMDAtMDAwMC0wMDAwLTI0NjEGZGVwbG95BnN0YXRpYxJha2FtYWl0ZWNobm9sb2dpZXMDY29tAAAAKQTQAACAAAEUAAwBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+  T: '2022-03-31T02:12:00.805342746+05:30'
+testcase/cache/th/dns/e9/e9cee88e9a932dc8fd7b831bf8dcbe7c42101b0e18e392f5c718bc7e35b699d9-d:
+- M:
+    ID: 49
+    Lookup:
+      Domain: 1.6.4.2.0.0.0.0.0.0.0.0.0.0.0.0.d.8.6.0.0.0.8.e.6.0.4.1.0.0.6.2.ip6.arpa.
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      LookupType: reverse
+      PTRs:
+      - g2600-1406-e800-068d-0000-0000-0000-2461.deploy.static.akamaitechnologies.com.
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+    ReverseAddress: 2600:1406:e800:68d::2461
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Query: zFYBAAABAAAAAAABATEBNgE0ATIBMAEwATABMAEwATABMAEwATABMAEwATABZAE4ATYBMAEwATABOAFlATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: zFaBgAABAAEAAAABATEBNgE0ATIBMAEwATABMAEwATABMAEwATABMAEwATABZAE4ATYBMAEwATABOAFlATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABwAwADAABAACowABPKGcyNjAwLTE0MDYtZTgwMC0wNjhkLTAwMDAtMDAwMC0wMDAwLTI0NjEGZGVwbG95BnN0YXRpYxJha2FtYWl0ZWNobm9sb2dpZXMDY29tAAAAKQTQAACAAAEUAAwBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+  T: '2022-03-31T02:12:00.805033897+05:30'
+testcase/cache/th/endpoint/1a/1acbbf49cfca74cab3a89df1097ae2fe6c1f5487bf8146e6212251ae19834694-d:
+- M:
+    Address: 104.100.61.241:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.cdc.gov
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 128763
+      ResponseBodyTLSH: b4c30bbb5328c2ac114753ed6e3537ca32b694eaf1a5c040f3af5e079b83d76612ad50
+      ResponseHeaders:
+        Access-Control-Allow-Origin:
+        - '*'
+        Content-Length:
+        - '128763'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 20:41:47 GMT
+        Server:
+        - Microsoft-IIS/10.0
+        Set-Cookie:
+        - akamai_visit_id=24ef636872907fe5080Z; expires=Fri, 29-Mar-2024 20:41:47
+          GMT; path=/; secure; HttpOnly
+        - Akamai-Request-ID=24ef636872907fe5080Z; path=/
+        Srv:
+        - '1'
+        Strict-Transport-Security:
+        - max-age=31536000 ; includeSubDomains ; preload
+        X-Ua-Compatible:
+        - IE=edge
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+      StatusCode: 404
+      Transport: tcp
+      URL: https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+    HTTPTitle: CDC - Page Not Found
+    ID: 53
+    Network: tcp
+    NewCookies:
+    - Domain: ''
+      Expires: '0001-01-01T00:00:00Z'
+      HttpOnly: false
+      MaxAge: 0
+      Name: akamai_visit_id
+      Path: ''
+      Raw: ''
+      RawExpires: ''
+      SameSite: 0
+      Secure: false
+      Unparsed: null
+      Value: 24ef636872907fe5080Z
+    - Domain: ''
+      Expires: '0001-01-01T00:00:00Z'
+      HttpOnly: false
+      MaxAge: 0
+      Name: Akamai-Request-ID
+      Path: ''
+      Raw: ''
+      RawExpires: ''
+      SameSite: 0
+      Secure: false
+      Unparsed: null
+      Value: 24ef636872907fe5080Z
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: https
+  T: '2022-03-31T02:12:00.80667269+05:30'
+testcase/cache/th/endpoint/71/71d518999af3fdb33781e5d95e2241bd3fabb62a3863007d0e31d3a3eac25e6d-d:
+- M:
+    Address: '[2600:1406:e800:68d::2461]:80'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.cdc.gov
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '0'
+        Date:
+        - Wed, 30 Mar 2022 20:41:47 GMT
+        Location:
+        - https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+        Server:
+        - AkamaiGHost
+        Set-Cookie:
+        - akamai_visit_id=1d7a4217729070b34a7Z; expires=Fri, 29-Mar-2024 20:41:47
+          GMT; path=/; secure; HttpOnly
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+    ID: 52
+    Location:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: http
+  T: '2022-03-31T02:12:00.80621129+05:30'
+testcase/cache/th/endpoint/b6/b67d88eddf4de5e7f7fc75ae6a5f9faf64abd21c19a59a64ec80a7577ca883a4-d:
+- M:
+    Address: 104.100.61.241:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.cdc.gov
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '0'
+        Date:
+        - Wed, 30 Mar 2022 20:41:47 GMT
+        Location:
+        - https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+        Server:
+        - AkamaiGHost
+        Set-Cookie:
+        - akamai_visit_id=24ef636872907fe507fZ; expires=Fri, 29-Mar-2024 20:41:47
+          GMT; path=/; secure; HttpOnly
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+    ID: 51
+    Location:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: http
+  T: '2022-03-31T02:12:00.805737955+05:30'
+testcase/cache/th/endpoint/d0/d032e0b09c16f18be4346c31c354365cb8288ef9f7302d97ea01b9b8259e68e0-d:
+- M:
+    Address: '[2600:1406:e800:68d::2461]:443'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:12:00.803816965+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.cdc.gov
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 128763
+      ResponseBodyTLSH: b4c30bbb5328c2ac114753ed6e3537ca32b694eaf1a5c040f3af5e079b83d76612ad50
+      ResponseHeaders:
+        Access-Control-Allow-Origin:
+        - '*'
+        Content-Length:
+        - '128763'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 20:41:49 GMT
+        Server:
+        - Microsoft-IIS/10.0
+        Set-Cookie:
+        - akamai_visit_id=1d7a4217729070b35c8Z; expires=Fri, 29-Mar-2024 20:41:49
+          GMT; path=/; secure; HttpOnly
+        - Akamai-Request-ID=1d7a4217729070b35c8Z; path=/
+        Srv:
+        - '3'
+        Strict-Transport-Security:
+        - max-age=31536000 ; includeSubDomains ; preload
+        X-Ua-Compatible:
+        - IE=edge
+      Started: '2022-03-31T02:12:00.803816965+05:30'
+      StatusCode: 404
+      Transport: tcp
+      URL: https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/world-map.html
+    HTTPTitle: CDC - Page Not Found
+    ID: 54
+    Network: tcp
+    NewCookies:
+    - Domain: ''
+      Expires: '0001-01-01T00:00:00Z'
+      HttpOnly: false
+      MaxAge: 0
+      Name: akamai_visit_id
+      Path: ''
+      Raw: ''
+      RawExpires: ''
+      SameSite: 0
+      Secure: false
+      Unparsed: null
+      Value: 1d7a4217729070b35c8Z
+    - Domain: ''
+      Expires: '0001-01-01T00:00:00Z'
+      HttpOnly: false
+      MaxAge: 0
+      Name: Akamai-Request-ID
+      Path: ''
+      Raw: ''
+      RawExpires: ''
+      SameSite: 0
+      Secure: false
+      Unparsed: null
+      Value: 1d7a4217729070b35c8Z
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.cdc.gov
+      Path: /coronavirus/2019-ncov/cases-updates/world-map.html
+      Scheme: https
+  T: '2022-03-31T02:12:00.807048917+05:30'
+...

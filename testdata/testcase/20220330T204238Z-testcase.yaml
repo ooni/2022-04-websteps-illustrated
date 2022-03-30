@@ -1,0 +1,574 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmpb5ax9d2r/cache/probe
+- --th-cache-dir
+- ./tmpb5ax9d2r/cache/th
+- --output
+- ./tmpr9947wdr/report.jsonl
+- --logfile
+- ./tmpr9947wdr/log.txt
+- --input
+- http://www.marijuana.com/
+- --emoji
+created: 20220330T204238Z
+description: '#bogon #tcpTimeout'
+imported: 20220330T204822Z
+probe_asn: AS60178
+probe_cc: IR
+url: http://www.marijuana.com/
+...
+---
+testcase/cache/probe/dns/e0/e05dd3260953123c0810bfe22788529a73f2d6b56464ffe8377ca050b06cfcf8-d:
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.marijuana.com
+      Finished: '2022-03-31T02:12:38.662636405+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:12:38.657647527+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:38.66154482+05:30'
+      Query: PjEBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAE=
+      Reply: PjGBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:12:38.65777718+05:30'
+    - Finished: '2022-03-31T02:12:38.662627984+05:30'
+      Query: B80BAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAE=
+      Reply: B82BgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:12:38.65858837+05:30'
+  T: '2022-03-31T02:12:38.663135135+05:30'
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.marijuana.com
+      Finished: '2022-03-31T02:12:38.662590281+05:30'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T02:12:38.65911845+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:38.662584925+05:30'
+      Query: ZdwBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAD/AAE=
+      Reply: ZdyBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAD/AAHADAABAAEAAAAAAAQKCiIj
+      ResolverNetwork: system
+      Started: '2022-03-31T02:12:38.659128859+05:30'
+  T: '2022-03-31T02:12:38.662851283+05:30'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.marijuana.com
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:12:38.659991269+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:12:38.658929347+05:30'
+    RoundTrip:
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:12:38.659096561+05:30'
+      Query: r2MBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAE=
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:12:38.658948721+05:30'
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:12:38.659984436+05:30'
+      Query: XNkBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAE=
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:12:38.659924576+05:30'
+  T: '2022-03-31T02:12:38.660372669+05:30'
+testcase/cache/probe/dnsping/24/2489a37739a876c123031149dca39494320a30afcc56280dacc097522289323f-d:
+- Delay: 100000000
+  Domain: www.marijuana.com
+  ID: 18
+  Query: l/8BAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAE=
+  QueryID: 38911
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:38.768786988+05:30'
+    ID: 24
+    Rcode: NOERROR
+    Reply: l/+BgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:38.768809758+05:30'
+    ID: 26
+    Rcode: NOERROR
+    Reply: l/+BgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:38.765225061+05:30'
+testcase/cache/probe/dnsping/35/35ce06db9359a7c8a891ca7d81775e8162d53fe9e362e653e0d90ac843cfc0a5-d:
+- Delay: 100000000
+  Domain: www.marijuana.com
+  ID: 17
+  Query: ZowBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAE=
+  QueryID: 26252
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:38.768690833+05:30'
+    ID: 20
+    Rcode: NOERROR
+    Reply: ZoyBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:38.768723725+05:30'
+    ID: 22
+    Rcode: NOERROR
+    Reply: ZoyBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:38.764964517+05:30'
+testcase/cache/probe/dnsping/3d/3d25f66e9a9869c8660bf788c2695181af443eb992708a476ace203126a973dc-d:
+- Delay: 200000000
+  Domain: www.marijuana.com
+  ID: 27
+  Query: OtsBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAE=
+  QueryID: 15067
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:38.869619119+05:30'
+    ID: 34
+    Rcode: NOERROR
+    Reply: OtuBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:38.869638411+05:30'
+    ID: 36
+    Rcode: NOERROR
+    Reply: OtuBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:38.865366136+05:30'
+testcase/cache/probe/dnsping/45/4579fa1d601beea085759000fb185c424dff8c3cd0365761f8384f80939bfb58-d:
+- Delay: 0
+  Domain: www.marijuana.com
+  ID: 5
+  Query: k3UBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAE=
+  QueryID: 37749
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:38.677130009+05:30'
+    ID: 14
+    Rcode: NOERROR
+    Reply: k3WBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:38.677165511+05:30'
+    ID: 16
+    Rcode: NOERROR
+    Reply: k3WBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:38.664733518+05:30'
+testcase/cache/probe/dnsping/89/8931115119e00ee4631284ad326a5ae414421a3344515e8063b64baa3745b954-d:
+- Delay: 500000000
+  Domain: www.marijuana.com
+  ID: 38
+  Query: aDUBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAE=
+  QueryID: 26677
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:39.17115422+05:30'
+    ID: 44
+    Rcode: NOERROR
+    Reply: aDWBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:39.171214939+05:30'
+    ID: 46
+    Rcode: NOERROR
+    Reply: aDWBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:39.166706976+05:30'
+testcase/cache/probe/dnsping/be/be5604c088a308594b743e32e227b24f8eaa90ecf6038f5529fcd9a0793a9b96-d:
+- Delay: 0
+  Domain: www.marijuana.com
+  ID: 7
+  Query: sO0BAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAE=
+  QueryID: 45293
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:38.676630425+05:30'
+    ID: 10
+    Rcode: NOERROR
+    Reply: sO2BgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:38.676717339+05:30'
+    ID: 12
+    Rcode: NOERROR
+    Reply: sO2BgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:38.671027904+05:30'
+testcase/cache/probe/dnsping/e0/e0cca302732e0e35ff583d6f8e5881a672d60264273b755a6077efb70d682efe-d:
+- Delay: 200000000
+  Domain: www.marijuana.com
+  ID: 28
+  Query: tY8BAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAE=
+  QueryID: 46479
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:38.869478143+05:30'
+    ID: 30
+    Rcode: NOERROR
+    Reply: tY+BgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:12:38.869538718+05:30'
+    ID: 32
+    Rcode: NOERROR
+    Reply: tY+BgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAABAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:38.865825336+05:30'
+testcase/cache/probe/dnsping/e2/e2b5fefec158520d67c9cb99b36c2edc6d418671d28198459a7915d3dac5cdbd-d:
+- Delay: 500000000
+  Domain: www.marijuana.com
+  ID: 37
+  Query: 5DIBAAABAAAAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAE=
+  QueryID: 58418
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:39.168792978+05:30'
+    ID: 40
+    Rcode: NOERROR
+    Reply: 5DKBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:12:39.168852034+05:30'
+    ID: 42
+    Rcode: NOERROR
+    Reply: 5DKBgAABAAEAAAAAA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAABAAEAAAABAAQKCiIj
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:12:39.165863661+05:30'
+testcase/cache/probe/endpoint/4b/4b555fe9960a6efd51842eebbf6118ffe5e06bab9d2fe1a3b1e235a30e52a35f-d:
+- M:
+    Address: 10.10.34.35:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 6
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:12:53.671430566+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:80
+      Started: '2022-03-31T02:12:38.670375641+05:30'
+    URL:
+      Host: www.marijuana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:12:53.672251227+05:30'
+testcase/cache/probe/endpoint/c8/c865c29457db442a89571530624d38fc7d9b91b41c4ca168a42f02aede6132c1-d:
+- M:
+    Address: 104.197.8.181:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 52
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:13:08.678964184+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 104.197.8.181:443
+      Started: '2022-03-31T02:12:53.678304749+05:30'
+    URL:
+      Host: www.marijuana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:13:08.68054266+05:30'
+testcase/cache/probe/endpoint/e5/e536ce7a7c1913ea7bde76cb856f2e5ccb1f7ebdfb538523a83de44442bc63f4-d:
+- M:
+    Address: 10.10.34.35:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 8
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:12:53.671691238+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:443
+      Started: '2022-03-31T02:12:38.671115388+05:30'
+    URL:
+      Host: www.marijuana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:12:53.673370577+05:30'
+testcase/cache/probe/endpoint/fe/fe48d96d5b7a3d0be81f08cccadf68d08618d529c37e073385644c8cf8b408b6-d:
+- M:
+    Address: 104.197.8.181:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 51
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:13:08.67866712+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 104.197.8.181:80
+      Started: '2022-03-31T02:12:53.677790747+05:30'
+    URL:
+      Host: www.marijuana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:13:08.679573574+05:30'
+testcase/cache/th/dns/6b/6ba9cacc4e81ab224a9fe055b417d5ccc668c56c1e828499c0f2cfa7fb783e41-d:
+- M:
+    ID: 48
+    Lookup:
+      Domain: 181.8.197.104.in-addr.arpa.
+      Finished: '2022-03-31T02:12:53.674001857+05:30'
+      LookupType: reverse
+      PTRs:
+      - 181.8.197.104.bc.googleusercontent.com.
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:53.674001857+05:30'
+    ReverseAddress: 104.197.8.181
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:53.674001857+05:30'
+      Query: jvwBAAABAAAAAAABAzE4MQE4AzE5NwMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: jvyBgAABAAIAAAABAzE4MQE4AzE5NwMxMDQHaW4tYWRkcgRhcnBhAAAMAAHADAAMAAEAAAB4ACgDMTgxATgDMTk3AzEwNAJiYxFnb29nbGV1c2VyY29udGVudANjb20AwAwALgABAAAAeACqAAwIBgAAAHhiYGBQYkNfUBCiATgDMTk3AzEwNAdpbi1hZGRyBGFycGEAECiMo8XRD0jXiRSTccc6JUHGWEALOom7xJUlhSQp6arPjcoiD8Dva5mUSjGjMkkYJESitE4rNvit10PfNDLWsZRxwrVVFTyf+8ENK3jezgiAeh21FZIG0QjYd4JyyieyRy233s/O74z/5jDZZlDmkw94kbqL7JD87fnFgF0KXkAAACkE0AAAgAAAswAPAEoAF1syMDAxOjQ4NjA6NDgwMjozNDo6NjZdOjUzIHJjb2RlPVJFRlVTRUQgZm9yIDE5Ny4xMDQuaW4tYWRkci5hcnBhIEROU0tFWQAMAGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:53.674001857+05:30'
+  T: '2022-03-31T02:12:53.674937182+05:30'
+testcase/cache/th/dns/e0/e05dd3260953123c0810bfe22788529a73f2d6b56464ffe8377ca050b06cfcf8-d:
+- M:
+    ID: 47
+    Lookup:
+      Addresses:
+      - 104.197.8.181
+      CNAME: marijuanacom.wpengine.com.
+      Domain: www.marijuana.com
+      Finished: '2022-03-31T02:12:53.674001857+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:53.674001857+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:12:53.674001857+05:30'
+      Query: O0wBAAABAAAAAAABA3d3dwltYXJpanVhbmEDY29tAAAcAAEAACkQAAAAgAAAUgAMAE4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: O0yBgAABAAEAAQABA3d3dwltYXJpanVhbmEDY29tAAAcAAHADAAFAAEAAAEsABgMbWFyaWp1YW5hY29tCHdwZW5naW5lwBrAPAAGAAEAAA4QAC4DamltAm5zCmNsb3VkZmxhcmXAGgNkbnPAWoeM2RQAACcQAAAJYAAJOoAAAA4QAAApBNAAAIAAAUgADAFEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:53.674001857+05:30'
+    - Finished: '2022-03-31T02:12:53.674001857+05:30'
+      Query: ZNYBAAABAAAAAAABA3d3dwltYXJpanVhbmEDY29tAAABAAEAACkQAAAAgAAAUgAMAE4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: ZNaBgAABAAIAAAABA3d3dwltYXJpanVhbmEDY29tAAABAAHADAAFAAEAAAEsABgMbWFyaWp1YW5hY29tCHdwZW5naW5lwBrALwABAAEAAAB4AARoxQi1AAApBNAAAIAAAXIADAFuAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:12:53.674001857+05:30'
+  T: '2022-03-31T02:12:53.67412783+05:30'
+testcase/cache/th/endpoint/c8/c865c29457db442a89571530624d38fc7d9b91b41c4ca168a42f02aede6132c1-d:
+- M:
+    Address: 104.197.8.181:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:12:53.674001857+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.marijuana.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 162
+      ResponseBodyTLSH: 0bc08cadab022cc8b8a73b3861c36160e2ec80701699451101b04a07f1cf1979ec23d1
+      ResponseHeaders:
+        Content-Length:
+        - '162'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 20:42:40 GMT
+        Location:
+        - https://weedmaps.com/news
+        Server:
+        - nginx
+      Started: '2022-03-31T02:12:53.674001857+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: https://www.marijuana.com/
+    HTTPTitle: 301 Moved Permanently
+    ID: 50
+    Location:
+      Host: weedmaps.com
+      Path: /news
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.marijuana.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:12:53.676264336+05:30'
+testcase/cache/th/endpoint/fe/fe48d96d5b7a3d0be81f08cccadf68d08618d529c37e073385644c8cf8b408b6-d:
+- M:
+    Address: 104.197.8.181:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:12:53.674001857+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.marijuana.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyLength: 162
+      ResponseBodyTLSH: 0bc08cadab022cc8b8a73b3861c36160e2ec80701699451101b04a07f1cf1979ec23d1
+      ResponseHeaders:
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '162'
+        Content-Type:
+        - text/html
+        Date:
+        - Wed, 30 Mar 2022 20:42:40 GMT
+        Keep-Alive:
+        - timeout=20
+        Location:
+        - https://weedmaps.com/news
+        Server:
+        - nginx
+      Started: '2022-03-31T02:12:53.674001857+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.marijuana.com/
+    HTTPTitle: 301 Moved Permanently
+    ID: 49
+    Location:
+      Host: weedmaps.com
+      Path: /news
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.marijuana.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:12:53.675494674+05:30'
+...

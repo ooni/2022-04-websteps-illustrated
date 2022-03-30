@@ -1,0 +1,845 @@
+--- 1
+...
+---
+command:
+- ./websteps
+- --predictable-resolvers
+- --verbose
+- --probe-cache-dir
+- ./tmpilhs179n/cache/probe
+- --th-cache-dir
+- ./tmpilhs179n/cache/th
+- --output
+- ./tmpedbjvkcp/report.jsonl
+- --logfile
+- ./tmpedbjvkcp/log.txt
+- --input
+- http://www.indiatimes.com/
+- --emoji
+created: 20220330T203942Z
+description: '#bogon #blockpage #tlsTimeout'
+imported: 20220330T204822Z
+probe_asn: AS60178
+probe_cc: IR
+url: http://www.indiatimes.com/
+...
+---
+testcase/cache/probe/dns/9a/9a019c59a9947a227ed72ebd559df47dc97947c162d3aba3f105f60e78123de9-d:
+- M:
+    ID: 4
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.indiatimes.com
+      Finished: '2022-03-31T02:09:42.532197787+05:30'
+      LookupType: getaddrinfo
+      ResolverNetwork: system
+      Started: '2022-03-31T02:09:42.527064779+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:09:42.532192166+05:30'
+      Query: SaEBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAA/wAB
+      Reply: SaGBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAA/wABwAwAAQABAAAAAAAECgoiIw==
+      ResolverNetwork: system
+      Started: '2022-03-31T02:09:42.527075512+05:30'
+  T: '2022-03-31T02:09:42.532372988+05:30'
+- M:
+    ID: 2
+    Lookup:
+      Addresses:
+      - 10.10.34.35
+      Domain: www.indiatimes.com
+      Finished: '2022-03-31T02:09:42.530262213+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:09:42.525657307+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:09:42.530188991+05:30'
+      Query: LNIBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQAB
+      Reply: LNKBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:09:42.526483404+05:30'
+    - Finished: '2022-03-31T02:09:42.530254649+05:30'
+      Query: KMABAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAAB
+      Reply: KMCBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+      ResolverAddress: 8.8.8.8:53
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:09:42.525806876+05:30'
+  T: '2022-03-31T02:09:42.530454144+05:30'
+- M:
+    ID: 3
+    Lookup:
+      Domain: www.indiatimes.com
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:09:42.528090397+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:09:42.526911434+05:30'
+    RoundTrip:
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:09:42.527042725+05:30'
+      Query: JA0BAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:09:42.526931015+05:30'
+    - Failure: network_unreachable
+      Finished: '2022-03-31T02:09:42.528083826+05:30'
+      Query: D/kBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQAB
+      ResolverAddress: '[2001:4860:4860::8888]:53'
+      ResolverNetwork: udp
+      Started: '2022-03-31T02:09:42.527992115+05:30'
+  T: '2022-03-31T02:09:42.528452977+05:30'
+testcase/cache/probe/dnsping/0a/0a49fa4c7e6bb37dda31736f3b9a00308270fc88e4fd880a07146ebd40f76c4f-d:
+- Delay: 0
+  Domain: www.indiatimes.com
+  ID: 5
+  Query: /vgBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAAB
+  QueryID: 65272
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:42.538448353+05:30'
+    ID: 9
+    Rcode: NOERROR
+    Reply: /viBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:42.545381245+05:30'
+    ID: 12
+    Rcode: NOERROR
+    Reply: /viBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:42.533555921+05:30'
+testcase/cache/probe/dnsping/39/396953d489d36d40ac6fd6b1cfc26fce6cc8ecede8f3b5d9ce50ca7b62bb5aa5-d:
+- Delay: 500000000
+  Domain: www.indiatimes.com
+  ID: 38
+  Query: wXABAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQAB
+  QueryID: 49520
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:43.040849801+05:30'
+    ID: 40
+    Rcode: NOERROR
+    Reply: wXCBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:43.040891643+05:30'
+    ID: 42
+    Rcode: NOERROR
+    Reply: wXCBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:43.035591292+05:30'
+testcase/cache/probe/dnsping/42/428a7ac7803d523d3acd830a3a4c2d2e770bb004fb8d5f82fd3675e60263cfbd-d:
+- Delay: 200000000
+  Domain: www.indiatimes.com
+  ID: 27
+  Query: SYgBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAAB
+  QueryID: 18824
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:42.73890914+05:30'
+    ID: 30
+    Rcode: NOERROR
+    Reply: SYiBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:42.739364866+05:30'
+    ID: 32
+    Rcode: NOERROR
+    Reply: SYiBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:42.735260683+05:30'
+testcase/cache/probe/dnsping/45/45ad20493d984c06164c1b9b75c75fb6bbbaed83488b1525cd617545cafd30df-d:
+- Delay: 500000000
+  Domain: www.indiatimes.com
+  ID: 37
+  Query: uWcBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAAB
+  QueryID: 47463
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:43.040974737+05:30'
+    ID: 44
+    Rcode: NOERROR
+    Reply: uWeBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:43.041009716+05:30'
+    ID: 46
+    Rcode: NOERROR
+    Reply: uWeBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:43.035090404+05:30'
+testcase/cache/probe/dnsping/6d/6d1d4dd8c3779febd476c69329dbc2bcabe0aa79c5fb878c06ad429121c106a5-d:
+- Delay: 100000000
+  Domain: www.indiatimes.com
+  ID: 17
+  Query: vOkBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAAB
+  QueryID: 48361
+  QueryType: 28
+  Replies:
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:42.636846553+05:30'
+    ID: 20
+    Rcode: NOERROR
+    Reply: vOmBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: null
+    Addresses: null
+    Error: dns_no_answer
+    Finished: '2022-03-31T02:09:42.636883246+05:30'
+    ID: 22
+    Rcode: NOERROR
+    Reply: vOmBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:42.634786692+05:30'
+testcase/cache/probe/dnsping/b6/b6375368404fe05c9de0b3ae5e36f9f2a3d5bd29c0aa0e6b9e9d97c0298cf976-d:
+- Delay: 200000000
+  Domain: www.indiatimes.com
+  ID: 28
+  Query: UrQBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQAB
+  QueryID: 21172
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:42.739474977+05:30'
+    ID: 34
+    Rcode: NOERROR
+    Reply: UrSBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:42.739510073+05:30'
+    ID: 36
+    Rcode: NOERROR
+    Reply: UrSBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:42.735814216+05:30'
+testcase/cache/probe/dnsping/be/be1b81e3d15bb726319ddaca6706c41a7f0758ce627b2af845eea3fa650b80bc-d:
+- Delay: 0
+  Domain: www.indiatimes.com
+  ID: 10
+  Query: SXIBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQAB
+  QueryID: 18802
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:42.552803241+05:30'
+    ID: 14
+    Rcode: NOERROR
+    Reply: SXKBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:42.552933444+05:30'
+    ID: 16
+    Rcode: NOERROR
+    Reply: SXKBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:42.544408001+05:30'
+testcase/cache/probe/dnsping/d2/d2863c36748c3003fa7e86f70ea38be4f18c500d049ddb6fd03c389fcd1430ca-d:
+- Delay: 100000000
+  Domain: www.indiatimes.com
+  ID: 18
+  Query: 5xUBAAABAAAAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQAB
+  QueryID: 59157
+  QueryType: 1
+  Replies:
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:42.637980429+05:30'
+    ID: 24
+    Rcode: NOERROR
+    Reply: 5xWBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  - ALPNs: []
+    Addresses:
+    - 10.10.34.35
+    Error: ''
+    Finished: '2022-03-31T02:09:42.638016481+05:30'
+    ID: 26
+    Rcode: NOERROR
+    Reply: 5xWBgAABAAEAAAAAA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwAAQABAAAAAQAECgoiIw==
+    SourceAddress: 8.8.8.8:53
+  ResolverAddress: 8.8.8.8:53
+  Started: '2022-03-31T02:09:42.635196043+05:30'
+testcase/cache/probe/endpoint/1e/1eb818021d60414f9fc2abc36bbbe50bc03b431059cd85ffb7c7fb6370e3db72-d:
+- M:
+    Address: 23.77.64.244:443
+    FailedOperation: tls_handshake
+    Failure: generic_timeout_error
+    ID: 56
+    Network: tcp
+    NetworkEvent:
+    - Count: 288
+      Finished: '2022-03-31T02:09:57.836492608+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 23.77.64.244:443
+      Started: '2022-03-31T02:09:57.836211616+05:30'
+    - Failure: generic_timeout_error
+      Finished: '2022-03-31T02:10:07.836299373+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 23.77.64.244:443
+      Started: '2022-03-31T02:09:57.836560544+05:30'
+    Options: {}
+    QUICTLSHandshake:
+      ALPN:
+      - h2
+      - http/1.1
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:10:07.836337952+05:30'
+      Network: tcp
+      RemoteAddr: 23.77.64.244:443
+      SNI: www.indiatimes.com
+      Started: '2022-03-31T02:09:57.835833168+05:30'
+    TCPConnect:
+      Finished: '2022-03-31T02:09:57.82389983+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 23.77.64.244:443
+      Started: '2022-03-31T02:09:57.554115379+05:30'
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:10:07.836676414+05:30'
+testcase/cache/probe/endpoint/48/480f62310dc795761a198905369b70bd7763486df1d6a5f6c4fe2808acf064e6-d:
+- M:
+    Address: 10.10.34.35:80
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 6
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:09:57.538546975+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:80
+      Started: '2022-03-31T02:09:42.538027141+05:30'
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:09:57.541499039+05:30'
+testcase/cache/probe/endpoint/78/787dcac9b6587cb3ff85d492d02a5f31af8da0ad41248ca322d5920a7fe7c0e2-d:
+- M:
+    Address: '[2600:1406:3a00:192::143a]:80'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 57
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:09:57.555025934+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2600:1406:3a00:192::143a]:80'
+      Started: '2022-03-31T02:09:57.55460318+05:30'
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:09:57.555370988+05:30'
+testcase/cache/probe/endpoint/a3/a3bf6ed5656867192579a751aae8055066d283e97cefac5caee53609d904809b-d:
+- M:
+    Address: 10.10.34.35:443
+    FailedOperation: connect
+    Failure: generic_timeout_error
+    ID: 7
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: generic_timeout_error
+      Finished: '2022-03-31T02:09:57.539037804+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 10.10.34.35:443
+      Started: '2022-03-31T02:09:42.538392141+05:30'
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:09:57.542721177+05:30'
+testcase/cache/probe/endpoint/c5/c56b971cb1e8619dbc5d4dcc9e6ce580b62713f05e48c3c5c43ff3708d26b918-d:
+- M:
+    Address: 23.77.64.244:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:09:57.818947989+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.indiatimes.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBody: PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9d2luZG93cy0xMjU2Ij48dGl0bGU+QkUxKDEpPC90aXRsZT48L2hlYWQ+PGJvZHk+PGlmcmFtZSBzcmM9Imh0dHA6Ly8xMC4xMC4zNC4zNTo4MCIgc3R5bGU9IndpZHRoOiAxMDAlOyBoZWlnaHQ6IDEwMCUiIHNjcm9sbGluZz0ibm8iIG1hcmdpbndpZHRoPSIwIiBtYXJnaW5oZWlnaHQ9IjAiIGZyYW1lYm9yZGVyPSIwIiB2c3BhY2U9IjAiIGhzcGFjZT0iMCI+PC9pZnJhbWU+PC9ib2R5PjwvaHRtbD4NCg0K
+      ResponseBodyLength: 303
+      ResponseBodyTLSH: 5de0ebf1b0495d0cd232d174c4f7710cab888882b2968e10bab038b4704c226dcb33fe
+      Started: '2022-03-31T02:09:57.814355903+05:30'
+      StatusCode: 403
+      Transport: tcp
+      URL: http://www.indiatimes.com/
+    HTTPTitle: BE1(1)
+    ID: 55
+    Network: tcp
+    NetworkEvent:
+    - Count: 279
+      Finished: '2022-03-31T02:09:57.815428476+05:30'
+      Network: tcp
+      Operation: write
+      RemoteAddr: 23.77.64.244:80
+      Started: '2022-03-31T02:09:57.815120457+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:09:57.818601897+05:30'
+      Network: tcp
+      Operation: read
+      RemoteAddr: 23.77.64.244:80
+      Started: '2022-03-31T02:09:57.814960687+05:30'
+    - Count: 348
+      Finished: '2022-03-31T02:09:57.81880176+05:30'
+      Operation: bytes_read
+      Started: '2022-03-31T02:09:57.81880176+05:30'
+    - Count: 279
+      Finished: '2022-03-31T02:09:57.81880176+05:30'
+      Operation: bytes_written
+      Started: '2022-03-31T02:09:57.81880176+05:30'
+    - Finished: '2022-03-31T02:09:57.819476388+05:30'
+      Operation: bytes_read
+      Started: '2022-03-31T02:09:57.819476388+05:30'
+    - Finished: '2022-03-31T02:09:57.819476388+05:30'
+      Operation: bytes_written
+      Started: '2022-03-31T02:09:57.819476388+05:30'
+    Options: {}
+    TCPConnect:
+      Finished: '2022-03-31T02:09:57.813814595+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: 23.77.64.244:80
+      Started: '2022-03-31T02:09:57.553305262+05:30'
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:09:57.823218059+05:30'
+testcase/cache/probe/endpoint/d4/d491ecc9e826bdeb14eef6c2538bf0f379b2342db7640f38c670aac7674461cf-d:
+- M:
+    Address: '[2600:1406:3a00:192::143a]:443'
+    FailedOperation: connect
+    Failure: network_unreachable
+    ID: 58
+    Network: tcp
+    Options: {}
+    TCPConnect:
+      Failure: network_unreachable
+      Finished: '2022-03-31T02:09:57.55521138+05:30'
+      Network: tcp
+      Operation: connect
+      RemoteAddr: '[2600:1406:3a00:192::143a]:443'
+      Started: '2022-03-31T02:09:57.555094837+05:30'
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:09:57.555942818+05:30'
+testcase/cache/th/dns/37/37a407ce276d467cc6942469b68002220661c10f14ad35d1d086f3d5e97028ca-d:
+- M:
+    ID: 49
+    Lookup:
+      Domain: 244.64.77.23.in-addr.arpa.
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      LookupType: reverse
+      PTRs:
+      - a23-77-64-244.deploy.static.akamaitechnologies.com.
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+    ReverseAddress: 23.77.64.244
+    RoundTrip:
+    - Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Query: u48BAAABAAAAAAABAzI0NAI2NAI3NwIyMwdpbi1hZGRyBGFycGEAAAwAAQAAKRAAAACAAABKAAwARgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: u4+BgAABAAEAAAABAzI0NAI2NAI3NwIyMwdpbi1hZGRyBGFycGEAAAwAAcAMAAwAAQAAqMAANA1hMjMtNzctNjQtMjQ0BmRlcGxveQZzdGF0aWMSYWthbWFpdGVjaG5vbG9naWVzA2NvbQAAACkE0AAAgAABXgAMAVoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+  T: '2022-03-31T02:09:57.545366263+05:30'
+testcase/cache/th/dns/8d/8dd5f507d522f12cd2184af256b0cac980f56540dcaf6405652fbf38b105baa7-d:
+- M:
+    ID: 48
+    Lookup:
+      Domain: a.3.4.1.0.0.0.0.0.0.0.0.0.0.0.0.1.9.1.0.0.0.a.3.6.0.4.1.0.0.6.2.ip6.arpa.
+      Failure: dns_refused_error
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      LookupType: reverse
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+    ReverseAddress: 2600:1406:3a00:191::143a
+    RoundTrip:
+    - Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Query: mwkBAAABAAAAAAABAWEBMwE0ATEBMAEwATABMAEwATABMAEwATABMAEwATABMQE5ATEBMAEwATABYQEzATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: mwmBhQABAAAAAAABAWEBMwE0ATEBMAEwATABMAEwATABMAEwATABMAEwATABMQE5ATEBMAEwATABYQEzATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+  T: '2022-03-31T02:09:57.54497136+05:30'
+testcase/cache/th/dns/9a/9a019c59a9947a227ed72ebd559df47dc97947c162d3aba3f105f60e78123de9-d:
+- M:
+    ID: 47
+    Lookup:
+      Addresses:
+      - 23.77.64.244
+      - 2600:1406:3a00:192::143a
+      - 2600:1406:3a00:191::143a
+      Domain: www.indiatimes.com
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      LookupType: getaddrinfo
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+    RoundTrip:
+    - Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Query: +4YBAAABAAAAAAABA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABAAApEAAAAIAAAFEADABNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: +4aBgAABAAMAAAABA3d3dwppbmRpYXRpbWVzA2NvbQAAAQABwAwABQABAAAAPAAjA3d3dwppbmRpYXRpbWVzBmNvbS12MgdlZGdla2V5A25ldADAMAAFAAEAAFRgABoFZTUxNzgGZHNjZTEyCmFrYW1haWVkZ2XATsBfAAEAAQAAABQABBdNQPQAACkE0AAAgAABQAAMATwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+    - Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Query: IhEBAAABAAAAAAABA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABAAApEAAAAIAAAFEADABNAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: IhGBgAABAAQAAAABA3d3dwppbmRpYXRpbWVzA2NvbQAAHAABwAwABQABAAAAPAAjA3d3dwppbmRpYXRpbWVzBmNvbS12MgdlZGdla2V5A25ldADAMAAFAAEAAFRgABoFZTUxNzgGZHNjZTEyCmFrYW1haWVkZ2XATsBfABwAAQAAABQAECYAFAY6AAGSAAAAAAAAFDrAXwAcAAEAAAAUABAmABQGOgABkQAAAAAAABQ6AAApBNAAAIAAARgADAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+  T: '2022-03-31T02:09:57.543393409+05:30'
+testcase/cache/th/dns/fb/fbfceda177e1a70c654020cdc5b47e1680ed80e9c62d017b419070e63a577bd5-d:
+- M:
+    ID: 50
+    Lookup:
+      Domain: a.3.4.1.0.0.0.0.0.0.0.0.0.0.0.0.2.9.1.0.0.0.a.3.6.0.4.1.0.0.6.2.ip6.arpa.
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      LookupType: reverse
+      PTRs:
+      - g2600-1406-3a00-0192-0000-0000-0000-143a.deploy.static.akamaitechnologies.com.
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+    ReverseAddress: 2600:1406:3a00:192::143a
+    RoundTrip:
+    - Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Query: 1x8BAAABAAAAAAABAWEBMwE0ATEBMAEwATABMAEwATABMAEwATABMAEwATABMgE5ATEBMAEwATABYQEzATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      Reply: 1x+BgAABAAEAAAABAWEBMwE0ATEBMAEwATABMAEwATABMAEwATABMAEwATABMgE5ATEBMAEwATABYQEzATYBMAE0ATEBMAEwATYBMgNpcDYEYXJwYQAADAABwAwADAABAACowABPKGcyNjAwLTE0MDYtM2EwMC0wMTkyLTAwMDAtMDAwMC0wMDAwLTE0M2EGZGVwbG95BnN0YXRpYxJha2FtYWl0ZWNobm9sb2dpZXMDY29tAAAAKQTQAACAAAEUAAwBEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      ResolverAddress: https://dns.cloudflare.com/dns-query
+      ResolverNetwork: doh
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+  T: '2022-03-31T02:09:57.546131702+05:30'
+testcase/cache/th/endpoint/1e/1eb818021d60414f9fc2abc36bbbe50bc03b431059cd85ffb7c7fb6370e3db72-d:
+- M:
+    Address: 23.77.64.244:443
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.indiatimes.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyIsTruncated: true
+      ResponseBodyLength: 4096
+      ResponseBodyTLSH: d18141736514f92e136553b9f267b088c203e00ec7248a91e5b912ee6ad1fb153f3767
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=722
+        Content-Type:
+        - text/html; charset=utf-8
+        Date:
+        - Wed, 30 Mar 2022 20:39:43 GMT
+        Expires:
+        - Wed, 30 Mar 2022 20:51:45 GMT
+        Server:
+        - Bhoot
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+      StatusCode: 200
+      Transport: tcp
+      URL: https://www.indiatimes.com/
+    ID: 53
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:09:57.548162371+05:30'
+testcase/cache/th/endpoint/78/787dcac9b6587cb3ff85d492d02a5f31af8da0ad41248ca322d5920a7fe7c0e2-d:
+- M:
+    Address: '[2600:1406:3a00:192::143a]:80'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.indiatimes.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=0
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '0'
+        Date:
+        - Wed, 30 Mar 2022 20:39:43 GMT
+        Expires:
+        - Wed, 30 Mar 2022 20:39:43 GMT
+        Location:
+        - https://www.indiatimes.com/
+        Server:
+        - AkamaiGHost
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.indiatimes.com/
+    ID: 52
+    Location:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:09:57.547633748+05:30'
+testcase/cache/th/endpoint/c5/c56b971cb1e8619dbc5d4dcc9e6ce580b62713f05e48c3c5c43ff3708d26b918-d:
+- M:
+    Address: 23.77.64.244:80
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.indiatimes.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=0
+        Connection:
+        - keep-alive
+        Content-Length:
+        - '0'
+        Date:
+        - Wed, 30 Mar 2022 20:39:43 GMT
+        Expires:
+        - Wed, 30 Mar 2022 20:39:43 GMT
+        Location:
+        - https://www.indiatimes.com/
+        Server:
+        - AkamaiGHost
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+      StatusCode: 301
+      Transport: tcp
+      URL: http://www.indiatimes.com/
+    ID: 51
+    Location:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: https
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: http
+  T: '2022-03-31T02:09:57.546681857+05:30'
+testcase/cache/th/endpoint/d4/d491ecc9e826bdeb14eef6c2538bf0f379b2342db7640f38c670aac7674461cf-d:
+- M:
+    Address: '[2600:1406:3a00:192::143a]:443'
+    HTTPRoundTrip:
+      Finished: '2022-03-31T02:09:57.543189278+05:30'
+      Method: GET
+      RequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        Host:
+        - www.indiatimes.com
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      ResponseBodyIsTruncated: true
+      ResponseBodyLength: 4096
+      ResponseBodyTLSH: d18141736514f92e136553b9f267b088c203e00ec7248a91e5b912ee6ad1fb153f3767
+      ResponseHeaders:
+        Cache-Control:
+        - max-age=730
+        Content-Type:
+        - text/html; charset=utf-8
+        Date:
+        - Wed, 30 Mar 2022 20:39:43 GMT
+        Expires:
+        - Wed, 30 Mar 2022 20:51:53 GMT
+        Server:
+        - Bhoot
+      Started: '2022-03-31T02:09:57.543189278+05:30'
+      StatusCode: 200
+      Transport: tcp
+      URL: https://www.indiatimes.com/
+    ID: 54
+    Network: tcp
+    Options:
+      DNSLookupTimeout: 4000000000
+      DNSParallelism: 4
+      EndpointParallelism: 8
+      HTTPGetTimeout: 15000000000
+      HTTPRequestHeaders:
+        Accept:
+        - text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language:
+        - en-US,en;q=0.9
+        User-Agent:
+        - Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/96.0.4664.110 Safari/537.36
+      MaxAddressesPerFamily: 32
+      MaxCrawlerDepth: 3
+      MaxHTTPResponseBodySnapshotSize: 524288
+      MaxHTTPSResponseBodySnapshotSizeConnectivity: 4096
+      MaxHTTPSResponseBodySnapshotSizeThrottling: 524288
+      QUICHandshakeTimeout: 10000000000
+      TCPconnectTimeout: 15000000000
+      TLSHandshakeTimeout: 10000000000
+    URL:
+      Host: www.indiatimes.com
+      Path: /
+      Scheme: https
+  T: '2022-03-31T02:09:57.550469552+05:30'
+...
