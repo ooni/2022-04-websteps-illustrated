@@ -252,6 +252,10 @@ func analyzeSingleEndpointMeasurement(
 			score.Flags |= AnalysisHTTPDiffLegitimateRedirect
 			return score
 		}
+		if analysisRedirectLegitimateRedirect(score.ID, otherEpnt) {
+			score.Flags |= AnalysisHTTPDiffLegitimateRedirect
+			return score
+		}
 	}
 
 	score.Flags |= webFlags
