@@ -121,11 +121,10 @@ func isPrivate(address string, ip net.IP) bool {
 	} else {
 		bogons = bogons4
 	}
-	for idx, block := range bogons {
+	for _, block := range bogons {
 		if block.Contains(ip) {
 			logcat.Unexpectedf(
-				"%s is a bogon because is inside %s with index %d",
-				ip.String(), block.String(), idx)
+				"%s is a bogon because is inside %s", ip.String(), block.String())
 			return true
 		}
 	}
