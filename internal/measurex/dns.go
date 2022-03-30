@@ -481,8 +481,10 @@ func (dlm *DNSLookupMeasurement) ResolverURL() string {
 		return dlm.ResolverAddress()
 	case "system":
 		return "system:///"
+	case "dnscache":
+		return "dnscache:///"
 	default:
-		logcat.Bugf("ResolverURL not implemented for: %s", v)
+		logcat.Bugf("ResolverURL not implemented for: %s, %s", v, dlm.ResolverAddress())
 		return ""
 	}
 }
