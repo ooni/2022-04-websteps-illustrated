@@ -260,6 +260,7 @@ func (q *queue) unsubscribe(s *subscriber) {
 			ns = append(ns, rs)
 		}
 	}
+	close(s.ch) // follow the shutdown protocol (see below)
 	q.subs = ns
 	q.mu.Unlock()
 }
@@ -281,39 +282,66 @@ var emojimap = map[int64]string{
 // StartConsumer starts a consumer that consumes log messages
 // and dispatches them to the given logger. The consumer
 // will gracefully exit when the provided context expires.
-func StartConsumer(ctx context.Context, logger model.Logger, emojis bool) {
+//
+// The wg argument is incremented before starting the background
+// goroutine and decremented when we're done writing all the
+// logs (which may be slow when using SSH). Hence, when wg has
+// been decremented, you know we've written all the logs.
+//
+// Of course, if you want to do this shutdown protocol that
+// ensures we've written all the logs, you also need to cancel
+// the context when the test is done, to notify the consumer
+// that it should start to prepare to shutdown.
+func StartConsumer(ctx context.Context, logger model.Logger, emojis bool, wg *sync.WaitGroup) {
+	wg.Add(1)
 	ready := make(chan interface{})
 	go func() {
 		s := &subscriber{
 			ch: make(chan *Msg, logbuf),
 		}
 		gq.subscribe(s)
-		defer gq.unsubscribe(s)
 		close(ready)
 		for {
 			select {
 			case <-ctx.Done():
+				// Shutdown protocol
+				//
+				// The main function cancels the context. We notice, enter into this
+				// select case and unsubscribe. The logcat will close our channel. At this
+				// point we may still have some buffered messages to read. Continue
+				// reading until we drain the channel. At which point, we signal the
+				// main function that we're now finished using the wait group.
+				gq.unsubscribe(s)
+				for m := range s.ch {
+					consumerWriteLogMessage(m, logger, emojis)
+				}
+				wg.Done()
 				return
 			case m := <-s.ch:
-				var prefix string
-				if emojis {
-					prefix = emojimap[m.Emoji]
-					if prefix == "" {
-						prefix = "   "
-					}
-				}
-				switch m.Level {
-				case WARNING:
-					logger.Warn(prefix + m.Message)
-				case INFO, NOTICE:
-					logger.Info(prefix + m.Message)
-				default:
-					logger.Debug(prefix + m.Message)
-				}
+				consumerWriteLogMessage(m, logger, emojis)
 			}
 		}
 	}()
 	<-ready // synchronize with log processor
+}
+
+// consumerWriteLogMessage writes a log message.
+func consumerWriteLogMessage(m *Msg, logger model.Logger, emojis bool) {
+	var prefix string
+	if emojis {
+		prefix = emojimap[m.Emoji]
+		if prefix == "" {
+			prefix = "   "
+		}
+	}
+	switch m.Level {
+	case WARNING:
+		logger.Warn(prefix + m.Message)
+	case INFO, NOTICE:
+		logger.Info(prefix + m.Message)
+	default:
+		logger.Debug(prefix + m.Message)
+	}
 }
 
 // Warn emits a WARNING message.

@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"context"
 	"os"
+	"sync"
 
 	"github.com/bassosimone/getoptx"
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
@@ -111,8 +112,9 @@ func newCrawler(opts *CLI, amx measurex.AbstractMeasurer) *measurex.Crawler {
 func main() {
 	opts := getopt()
 	amx := newMeasurer(opts)
-	ctx := context.Background()
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), false)
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := &sync.WaitGroup{}
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), false, wg)
 	for _, input := range opts.Input {
 		crawler := newCrawler(opts, amx)
 		mchan, err := crawler.Crawl(ctx, input)
@@ -124,4 +126,6 @@ func main() {
 			// just drain the channel
 		}
 	}
+	cancel()  // "sighup" to log writer
+	wg.Wait() // wait for all logs to be written
 }

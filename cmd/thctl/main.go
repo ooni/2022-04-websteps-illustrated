@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/bassosimone/getoptx"
@@ -83,8 +84,9 @@ func main() {
 	clnt := websteps.NewTHClientWithDefaultSettings(opts.Backend)
 	dump(request)
 	begin := time.Now()
-	ctx := context.Background()
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stderr, 0), false)
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := &sync.WaitGroup{}
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stderr, 0), false, wg)
 	resp, err := clnt.THRequest(ctx, request)
 	runtimex.Must(err, "TH failed")
 	if opts.Archival {
@@ -92,6 +94,8 @@ func main() {
 		return
 	}
 	dump(resp)
+	cancel()  // "sighup" to logs writer
+	wg.Wait() // wait for all logs to be written
 }
 
 // dump emits a JSON result to the stdout.

@@ -179,7 +179,8 @@ func main() {
 	filep, err := os.OpenFile(opts.Output, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	runtimex.Must(err, "cannot create output file")
 	begin := time.Now()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := &sync.WaitGroup{}
 	if opts.Logfile != "" {
 		logfile, err := os.Create(opts.Logfile)
 		runtimex.Must(err, "cannot open log file")
@@ -187,19 +188,19 @@ func main() {
 			err := logfile.Close()
 			runtimex.Must(err, "cannot close log file")
 		}()
-		logcat.StartConsumer(ctx, logcat.DefaultLogger(logfile, 0), opts.Emoji)
+		logcat.StartConsumer(ctx, logcat.DefaultLogger(logfile, 0), opts.Emoji, wg)
 	}
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), opts.Emoji)
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), opts.Emoji, wg)
 	clientOptions := measurexOptions(parser, opts)
 	clnt := websteps.NewClient(nil, nil, opts.Backend, clientOptions)
 	maybeSetCaches(opts, clnt)
 	maybeUsePredictableResolvers(opts, clnt)
 	go clnt.Loop(ctx, websteps.LoopFlagGreedy)
-	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go submitInput(ctx, wg, clnt, opts)
 	processOutput(begin, filep, clnt, opts.Raw)
-	wg.Wait()
+	cancel()  // "sighup" to background goroutines
+	wg.Wait() // wait for all goroutines to join
 	runtimex.Must(filep.Close(), "cannot close output file")
 }
 

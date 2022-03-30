@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/bassosimone/getoptx"
@@ -62,10 +63,14 @@ func main() {
 		cache := dnsping.NewCache(opts.Cache)
 		engine = dnsping.NewCachingMeasurer(engine, cache)
 	}
-	logcat.StartConsumer(context.Background(), logcat.DefaultLogger(os.Stderr, 0), false)
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := &sync.WaitGroup{}
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stderr, 0), false, wg)
 	ch := engine.RunAsync(plans)
 	result := <-ch
 	data, err := json.Marshal(result.ToArchival(begin))
 	runtimex.PanicOnError(err, "json.Marshal failed")
 	fmt.Printf("%s\n", string(data))
+	cancel()  // "sighup" to logs writer
+	wg.Wait() // wait for all logs to be written
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/bassosimone/getoptx"
@@ -96,8 +97,9 @@ func main() {
 	plans := makeplans(opts, args)
 	mx := measurex.NewMeasurerWithDefaultSettings()
 	begin := time.Now()
-	ctx := context.Background()
-	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), false)
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := &sync.WaitGroup{}
+	logcat.StartConsumer(ctx, logcat.DefaultLogger(os.Stdout, 0), false, wg)
 	for m := range mx.DNSLookups(ctx, plans...) {
 		if opts.Raw {
 			dump(m)
@@ -105,4 +107,6 @@ func main() {
 		}
 		dump(m.ToArchival(begin))
 	}
+	cancel()  // "sighup" to logs writer
+	wg.Wait() // wait for all logs to be written
 }

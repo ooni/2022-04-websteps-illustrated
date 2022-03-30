@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -144,7 +145,8 @@ func main() {
 	logfp, closelog := openlog(opts)
 	defer closelog()
 	logger := logcat.DefaultLogger(logfp, logcat.DefaultLoggerWriteTimestamps)
-	logcat.StartConsumer(ctx, logger, false)
+	wg := &sync.WaitGroup{}
+	logcat.StartConsumer(ctx, logger, false, wg)
 
 	// 6. handle SIGINT and SIGTERM in the background
 	go handleSignals(cancel)
@@ -160,4 +162,7 @@ func main() {
 
 	// 9. shutdown the server
 	shutdown(srv)
+
+	// 10. wait for all logs to be written
+	wg.Wait()
 }
