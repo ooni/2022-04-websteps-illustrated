@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+
+"""
+This script assists you in creating a new test case for websteps. You need
+to have the executable `./websteps` in the current directory.
+
+The result of this script will consist of two compressed tarballs containing the
+test case and the results of the run. We generate compressed tarballs because they
+are the simplest data format to share across different Unix boxes.
+
+Once you have downloaded the compressed tarball to your workstation, then you
+should use ./python/testcase/shell import the test cases.
+"""
+
+#
+# Implementation note: this script MUST only depend on the Python
+# standard library, since it's going to be run on a variety of systems
+# and we don't want to also require `pip install`.
+#
+# Also, this file MUST be a standalone file with no dependencies on
+# the surrounding files in this directory for ease of use.
+#
+# We SHOULD also aim to target Python 3.7 (which is what Debian uses).
+#
+
+import argparse
+import datetime
+import json
+import os
+import subprocess
+import tarfile
+import tempfile
+
+
+def getopt():
+    """Parses command line options."""
+    cli = argparse.ArgumentParser(description="assists in creating test cases")
+    cli.add_argument(
+        "-A",
+        "--probe-asn",
+        help="specify the probe ASN",
+        required=True,
+    )
+    cli.add_argument(
+        "-C",
+        "--probe-cc",
+        help="specify the probe country code",
+        required=True,
+    )
+    cli.add_argument(
+        "-d",
+        "--description",
+        help="brief description of the test case",
+    )
+    cli.add_argument(
+        "-e",
+        "--emoji",
+        help="runs websteps with enabled emojis",
+        action="store_true",
+    )
+    cli.add_argument(
+        "-i",
+        "--input",
+        help="URL to measure in this test case",
+        required=True,
+    )
+    return cli.parse_args()
+
+
+def new_tempdir():
+    """Creates a new temporary directory."""
+    return tempfile.TemporaryDirectory(dir=".")
+
+
+def utcnowstring():
+    """Returns the current UTC time as a string."""
+    return datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+
+
+def write_manifest(argv, destdir, parsed_args, current_time):
+    """Writes the testcase manifest inside the test case directory."""
+    manifest = {
+        "command": argv,
+        "created": current_time,
+        "description": parsed_args.description,
+        "probe_asn": parsed_args.probe_asn,
+        "probe_cc": parsed_args.probe_cc,
+        "url": parsed_args.input,
+    }
+    with open(os.path.join(destdir.name, "manifest.json"), "w") as filep:
+        json.dump(manifest, filep)
+
+
+def commandline(testcase_dir, results_dir, parsed_args):
+    """Returns the command line for running the probe in a way that captures
+    into the cache both the probe's and the TH's raw measurements."""
+    cachedir = os.path.join(testcase_dir.name, "cache")
+    argv = [
+        "./websteps",
+        "--predictable-resolvers",
+        "--verbose",
+        "--probe-cache-dir",
+        os.path.join(cachedir, "probe"),
+        "--th-cache-dir",
+        os.path.join(cachedir, "th"),
+        "--output",
+        os.path.join(results_dir.name, "report.jsonl"),
+        "--logfile",
+        os.path.join(results_dir.name, "log.txt"),
+        "--input",
+        parsed_args.input,
+    ]
+    if parsed_args.emoji:
+        argv.append("--emoji")
+    return argv
+
+
+def run_probe(argv):
+    """Runs the probe by executing the given command line."""
+    print(f"about to run: {argv}")
+    subprocess.run(argv, check=True)
+
+
+def filename(suffix, extension):
+    """Helper function to create uniform file names."""
+    return datetime.datetime.utcnow().strftime(f"%Y%m%dT%H%M%SZ-{suffix}.{extension}")
+
+
+def reset_uid_gid_name(tarinfo):
+    """Helper function to reset UID, GID, and name in tarinfo. Otherwise we may
+    end up with ~weird UID and GID permissions."""
+    # See https://docs.python.org/3/library/tarfile.html#examples
+    tarinfo.uid = tarinfo.gid = 0
+    tarinfo.uname = tarinfo.gname = "root"
+    return tarinfo
+
+
+def create_testcase_archive(testcase_dir):
+    """Creates the testcase archive."""
+    ofile = filename("testcase", "tar.gz")
+    with tarfile.open(ofile, "w:gz") as tar:
+        tar.add(testcase_dir.name, "testcase", filter=reset_uid_gid_name)
+    print(f"written test case archive: {ofile}")
+
+
+def create_results_archive(results_dir):
+    """Creates the results archive."""
+    ofile = filename("results", "tar.gz")
+    with tarfile.open(ofile, "w:gz") as tar:
+        tar.add(results_dir.name, "results", filter=reset_uid_gid_name)
+    print(f"written results archive: {ofile}")
+
+
+def main():
+    """
+    Stores testcase information, results, and logs in tarballs.
+
+    Algorithm:
+
+    1. create temporary directories for testcase and results;
+
+    2. write manifests in both directories;
+
+    3. execute ooniprobe to store the probe and the TH cache into
+    the proper temporary directory as well as results and logs
+    into another temporary directory;
+
+    4. create tarballs of the two temporary directories.
+
+    The temporary directories are both deleted on program exit.
+    """
+    parsed_args = getopt()
+    results_dir = new_tempdir()
+    print(f"temporary directory for the experiment results: {results_dir}")
+    testcase_dir = new_tempdir()
+    print(f"temporary directory for the test case: {testcase_dir}")
+    argv = commandline(testcase_dir, results_dir, parsed_args)
+    timenow = utcnowstring()
+    write_manifest(argv, testcase_dir, parsed_args, timenow)
+    write_manifest(argv, results_dir, parsed_args, timenow)
+    run_probe(argv)
+    create_testcase_archive(testcase_dir)
+    create_results_archive(results_dir)
+
+
+if __name__ == "__main__":
+    main()
