@@ -130,6 +130,9 @@ type EndpointMeasurement struct {
 	// OrigCookies contains the cookies we originally used.
 	OrigCookies []*http.Cookie `json:",omitempty"`
 
+	// Finished is when this measurement is finished.
+	Finished time.Time
+
 	// Failure is the error that occurred.
 	Failure archival.FlatFailure `json:",omitempty"`
 
@@ -156,6 +159,11 @@ type EndpointMeasurement struct {
 
 	// HTTPRoundTrip contains the HTTP round trip event (if any).
 	HTTPRoundTrip *archival.FlatHTTPRoundTripEvent `json:",omitempty"`
+}
+
+// FinishedUnixNano returns the UnixNano time when this measurement was finished.
+func (em *EndpointMeasurement) FinishedUnixNano() int64 {
+	return em.Finished.UnixNano()
 }
 
 // URLAddressList converts this EndpointMeasurement to an URLAddress list.
@@ -555,6 +563,7 @@ func (mx *Measurer) newEndpointMeasurement(id int64, epnt *EndpointPlan,
 		Address:          epnt.Address,
 		Options:          epnt.Options,
 		OrigCookies:      epnt.Cookies,
+		Finished:         time.Now(),
 		Failure:          archival.NewFlatFailure(err),
 		FailedOperation:  FlatFailedOperation(operation),
 		NewCookies:       responseCookies,

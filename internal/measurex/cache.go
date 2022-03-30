@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
+	"sort"
 	"time"
 
 	"github.com/bassosimone/websteps-illustrated/internal/archival"
@@ -208,20 +209,23 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 	out chan<- *DNSLookupMeasurement, dnsLookups ...*DNSLookupPlan) {
 	// 0. synchronize with parent
 	defer close(out)
-	// 1. find the cached measurements and return them
-	var todo []*DNSLookupPlan
+	// 1. find the cached measurements and collect them
+	var (
+		cached []*DNSLookupMeasurement
+		todo   []*DNSLookupPlan
+	)
 	for _, plan := range dnsLookups {
 		meas, found := mx.cache.FindDNSLookupMeasurement(plan, mx.policy)
 		if !found {
 			if mx.cache.DisableNetwork {
 				logcat.Shrugf("measurex: cache miss for: %s", plan.Summary())
-				out <- &DNSLookupMeasurement{
+				cached = append(cached, &DNSLookupMeasurement{
 					ID:               0,
 					URLMeasurementID: 0,
 					ReverseAddress:   "",
 					Lookup:           &archival.FlatDNSLookupEvent{},
 					RoundTrip:        []*archival.FlatDNSRoundTripEvent{},
-				}
+				})
 				continue
 			}
 			todo = append(todo, plan)
@@ -230,9 +234,19 @@ func (mx *CachingMeasurer) dnsLookups(ctx context.Context,
 		meas.ID = mx.NextID()
 		logcat.Noticef("mx: import from cache: %s... %s", meas.Describe(),
 			archival.FlatFailureToStringOrOK(meas.Failure()))
+		cached = append(cached, meas)
+	}
+	// 2. sort the measurements so we return earlier the ones that completed
+	// first, which is useful to reproduce exactly previously cached measurements
+	// otherwise the probe may pick up different addresses.
+	sort.SliceStable(cached, func(i, j int) bool {
+		return cached[i].FinishedUnixNano() < cached[j].FinishedUnixNano()
+	})
+	// 3. emit all the cached measurements.
+	for _, meas := range cached {
 		out <- meas
 	}
-	// 2. perform non-cached measurements and store them in cache
+	// 4. perform non-cached measurements and store them in cache
 	for meas := range mx.measurer.DNSLookups(ctx, todo...) {
 		_ = mx.cache.StoreDNSLookupMeasurement(meas)
 		out <- meas
@@ -317,14 +331,17 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 	out chan<- *EndpointMeasurement, epnts ...*EndpointPlan) {
 	// 0. synchronize with parent
 	defer close(out)
-	// 1. find the cached measurements and return them
-	var todo []*EndpointPlan
+	// 1. find the cached measurements and collect them
+	var (
+		todo   []*EndpointPlan
+		cached []*EndpointMeasurement
+	)
 	for _, plan := range epnts {
 		meas, found := mx.cache.FindEndpointMeasurement(plan, mx.policy)
 		if !found {
 			if mx.cache.DisableNetwork {
 				logcat.Shrugf("measurex: cache miss for: %s", plan.Summary())
-				out <- &EndpointMeasurement{
+				cached = append(cached, &EndpointMeasurement{
 					ID:               0,
 					URLMeasurementID: 0,
 					URL:              &SimpleURL{},
@@ -341,7 +358,7 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 					TCPConnect:       &archival.FlatNetworkEvent{},
 					QUICTLSHandshake: &archival.FlatQUICTLSHandshakeEvent{},
 					HTTPRoundTrip:    &archival.FlatHTTPRoundTripEvent{},
-				}
+				})
 				continue
 			}
 			todo = append(todo, plan)
@@ -350,9 +367,19 @@ func (mx *CachingMeasurer) measureEndpoints(ctx context.Context,
 		meas.ID = mx.NextID()
 		logcat.Noticef("mx: import from cache: %s... %s", meas.Describe(),
 			archival.FlatFailureToStringOrOK(meas.Failure))
+		cached = append(cached, meas)
+	}
+	// 2. sort the measurements so we return earlier the ones that completed
+	// first, which is useful to reproduce exactly previously cached measurements
+	// otherwise the probe may pick up different addresses.
+	sort.SliceStable(cached, func(i, j int) bool {
+		return cached[i].FinishedUnixNano() < cached[j].FinishedUnixNano()
+	})
+	// 3. emit all the cached measurements.
+	for _, meas := range cached {
 		out <- meas
 	}
-	// 2. perform non-cached measurements and store them in cache
+	// 4. perform non-cached measurements and store them in cache
 	for meas := range mx.measurer.MeasureEndpoints(ctx, todo...) {
 		_ = mx.cache.StoreEndpointMeasurement(meas)
 		out <- meas

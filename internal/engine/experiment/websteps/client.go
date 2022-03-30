@@ -493,6 +493,7 @@ func (c *Client) importTHMeasurement(mx measurex.AbstractMeasurer, in *THRespons
 			Address:          e.Address,
 			Options:          e.Options,
 			OrigCookies:      e.OrigCookies,
+			Finished:         now,
 			Failure:          e.Failure,
 			FailedOperation:  e.FailedOperation,
 			NewCookies:       e.NewCookies,

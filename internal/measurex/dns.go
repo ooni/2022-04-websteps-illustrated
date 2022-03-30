@@ -244,6 +244,15 @@ type DNSLookupMeasurement struct {
 	RoundTrip []*archival.FlatDNSRoundTripEvent `json:",omitempty"`
 }
 
+// FinishedUnixNano returns the time when this measurement finished
+// expressed in nanoseconds since the UNIX epoch.
+func (dlm *DNSLookupMeasurement) FinishedUnixNano() int64 {
+	if dlm.Lookup != nil {
+		return dlm.Lookup.Finished.UnixNano()
+	}
+	return 0
+}
+
 // NewDNSReverseLookupPlans generates a []*DNSLookupPlan for performing
 // a reverse lookup for the given list of addresses and the given resolvers.
 func (um *URLMeasurement) NewDNSReverseLookupPlans(

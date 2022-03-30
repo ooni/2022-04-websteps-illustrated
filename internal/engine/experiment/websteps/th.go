@@ -721,6 +721,7 @@ func (thr *THRequestHandler) simplifyEndpoints(
 			Address:          entry.Address,
 			Options:          entry.Options,
 			OrigCookies:      entry.OrigCookies,
+			Finished:         thhResponseTime,
 			Failure:          entry.Failure,
 			FailedOperation:  entry.FailedOperation,
 			NewCookies:       entry.NewCookies,
