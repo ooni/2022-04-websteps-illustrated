@@ -97,6 +97,8 @@ func (cae *CachingEngine) run(plans []*SinglePingPlan, out chan<- *Result) {
 			continue
 		}
 		ping.ID = cae.NextID()
+		logcat.Noticef("dnsping: import from cache: %s... %d replies",
+			ping.Describe(), len(ping.Replies))
 		pings = append(pings, ping)
 	}
 	// 2. perform non-cached measurements and store them in cache

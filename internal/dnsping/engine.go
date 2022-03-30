@@ -150,6 +150,12 @@ type SinglePingResult struct {
 	Replies []*SinglePingReply
 }
 
+// Describe returns a human readable description.
+func (spr *SinglePingResult) Describe() string {
+	return fmt.Sprintf("#%d query %s with delay %s for %s using %s", spr.ID,
+		dns.TypeToString[spr.QueryType], spr.Delay, spr.Domain, spr.ResolverAddress)
+}
+
 // summary returns a summary used for caching.
 func (spr *SinglePingResult) summary() string {
 	return planOrResultSummary(spr.ResolverAddress, spr.Delay, spr.Domain, spr.QueryType)
