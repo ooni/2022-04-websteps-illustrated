@@ -51,10 +51,7 @@ from ..tabulatex import (
     Tabular,
 )
 
-from .decode import (
-    decode_and_print_dns,
-    decode_and_print_endpoint,
-)
+from . import decode
 
 #
 # Common
@@ -255,7 +252,7 @@ class _DNSLookupMeasurement:
         )
 
     def decode_and_print(self) -> None:
-        decode_and_print_dns(self._probe_th, self._dns)
+        print(decode.dns(self._probe_th, self._dns))
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         return self._dns
@@ -303,7 +300,7 @@ class _EndpointMeasurement:
         )
 
     def decode_and_print(self) -> None:
-        decode_and_print_endpoint(self._probe_th, self._endpoint)
+        print(decode.endpoint(self._probe_th, self._endpoint))
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         return None
