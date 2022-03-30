@@ -50,7 +50,7 @@ def dns(probe_th: str, dns: MeasurexDNSLookupMeasurement) -> str:
         f"{probe_th}: [#{dns.id}] result: {_failure_or_null(dns.lookup.failure)}",
         file=out,
     )
-    out.write("")
+    print("", file=out)
     return out.getvalue()
 
 
@@ -87,7 +87,7 @@ def endpoint(probe_th: str, epnt: MeasurexEndpointMeasurement) -> str:
                 print(f"# body_length: {epnt.response_body_length()}", file=out)
             if probe_th == "probe" and epnt.http_round_trip.response_body:
                 body = base64.b64decode(epnt.http_round_trip.response_body)
-                print(body.decode("utf-8"))
+                print(body.decode("utf-8"), file=out)
     print(
         f"{probe_th}: [#{epnt.id}] result: {_failure_or_null(epnt.failure)}", file=out
     )

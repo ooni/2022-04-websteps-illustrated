@@ -169,7 +169,6 @@ def import_from_tarball(destdir: str, filename: str) -> str:
 #
 
 
-
 class Manifest:
     """Manifest of a test case."""
 
@@ -405,18 +404,24 @@ class Cache:
             for entry in entries:
                 yield filename, entry
 
-    def _measurements(self, filter: str, ids: Set[int]) -> Iterator[EntryMeasurement]:
+    def _measurements(
+        self, filter: str, ids: Optional[Set[int]]
+    ) -> Iterator[EntryMeasurement]:
         """Yields all the DNS measurements."""
         for values in self._cache.values():
             for value in values:
                 if value.kind() == filter and (not ids or value.id() in ids):
                     yield value.measurement()
 
-    def dns_measurements(self, ids: Set[int]) -> Iterator[EntryMeasurement]:
+    def dns_measurements(
+        self, ids: Optional[Set[int]] = None
+    ) -> Iterator[EntryMeasurement]:
         """Yields all the DNS measurements."""
         return self._measurements("dns", ids)
 
-    def endpoint_measurements(self, ids: Set[int]) -> Iterator[EntryMeasurement]:
+    def endpoint_measurements(
+        self, ids: Optional[Set[int]] = None
+    ) -> Iterator[EntryMeasurement]:
         """Yields all the endpoint measurements."""
         return self._measurements("endpoint", ids)
 

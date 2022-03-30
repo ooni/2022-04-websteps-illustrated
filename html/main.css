@@ -1,0 +1,74 @@
+/* https://dev.to/dcodeyt/creating-beautiful-html-tables-with-css-428l */
+.styled-table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.7em;
+    font-family: sans-serif;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.styled-table thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+
+.styled-table th {
+    cursor: pointer;
+}
+
+.testcase-row {
+    cursor: pointer;
+}
+
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #e5ff00;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:nth-of-type(even):hover {
+    background-color: #e5ff00;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+}
+
+.styled-table tbody tr.active-row {
+    font-weight: bold;
+    color: #009879;
+}
+
+/* See https://stackoverflow.com/a/32056298 */
+.container {
+    display: flex;
+    justify-content: center;
+}
+
+/* See https://wp-mix.com/css-style-pre-tags/ */
+pre {
+    overflow-x: auto;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap !important;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+    background: rgb(247, 247, 247);
+}
+
+.starts-hidden {
+    display: none;
+}
