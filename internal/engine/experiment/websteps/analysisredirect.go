@@ -94,7 +94,7 @@ func analysisRedirectTransparentProxyCheck(
 func analysisRedirectLegitimateRedirect(
 	scoreID int64, epnt *measurex.EndpointMeasurement) bool {
 	if epnt.SeemsLegitimateRedirect() {
-		logcat.Shrugf("[#%d] however #%d seems a legitimate redirect %s",
+		logcat.Emitf(logcat.NOTICE, logcat.SHRUG, "[#%d] however #%d seems a legitimate redirect %s",
 			scoreID, epnt.ID, "so, we're going to treat it as such, not as #httpDiff")
 		return true
 	}
