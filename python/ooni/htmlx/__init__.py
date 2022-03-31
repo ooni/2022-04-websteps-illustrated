@@ -8,3 +8,8 @@ from .testcase import (
 )
 test_case_info = test_case_info
 test_cases_overview = test_cases_overview
+
+from .websteps import (
+    websteps_measurement
+)
+websteps_measurement = websteps_measurement

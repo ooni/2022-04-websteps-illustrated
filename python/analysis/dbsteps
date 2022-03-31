@@ -4,7 +4,8 @@
 
 import argparse
 import base64
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
+import webbrowser
 from dnslib import DNSRecord
 import json
 import os
@@ -16,6 +17,8 @@ from typing import (
     List,
     Optional,
 )
+import yattag.doc
+import yattag.indentation
 
 # Imported to make `input()` better
 import readline as _
@@ -37,9 +40,13 @@ from ooni.dataformat.dblike import (
     DBLikeOrigin,
 )
 
+from ooni import htmlx
+
 from ooni.tabulatex import Tabular
 
 from ooni.dataformat import dblike
+
+import tempfiledir
 
 
 def s_command_help():
@@ -61,13 +68,19 @@ def s_command_help():
     print("    equivalent to running in sequence lm, lu, ld, le, la")
     print("")
     print("  la[<id>]")
-    print("    lists probe's analysis for the given step <id> or for all steps (if no <id> is specified)")
+    print(
+        "    lists probe's analysis for the given step <id> or for all steps (if no <id> is specified)"
+    )
     print("")
     print("  ld[<id>]")
-    print("    lists dns results for the given step <id> or for all steps (if no <id> is specified)")
+    print(
+        "    lists dns results for the given step <id> or for all steps (if no <id> is specified)"
+    )
     print("")
     print("  le[<id>]")
-    print("    lists endpoint results for the given step <id> or for all steps (if no <id> is specified)")
+    print(
+        "    lists endpoint results for the given step <id> or for all steps (if no <id> is specified)"
+    )
     print("")
     print("  lia")
     print('    lists "interesting" analysis')
@@ -285,7 +298,12 @@ def s_command_lia(meas_idx: int, meas: DBLikeWebstepsTestKeys):
     print("")
 
 
-def s_command_ld(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disable_hints: bool = False):
+def s_command_ld(
+    meas_idx: int,
+    meas: DBLikeWebstepsTestKeys,
+    command: str,
+    disable_hints: bool = False,
+):
     """Implements the ld command of the s environment."""
     url_idx: Optional[int] = None
     if len(command[2:]):
@@ -299,17 +317,26 @@ def s_command_ld(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disa
         print(f"warning: cannot find dns for URL {url_idx}")
         return
     print("")
-    print(f"viewing dns for selected measurement {meas_idx} and step {url_idx or 'any'}")
+    print(
+        f"viewing dns for selected measurement {meas_idx} and step {url_idx or 'any'}"
+    )
     print("")
     print(Tabular.mapcreate(entries).tabulatex())
     print("")
     if not disable_hints:
-        print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+        print(
+            "hint: use `v<id>' to view the observation or analyis with the given <id>"
+        )
         print("hint: use `h' for help")
         print("")
 
 
-def s_command_le(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disable_hints: bool = False):
+def s_command_le(
+    meas_idx: int,
+    meas: DBLikeWebstepsTestKeys,
+    command: str,
+    disable_hints: bool = False,
+):
     """Implements the le command of the s environment."""
     url_idx: Optional[int] = None
     if len(command[2:]):
@@ -323,17 +350,26 @@ def s_command_le(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disa
         print(f"warning: cannot find endpoint for URL {url_idx}")
         return
     print("")
-    print(f"viewing endpoint for selected measurement {meas_idx} and step {url_idx or 'any'}")
+    print(
+        f"viewing endpoint for selected measurement {meas_idx} and step {url_idx or 'any'}"
+    )
     print("")
     print(Tabular.mapcreate(entries).tabulatex(sortkey=lambda x: x[5]))
     print("")
     if not disable_hints:
-        print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+        print(
+            "hint: use `v<id>' to view the observation or analyis with the given <id>"
+        )
         print("hint: use `h' for help")
         print("")
 
 
-def s_command_la(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disable_hints: bool = False):
+def s_command_la(
+    meas_idx: int,
+    meas: DBLikeWebstepsTestKeys,
+    command: str,
+    disable_hints: bool = False,
+):
     """Implements the la command of the s environment."""
     url_idx: Optional[int] = None
     if len(command[2:]):
@@ -347,12 +383,16 @@ def s_command_la(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disa
         print(f"warning: cannot find analysis for URL {url_idx}")
         return
     print("")
-    print(f"viewing analysis for selected measurement {meas_idx} and step {url_idx or 'any'}")
+    print(
+        f"viewing analysis for selected measurement {meas_idx} and step {url_idx or 'any'}"
+    )
     print("")
     print(Tabular.mapcreate(entries).tabulatex())
     print("")
     if not disable_hints:
-        print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+        print(
+            "hint: use `v<id>' to view the observation or analyis with the given <id>"
+        )
         print("hint: use `h' for help")
         print("")
 
@@ -447,6 +487,9 @@ def main_command_help():
     print("  #<tagName>")
     print("    shows all the measurements with the given tag (e.g., `#bogon`)")
     print("")
+    print("  b<id>")
+    print("    generates HTML webpage for the measurement and shows it in the browser")
+    print("")
     print("  ci")
     print("    classifies the failure tags _individually_")
     print("")
@@ -510,7 +553,8 @@ def main_command_l_or_slash_finish(summary: Tabular):
 
 
 def main_command_l_or_slash_filter(
-    msmts: List[DBLikeWebstepsTestKeys], filter: Callable[[DBLikeWebstepsTestKeys], bool]
+    msmts: List[DBLikeWebstepsTestKeys],
+    filter: Callable[[DBLikeWebstepsTestKeys], bool],
 ) -> Tabular:
     """Filter functionality for either `l` or `/` in the main environment"""
     summary = Tabular()
@@ -655,6 +699,39 @@ def main_command_hashtag(msmts: List[DBLikeWebstepsTestKeys], tag: str):
     print("")
 
 
+def main_command_b(msmts: List[DBLikeWebstepsTestKeys], command: str):
+    """Implements the `b` command of the main environment."""
+    try:
+        index = int(command[1:])
+    except ValueError:
+        print("error: the b argument must be an integer")
+        return
+    try:
+        meas = msmts[index]
+    except IndexError:
+        print("error: no such measurement")
+        return
+    doc, _, _ = yattag.doc.Doc().tagtext()
+    with doc.tag("html"):
+        doc.attr(lang="en")
+        with doc.tag("title"):
+            doc.text("Single websteps measurement")
+        with doc.tag("link"):
+            doc.attr(href="main.css", rel="stylesheet")
+        with doc.tag("body"):
+            htmlx.websteps_measurement(doc, meas)
+            with doc.tag("script"):
+                doc.attr(src="main.js")
+    with tempfiledir.new_named_tempfile(
+        dir="html", delete=False, suffix=".html"
+    ) as filep:
+        print("<!DOCTYPE HTML>", file=filep)
+        print(yattag.indentation.indent(doc.getvalue()), file=filep)
+        fullpath = os.path.abspath(filep.name)
+        url = urlunparse(("file", "", fullpath, "", "", ""))
+        webbrowser.open(url)
+
+
 def main_interactive(msmts: List[DBLikeWebstepsTestKeys]):
     """Runs an interactive shell allowing to see measurements."""
     print("")
@@ -671,6 +748,9 @@ def main_interactive(msmts: List[DBLikeWebstepsTestKeys]):
             continue
         if command.startswith("/"):
             main_command_slash(msmts, command)
+            continue
+        if command.startswith("b"):
+            main_command_b(msmts, command)
             continue
         if command.startswith("c"):
             main_command_c(msmts, command)
