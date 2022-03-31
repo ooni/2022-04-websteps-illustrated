@@ -57,6 +57,9 @@ class DBLikeOrigin(Enum):
     PROBE = "probe"
     TH = "th"
 
+    def __str__(self):
+        return self.value
+
 
 class DBLikeEntry(Protocol):
     """An entry into the MeasurementDB structure."""
