@@ -17,7 +17,7 @@ def _test_case_filepath_slug(tc: TestCase):
     return slugify.slugify(tc.manifest().filepath)
 
 
-def test_cases_table(doc: SimpleDoc, tcs: List[TestCase]):
+def test_cases_overview(doc: SimpleDoc, tcs: List[TestCase]):
     """Generates a table with summary information on each test case."""
     columns: Optional[List[str]] = None
     with doc.tag("h1"):

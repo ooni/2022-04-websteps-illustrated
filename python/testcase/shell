@@ -78,7 +78,7 @@ def sh_browse_run(args: argparse.Namespace):
         with doc.tag("link"):
             doc.attr(href="main.css", rel="stylesheet")
         with doc.tag("body"):
-            htmlx.test_cases_table(doc, tcs)
+            htmlx.test_cases_overview(doc, tcs)
             for tc in tcs:
                 htmlx.test_case_info(doc, tc)
             with doc.tag("script"):
