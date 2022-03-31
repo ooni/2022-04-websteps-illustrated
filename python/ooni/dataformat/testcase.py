@@ -37,12 +37,12 @@ from typing import (
 )
 import yaml
 
-from ..dataformat.flat import (
+from .flat import (
     MeasurexDNSLookupMeasurement,
     MeasurexEndpointMeasurement,
 )
 
-from ..dataformat.typecast import (
+from .typecast import (
     DictWrapper,
     StrWrapper,
 )
@@ -51,7 +51,7 @@ from ..tabulatex import (
     Tabular,
 )
 
-from ..dataformat import flatdecode
+from . import flatdecode
 
 #
 # Common

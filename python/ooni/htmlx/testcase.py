@@ -8,7 +8,7 @@ from typing import List, Optional, Iterator
 import slugify
 from yattag.simpledoc import SimpleDoc
 
-from ..measurex.testcase import EntryMeasurement, TestCase
+from ..dataformat.testcase import EntryMeasurement, TestCase
 from ..tabulatex import Tabular
 
 

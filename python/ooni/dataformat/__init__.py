@@ -25,6 +25,10 @@ import this submodule if you need to parse measurex's cache;
 - `flatdecode` contains additional routines for decoding HTTP
 and DNS round trips expressed in the flat data format;
 
+- `testcase` contains code to import testcases from
+./python/testcase/create runs and to load imported testcases
+(YAML files) which is used by ./python/testcase/shell;
+
 - `typecast` contains code for safely casting Any values obtained
 from JSON parsing to the correct data types;
 
