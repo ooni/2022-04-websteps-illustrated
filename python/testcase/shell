@@ -29,22 +29,7 @@ from ooni.dataformat import (
     testcase,
 )
 from ooni import htmlx
-
-#
-# Common
-#
-# This section contains common code
-#
-
-
-def new_tempdir():
-    """Creates a new temporary directory."""
-    return tempfile.mkdtemp(dir=".")
-
-
-def new_named_tempfile(dir, mode="w", delete=True, suffix=""):
-    """Creates a new temporary file."""
-    return tempfile.NamedTemporaryFile(dir=dir, mode=mode, delete=delete, suffix=suffix)
+import tempfiledir
 
 
 #
@@ -84,7 +69,7 @@ def sh_browse_run(args: argparse.Namespace):
             with doc.tag("script"):
                 doc.attr(src="main.js")
 
-    with new_named_tempfile(dir="html", delete=False, suffix=".html") as filep:
+    with tempfiledir.new_named_tempfile(dir="html", delete=False, suffix=".html") as filep:
         print("<!DOCTYPE HTML>", file=filep)
         print(yattag.indentation.indent(doc.getvalue()), file=filep)
         fullpath = os.path.abspath(filep.name)
@@ -330,7 +315,7 @@ def sh_rerun_run(args: argparse.Namespace):
         with testcase.load(filename) as tc:
             manifest = tc.manifest()
             cache = tc.cache()
-            basedir = new_tempdir()
+            basedir = tempfiledir.new_tempdir()
             sh_rerun_write_cache_into(basedir, cache)
             target_url = manifest.url
             thd = sh_rerun_start_thd(basedir)
