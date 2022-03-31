@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-"""Allows to navigate measurements."""
+"""
+Allows to navigate measurements.
+
+This command is deprecated. It does not work with new measurements
+anymore and we're only keeping it to see pre 2022-03-20 results.
+"""
 
 import argparse
 import base64
@@ -623,6 +628,7 @@ def main_command_c(msmts: List[MeasurementDB], command: str):
 def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
     """Implements the `#` command of the main environment."""
     idx = tag.find(":")
+    samplecount = None
     if idx >= 0:
         sample = tag[idx + 1 :]
         tag = tag[:idx]
@@ -630,8 +636,6 @@ def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
             samplecount = int(sample)
         except ValueError:
             print("error: the sample argument must be an integer")
-    else:
-        samplecount = None
     selected = []
     for idx, meas in enumerate(msmts):
         if tag in meas.tags():
