@@ -51,7 +51,7 @@ from ..tabulatex import (
     Tabular,
 )
 
-from . import decode
+from ..dataformat import flatdecode
 
 #
 # Common
@@ -252,7 +252,7 @@ class _DNSLookupMeasurement:
         )
 
     def decode(self) -> str:
-        return decode.dns(self._probe_th, self._dns)
+        return flatdecode.dns(self._probe_th, self._dns)
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         return self._dns
@@ -300,7 +300,7 @@ class _EndpointMeasurement:
         )
 
     def decode(self) -> str:
-        return decode.endpoint(self._probe_th, self._endpoint)
+        return flatdecode.endpoint(self._probe_th, self._endpoint)
 
     def as_dns_lookup_measurement(self) -> Optional[MeasurexDNSLookupMeasurement]:
         return None

@@ -16,8 +16,14 @@ Submodules:
 - `archival` contains all the definitions of the archival data
 format: import this submodule if you need to parse OONI measurements;
 
+- `dblike` contains databse like abstractions over the
+archival data format;
+
 - `flat` contains all the definitions of the "flat" data format:
 import this submodule if you need to parse measurex's cache;
+
+- `flatdecode` contains additional routines for decoding HTTP
+and DNS round trips expressed in the flat data format;
 
 - `typecast` contains code for safely casting Any values obtained
 from JSON parsing to the correct data types;

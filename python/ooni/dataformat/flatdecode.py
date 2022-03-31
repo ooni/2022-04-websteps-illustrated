@@ -1,7 +1,7 @@
 """
-Decodes HTTP and DNS round trips.
+Decodes "flat" HTTP and DNS round trips.
 
-This module is a support module for testcase.py.
+This module is a support module for flat.py.
 """
 
 import base64
@@ -9,7 +9,7 @@ import io
 from typing import TextIO
 from dnslib import DNSRecord
 
-from ..dataformat.flat import (
+from .flat import (
     MeasurexDNSLookupMeasurement,
     MeasurexEndpointMeasurement,
 )
