@@ -18,7 +18,8 @@ from .typecast import (
 def reader(filepath: str) -> Iterator[DictWrapper]:
     """Reads a JSONL file yielding each measurement already
     casted as a DictWrapper type. To continue reading you
-    will need to extract the test keys."""
+    will need to extract the test keys. This function supports
+    ordinary and gzip-compressed JSONL files."""
     openerFactory = {
         True: gzip.open,
         False: open,
