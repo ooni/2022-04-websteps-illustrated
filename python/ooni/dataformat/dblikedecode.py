@@ -4,6 +4,8 @@ producing low level information about what happened.
 """
 
 import base64
+import io
+import logging
 from dnslib import DNSRecord
 from urllib.parse import urlparse
 
@@ -21,8 +23,9 @@ from .archival import (
 )
 
 
-def _http(origin: DBLikeOrigin, http: MeasurexArchivalEndpointMeasurement):
+def _http(origin: DBLikeOrigin, http: MeasurexArchivalEndpointMeasurement) -> str:
     """Attempts to decode an HTTP round trip."""
+    ob = io.StringIO()
     raw = http.raw
     # Explanation: there was a bug where the name of the variable
     # was `requests` even though it was a single request. We're going
@@ -34,98 +37,98 @@ def _http(origin: DBLikeOrigin, http: MeasurexArchivalEndpointMeasurement):
     if req is None:
         req = raw.get("requests")
         if req is None:
-            print("")
-            print(f"BUG: did not find request or requests: {raw}")
-            print("")
-            return
+            logging.warning(f"BUG: did not find request or requests: {raw}")
+            return ""
     reqdata = req.get("request")
     if not reqdata:
-        return
-    print("")
-    print(f"// origin: {origin}")
-    print(f"// endpoint: {http.address}/{http.network}")
-    print(f"// url: {http.url}")
-    print("")
+        logging.warning(f"BUG: did not find request: {raw}")
+        return ""
+    print("", file=ob)
+    print(f"// origin: {origin}", file=ob)
+    print(f"// endpoint: {http.address}/{http.network}", file=ob)
+    print(f"// url: {http.url}", file=ob)
+    print("", file=ob)
     method = reqdata["method"]
     url = reqdata["url"]
     parsed = urlparse(url)
     pathquery = parsed.path
     if parsed.query:
         pathquery += "?" + parsed.query
-    print(f"> {method} {pathquery}")
+    print(f"> {method} {pathquery}", file=ob)
     hdrs = reqdata.get("headers_list")
     if hdrs:
         for hdr in hdrs:
-            print(f"> {hdr[0]}: {hdr[1]}")
-    print(">")
+            print(f"> {hdr[0]}: {hdr[1]}", file=ob)
+    print(">", file=ob)
     respdata = req.get("response")
     if respdata:
         status = respdata.get("code")
         if status is not None and status > 0:
-            print(f"< {status}")
+            print(f"< {status}", file=ob)
             hdrs = respdata.get("headers_list")
             if hdrs:
                 for hdr in hdrs:
-                    print(f"< {hdr[0]}: {hdr[1]}")
-            print("<")
-            print("")
+                    print(f"< {hdr[0]}: {hdr[1]}", file=ob)
+            print("<", file=ob)
+            print("", file=ob)
             bodylength = respdata.get("body_length")
-            print(f"// body_length: {bodylength}")
+            print(f"// body_length: {bodylength}", file=ob)
             bodytrunc = respdata.get("body_is_truncated")
-            print(f"// body_is_truncated: {bodytrunc}")
+            print(f"// body_is_truncated: {bodytrunc}", file=ob)
             bodytlsh = respdata.get("body_tlsh")
-            print(f"// body_tlsh: {bodytlsh}")
+            print(f"// body_tlsh: {bodytlsh}", file=ob)
             body = respdata.get("body")
-            print("")
-            print(body)
-    print("")
+            print("", file=ob)
+            print(body, file=ob)
+            print("", file=ob)
+    print("", file=ob)
     failure = req.get("failure")
     if failure:
-        print(f"ERROR: {failure}")
-        print("")
+        print(f"ERROR: {failure}", file=ob)
+        print("", file=ob)
+    return ob.getvalue()
 
 
-def _dns(dns: MeasurexArchivalDNSLookupMeasurement):
+def _dns(dns: MeasurexArchivalDNSLookupMeasurement) -> str:
     """Attempts to decode DNS round trips."""
+    ob = io.StringIO()
     raw = dns.raw
     rtlist = raw.get("queries")
     if not rtlist:
-        print("nothing to decode")
-        return
+        logging.warning(f"nothing to decode in {raw}")
+        return ""
     for idx, rt in enumerate(rtlist):
-        print(f"decoding DNS round trip {idx}:")
+        print(f"decoding DNS round trip {idx}:", file=ob)
         raw_query = rt.get("raw_query")
         if not raw_query:
             continue
         if raw_query.get("format", "") != "base64":
             continue
-        print("")
-        print(DNSRecord.parse(base64.b64decode(raw_query.get("data"))))
-        print("")
+        print("", file=ob)
+        print(DNSRecord.parse(base64.b64decode(raw_query.get("data"))), file=ob)
+        print("", file=ob)
         raw_reply = rt.get("raw_reply")
         if not raw_reply:
             continue
         if raw_reply.get("format", "") != "base64":
             continue
-        print("")
-        print(DNSRecord.parse(base64.b64decode(raw_reply.get("data"))))
-        print("")
+        print("", file=ob)
+        print(DNSRecord.parse(base64.b64decode(raw_reply.get("data"))), file=ob)
+        print("", file=ob)
+    return ob.getvalue()
 
 
-def entry(entry: DBLikeEntry):
+def entry(entry: DBLikeEntry) -> str:
     """Decodes the given entry."""
     if entry.kind() == DBLikeKind.ENDPOINT:
-        _http(entry.origin(), entry.unwrap())
-        return
+        return _http(entry.origin(), entry.unwrap())
     if entry.kind() == DBLikeKind.DNS:
-        _dns(entry.unwrap())
-        return
+        return _dns(entry.unwrap())
     if entry.kind() == DBLikeKind.DNS_SINGLE_PING_RESULT:
         result: DNSPingArchivalSinglePingResult = entry.unwrap()
-        print(DNSRecord.parse(result.query))
-        return
+        return str(DNSRecord.parse(result.query))
     if entry.kind() == DBLikeKind.DNS_SINGLE_PING_REPLY:
         reply: DNSPingArchivalSinglePingReply = entry.unwrap()
-        print(DNSRecord.parse(reply.reply))
-        return
-    print(f"s: cannot decode: {entry}")
+        return str(DNSRecord.parse(reply.reply))
+    logging.warning(f"s: cannot decode: {entry}")
+    return ""

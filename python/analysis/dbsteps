@@ -107,7 +107,7 @@ def s_command_d(meas: DBLikeWebstepsTestKeys, command: str):
     except KeyError:
         print(f"s: entry {idx} not found")
         return
-    dblikedecode.entry(entry)
+    print(dblikedecode.entry(entry))
 
 
 def s_command_j(meas: DBLikeWebstepsTestKeys, command: str):
