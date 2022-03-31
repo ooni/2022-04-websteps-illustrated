@@ -127,8 +127,8 @@ class DNSLookupMeasurementWrapper:
 
     def tabular(self) -> Tabular:
         return Tabular.create([
-            ("id", self._dns.id),
             ("step_id", self._step_id),
+            ("id", self._dns.id),
             ("domain", self._dns.domain),
             ("failure", self._dns.failure),
             ("addresses", self._dns.addresses),
@@ -163,8 +163,8 @@ class EndpointMeasurementWrapper:
 
     def tabular(self) -> Tabular:
         return Tabular.create([
-            ("id", self._epnt.id),
             ("step_id", self._step_id),
+            ("id", self._epnt.id),
             ("url", self._epnt.url),
             ("network", self._epnt.network),
             ("address", self._epnt.address),
@@ -201,8 +201,8 @@ class AnalysisDNSOrEndpointWrapper:
 
     def tabular(self) -> Tabular:
         return Tabular.create([
-            ("id", self._analysis.id),
             ("step_id", self._step_id),
+            ("id", self._analysis.id),
             ("refs", self._analysis.refs),
             ("flags", self._analysis.flags.tags()),
         ])
@@ -235,8 +235,8 @@ class DNSSinglePingReplyWrapper:
 
     def tabular(self) -> Tabular:
         return Tabular.create([
-            ("id", self._reply.id),
             ("step_id", self._step_id),
+            ("id", self._reply.id),
             ("source_address", self._reply.source_address),
             ("failure", self._reply.failure),
             ("t", self._reply.t),
@@ -273,8 +273,9 @@ class DNSSinglePingResultWrapper:
 
     def tabular(self) -> Tabular:
         return Tabular.create([
-            ("hostname", self._ping.hostname),
+            ("step_id", self._step_id),
             ("id", self._ping.id),
+            ("hostname", self._ping.hostname),
             ("query", self._ping.query),
             ("replies", [x.id for x in self._ping.replies]),
             ("resolver_address", self._ping.resolver_address),
@@ -333,7 +334,6 @@ class MeasurementDB:
         for entry in self._table.values():
             if entry.kind() != Kind.ANALYSIS:
                 continue
-            analysis: WebstepsAnalysisDNSOrEndpoint = entry.unwrap()
             if url_idx is not None and entry.step_id() != url_idx:
                 continue
             out.append(entry)
@@ -345,7 +345,6 @@ class MeasurementDB:
         for entry in self._table.values():
             if entry.kind() != Kind.DNS:
                 continue
-            dns: MeasurexDNSLookupMeasurement = entry.unwrap()
             if url_idx is not None and entry.step_id() != url_idx:
                 continue
             out.append(entry)
@@ -357,7 +356,6 @@ class MeasurementDB:
         for entry in self._table.values():
             if entry.kind() != Kind.ENDPOINT:
                 continue
-            epnt: MeasurexEndpointMeasurement = entry.unwrap()
             if url_idx is not None and entry.step_id() != url_idx:
                 continue
             out.append(entry)
