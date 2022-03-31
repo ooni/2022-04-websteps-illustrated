@@ -62,6 +62,8 @@ def _test_case_tabular_info(doc: SimpleDoc, title: str, slug: str, tab: Tabular)
         with doc.tag("thead"):
             with doc.tag("tr"):
                 for idx, column in enumerate(tab.columns()):
+                    # TODO(bassosimone): teach a tabular to tell me exactly
+                    # which is the index of the id column
                     if column == "id":
                         idx_index = idx
                     with doc.tag("th"):

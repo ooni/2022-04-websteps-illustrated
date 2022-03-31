@@ -120,7 +120,7 @@ function makeVisible(id) {
     // Use null as a sentinel value in the editing stack that basically implies
     // a leaf state where we just want to clear the details when the user
     // press Esc as opposed to creating a full editing history.
-    if (editingStack.length > 0 && editingStack[editingStack.length - 1] !== null) {
+    if (editingStack.length <= 0 || editingStack[editingStack.length - 1] !== null) {
       editingStack.push(null)
     }
   }
