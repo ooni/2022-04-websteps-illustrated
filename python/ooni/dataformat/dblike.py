@@ -1,4 +1,9 @@
-"""Database-like abstraction over websteps measurements."""
+"""
+Database-like abstraction over websteps measurements.
+
+It may be useful to construct analysis tools. So, it's a separate layer
+that you can overlay on top of the archival module.
+"""
 
 from __future__ import annotations
 
@@ -12,7 +17,7 @@ from typing import (
     Protocol,
 )
 
-from ooni.dataformat.archival import (
+from .archival import (
     WebstepsAnalysis,
     WebstepsAnalysisDNSOrEndpoint,
     MeasurexDNSLookupMeasurement,
@@ -25,7 +30,7 @@ from ooni.dataformat.archival import (
     WebstepsTestKeys,
 )
 
-from ooni.tabulatex import (
+from ..tabulatex import (
     Tabular,
 )
 

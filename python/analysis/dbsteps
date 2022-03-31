@@ -34,7 +34,7 @@ from ooni.dataformat.archival import (
 
 from ooni import jsonl
 
-from analysis.dblike import (
+from ooni.dataformat.dblike import (
     DBLikeEntry,
     DBLikeKind,
     DBLikeWebstepsTestKeys,
