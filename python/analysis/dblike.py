@@ -129,6 +129,9 @@ class DNSLookupMeasurementWrapper:
         return Tabular.create([
             ("step_id", self._step_id),
             ("id", self._dns.id),
+            ("origin", self._origin),
+            ("resolver_network", self._dns.resolver_network),
+            ("resolver_address", self._dns.resolver_address),
             ("domain", self._dns.domain),
             ("failure", self._dns.failure),
             ("addresses", self._dns.addresses),
