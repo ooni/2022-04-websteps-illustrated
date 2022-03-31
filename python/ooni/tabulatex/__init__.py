@@ -4,6 +4,7 @@ This package contains extensions over the tabulate package.
 
 from __future__ import annotations
 import json
+import random
 
 import tabulate
 
@@ -13,8 +14,17 @@ from typing import (
     List,
     Optional,
     OrderedDict,
+    Protocol,
     Tuple,
 )
+
+
+class Tabulable(Protocol):
+    """Anything that can be tabulated."""
+
+    def tabular(self) -> Tabular:
+        """Converts this thing into a tabular."""
+        return Tabular()
 
 
 class Tabular:
@@ -42,6 +52,14 @@ class Tabular:
         tab._rows.append(row)
         return tab
 
+    @staticmethod
+    def mapcreate(entries: List[Tabulable]) -> Tabular:
+        """Returns the tabular obtained calling tabular() on each entry."""
+        tab = Tabular()
+        for entry in entries:
+            tab.append(entry.tabular())
+        return tab
+
     def append(self, tab: Tabular):
         """Appends the given tabular to the current tabular, if the
         columns are compatible, otherwise raise TypeError."""
@@ -54,6 +72,22 @@ class Tabular:
         if self._columns != tab._columns:
             raise TypeError("incompatible columns")
         self._rows.extend(tab._rows)
+
+    def appendrow(self, pairs: List[Tuple[str, Any]]):
+        """Appends a single row generated on the fly from the given pairs"""
+        self.append(self.create(pairs))
+
+    def shuffle(self):
+        """Shuffles the rows"""
+        random.shuffle(self._rows)
+
+    def shrink(self, n: int):
+        """Resize the tabular to only contain N rows."""
+        if n < len(self._rows):
+            self._rows = self._rows[:n]
+
+    def __len__(self) -> int:
+        return len(self._rows)
 
     def tabulatex(
         self, format: str = "grid", sortkey: Optional[Callable[[Any], Any]] = None

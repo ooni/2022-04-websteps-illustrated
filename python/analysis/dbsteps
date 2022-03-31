@@ -1,0 +1,699 @@
+#!/usr/bin/env python3
+
+"""Allows to navigate measurements."""
+
+import argparse
+import base64
+import traceback
+from urllib.parse import urlparse
+from dnslib import DNSRecord
+import json
+import os
+import re
+import sys
+import tabulate
+from typing import (
+    Callable,
+    List,
+)
+
+# Imported to make `input()` better
+import readline as _
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
+
+from ooni.dataformat.archival import (
+    MeasurexDNSLookupMeasurement,
+    MeasurexEndpointMeasurement,
+    DNSPingSinglePingResult,
+    DNSPingSinglePingReply,
+    WebstepsAnalysisDNSOrEndpoint,
+    WebstepsTestKeys,
+)
+
+from ooni import jsonl
+
+from analysis.dblike import (
+    Entry,
+    Kind,
+    MeasurementDB,
+    Origin,
+)
+
+from ooni.tabulatex import Tabular
+
+
+def load(filepath: str) -> List[MeasurementDB]:
+    """Loads measurements from file."""
+    out: List[MeasurementDB] = []
+    for measurement in jsonl.reader(filepath):
+        try:
+            meas = WebstepsTestKeys(measurement.getdictionary("test_keys"))
+        except ValueError:
+            traceback.print_exc()
+            raise
+        mdb = MeasurementDB(meas)
+        out.append(mdb)
+    return out
+
+
+def s_command_help():
+    """Prints the help screen."""
+    print("")
+    print("  d<id>")
+    print("    decodes the observation with the given <id>")
+    print("")
+    print("  h")
+    print("    prints this help screen")
+    print("")
+    print("  j")
+    print("    prints the full JSON of the selected measurement")
+    print("")
+    print("  j<id>")
+    print("    views the JSON of the observation or analysis with the given <id>")
+    print("")
+    print("  la<id>")
+    print("    lists probe's analysis for the given URL <id>")
+    print("")
+    print("  ld<id>")
+    print("    lists dns results for the given URL <id>")
+    print("")
+    print("  le<id>")
+    print("    lists endpoint results for the given URL <id>")
+    print("")
+    print("  lia")
+    print('    lists "interesting" analysis')
+    print("")
+    print("  lm")
+    print("    lists the currently-selected measurement")
+    print("")
+    print("  lu")
+    print("    lists urls observations")
+    print("")
+    print("  q")
+    print("    returns to the main environment")
+    print("")
+    print("  v<id>")
+    print("    views the observation or analysis with the given ID")
+    print("")
+
+
+def s_decode_http_round_trips(origin: Origin, http: MeasurexEndpointMeasurement):
+    """Attempts to decode HTTP round trips."""
+    raw = http.raw
+    # Explanation: there was a bug where the name of the variable
+    # was `requests` even though it was a single request. We're going
+    # to keep the old name around because we have traces that use
+    # the old name and it would be a pity to not decode them.
+    req = raw.get("request")
+    if req is None:
+        req = raw.get("requests")
+        if req is None:
+            print("")
+            print(f"BUG: did not find request or requests: {raw}")
+            print("")
+            return
+    reqdata = req.get("request")
+    if not reqdata:
+        return
+    print("")
+    print(f"// origin: {origin}")
+    print(f"// endpoint: {http.address}/{http.network}")
+    print(f"// url: {http.url}")
+    print("")
+    method = reqdata["method"]
+    url = reqdata["url"]
+    parsed = urlparse(url)
+    pathquery = parsed.path
+    if parsed.query:
+        pathquery += "?" + parsed.query
+    print(f"> {method} {pathquery}")
+    hdrs = reqdata.get("headers_list")
+    if hdrs:
+        for hdr in hdrs:
+            print(f"> {hdr[0]}: {hdr[1]}")
+    print(">")
+    respdata = req.get("response")
+    if respdata:
+        status = respdata.get("code")
+        if status is not None and status > 0:
+            print(f"< {status}")
+            hdrs = respdata.get("headers_list")
+            if hdrs:
+                for hdr in hdrs:
+                    print(f"< {hdr[0]}: {hdr[1]}")
+            print("<")
+            print("")
+            bodylength = respdata.get("body_length")
+            print(f"// body_length: {bodylength}")
+            bodytrunc = respdata.get("body_is_truncated")
+            print(f"// body_is_truncated: {bodytrunc}")
+            bodytlsh = respdata.get("body_tlsh")
+            print(f"// body_tlsh: {bodytlsh}")
+    print("")
+    failure = req.get("failure")
+    if failure:
+        print(f"ERROR: {failure}")
+        print("")
+
+
+def s_decode_dns_round_trips(dns: MeasurexDNSLookupMeasurement):
+    """Attempts to decode DNS round trips."""
+    raw = dns.raw
+    rtlist = raw.get("dns_round_trips")
+    if not rtlist:
+        print("nothing to decode")
+        return
+    for idx, rt in enumerate(rtlist):
+        print(f"decoding DNS round trip {idx}:")
+        raw_query = rt.get("raw_query")
+        if not raw_query:
+            continue
+        if raw_query.get("format", "") != "base64":
+            continue
+        print("")
+        print(DNSRecord.parse(base64.b64decode(raw_query.get("data"))))
+        print("")
+        raw_reply = rt.get("raw_reply")
+        if not raw_reply:
+            continue
+        if raw_reply.get("format", "") != "base64":
+            continue
+        print("")
+        print(DNSRecord.parse(base64.b64decode(raw_reply.get("data"))))
+        print("")
+
+
+def s_command_d(meas: MeasurementDB, command: str):
+    """Implements the d command of the s environment."""
+    try:
+        idx = int(command[1:])
+    except ValueError:
+        print("s: argument for `d` must be a number")
+        return
+    try:
+        entry = meas.find_entry(idx)
+    except KeyError:
+        print(f"s: entry {idx} not found")
+        return
+    if entry.kind() == Kind.ENDPOINT:
+        s_decode_http_round_trips(entry.origin(), entry.unwrap())
+        return
+    if entry.kind() == Kind.DNS:
+        s_decode_dns_round_trips(entry.unwrap())
+        return
+    if entry.kind() == Kind.DNS_SINGLE_PING_RESULT:
+        result: DNSPingSinglePingResult = entry.unwrap()
+        print(DNSRecord.parse(result.query))
+        return
+    if entry.kind() == Kind.DNS_SINGLE_PING_REPLY:
+        reply: DNSPingSinglePingReply = entry.unwrap()
+        print(DNSRecord.parse(reply.reply))
+        return
+    print(f"s: cannot decode: {entry}")
+
+
+def s_command_j(meas: MeasurementDB, command: str):
+    """Implements the j command of the s environment."""
+    if len(command[1:]) <= 0:
+        json.dump(meas.raw(), sys.stdout, indent=4)
+        sys.stdout.write("\n")
+        return
+    try:
+        idx = int(command[1:])
+    except ValueError:
+        print("s: argument for `j` must be a number")
+        return
+    try:
+        entry = meas.find_entry(idx)
+    except KeyError:
+        print(f"s: entry {idx} not found")
+        return
+    json.dump(entry.raw(), sys.stdout, indent=4)
+    sys.stdout.write("\n")
+
+
+def s_command_v(meas: MeasurementDB, command: str):
+    """Implements the v command of the s environment."""
+    try:
+        idx = int(command[1:])
+    except ValueError:
+        print("s: argument for `v` must be a number")
+        return
+    try:
+        entry = meas.find_entry(idx)
+    except KeyError:
+        print(f"s: entry {idx} not found")
+        return
+    print("")
+    print(f"kind: {entry.kind()}")
+    print(f"origin: {entry.origin()}")
+    print("")
+    print(entry.tabular().tabulatex())
+    print("")
+    print("hint: use `j<id>' to view the corresponding JSON")
+    print("")
+
+
+def s_command_lm(idx: int, meas: MeasurementDB):
+    """Implements the lm command of the s environment."""
+    print("")
+    print(f"viewing selected measurement {idx}")
+    print("")
+    print(meas.tabular().tabulatex())
+    print("")
+    print("hint: use `lu` to list the URLs measured within this measurement")
+    print("hint: use `h' for help")
+    print("")
+
+
+def s_command_lia(meas_idx: int, meas: MeasurementDB):
+    """Implements the lia command of the s environment."""
+    entries: List[Entry] = []
+    for elem in meas.list_analysis():
+        analysis: WebstepsAnalysisDNSOrEndpoint = elem.unwrap()
+        if not analysis.flags.tags():
+            continue
+        entries.append(elem)
+    if len(entries) <= 0:
+        print("")
+        print('no "interesting" analysis to show')
+        print("")
+        print("hint: use `la<id>' to list all analysis for the URL with <id>")
+        print("hint: use `h' for help")
+        print("")
+        return
+    print("")
+    print(f'viewing "interesting" analysis for selected measurement {meas_idx}')
+    print("")
+    print(Tabular.mapcreate(entries).tabulatex())
+    print("")
+    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
+def s_command_ld(meas_idx: int, meas: MeasurementDB, command: str):
+    """Implements the ld command of the s environment."""
+    try:
+        url_idx = int(command[2:])
+    except ValueError:
+        print("s: argument for `ld' must be a number")
+        return
+    entries = meas.list_dns(url_idx)
+    if not entries:
+        print(f"warning: cannot find dns for URL {url_idx}")
+        return
+    print("")
+    print(f"viewing dns for selected measurement {meas_idx} and URL {url_idx}")
+    print("")
+    print(Tabular.mapcreate(entries).tabulatex())
+    print("")
+    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
+def s_command_le(meas_idx: int, meas: MeasurementDB, command: str):
+    """Implements the le command of the s environment."""
+    try:
+        url_idx = int(command[2:])
+    except ValueError:
+        print("s: argument for `le' must be a number")
+        return
+    entries = meas.list_endpoint(url_idx)
+    if not entries:
+        print(f"warning: cannot find endpoint for URL {url_idx}")
+        return
+    print("")
+    print(f"viewing endpoint for selected measurement {meas_idx} and URL {url_idx}")
+    print("")
+    print(Tabular.mapcreate(entries).tabulatex())
+    print("")
+    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
+def s_command_la(meas_idx: int, meas: MeasurementDB, command: str):
+    """Implements the la command of the s environment."""
+    try:
+        url_idx = int(command[2:])
+    except ValueError:
+        print("s: argument for `la' must be a number")
+        return
+    entries = meas.list_analysis(url_idx)
+    if not entries:
+        print(f"warning: cannot find analysis for URL {url_idx}")
+        return
+    print("")
+    print(f"viewing analysis for selected measurement {meas_idx} and URL {url_idx}")
+    print("")
+    print(Tabular.mapcreate(entries).tabulatex())
+    print("")
+    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
+def s_command_lu(idx: int, meas: MeasurementDB):
+    """Implements the lu command of the s environment."""
+    print("")
+    print(f"viewing the URLs measured as part of selected measurement {idx}")
+    print("")
+    entries = meas.list_urls()
+    print(Tabular.mapcreate(entries).tabulatex())
+    print("")
+    print(f'hint: use `lia\' to list "interesting" analysis')
+    print("hint: use `h' for help")
+    print("")
+
+
+def s_truncate_url(meas: MeasurementDB):
+    """Returns meas' URL and possibly truncates it."""
+    url = meas.url()
+    if len(url) > 47:
+        url = url[:47] + " ..."
+    return url
+
+
+def s_interactive(idx: int, meas: MeasurementDB):
+    """The s environment (aka "selected" measurement)."""
+    print("")
+    print(f"selecting measurement {idx}; entering into the `s' environment...")
+    print("")
+    print("hint: use `lm' to print the selected measurement")
+    print("hint: use `h' for help")
+    print("")
+    while True:
+        command = input(f"🐚🐚🐚 s:{idx} [{s_truncate_url(meas)}]> ")
+        if command.startswith("d"):
+            s_command_d(meas, command)
+            continue
+        if command == "h":
+            s_command_help()
+            continue
+        if command.startswith("j"):
+            s_command_j(meas, command)
+            continue
+        if command.startswith("la"):
+            s_command_la(idx, meas, command)
+            continue
+        if command.startswith("ld"):
+            s_command_ld(idx, meas, command)
+            continue
+        if command.startswith("le"):
+            s_command_le(idx, meas, command)
+            continue
+        if command == "lia":
+            s_command_lia(idx, meas)
+            continue
+        if command == "lm":
+            s_command_lm(idx, meas)
+            continue
+        if command == "lu":
+            s_command_lu(idx, meas)
+            continue
+        if command == "q":
+            print("")
+            print("leaving the `s' environment...")
+            print('hint: use `li\' to list "interesting" measurements')
+            print("")
+            break
+        if command.startswith("v"):
+            s_command_v(meas, command)
+            continue
+        print(f"s: {command}: command not found (try 'h' for help)")
+
+
+def main_command_help():
+    """Implements the `h` command of the main environment."""
+    print("")
+    print("  #<tagName>:<count>")
+    print("    like #<tagName> but shuffles and returns the first <count> entries")
+    print("")
+    print("  #<tagName>")
+    print("    shows all the measurements with the given tag (e.g., `#bogon`)")
+    print("")
+    print("  ci")
+    print("    classifies the failure tags _individually_")
+    print("")
+    print("  cu")
+    print("    classifies the failure tags _per URL_")
+    print("")
+    print("  h")
+    print("    prints this help screen")
+    print("")
+    print("  j<id>")
+    print("    prints the JSON of the measurement with <id>")
+    print("")
+    print("  l")
+    print("    lists measurements")
+    print("")
+    print("  li")
+    print("    lists interesting measurements")
+    print("")
+    print("  q")
+    print("    exits")
+    print("")
+    print("  s<id>")
+    print("    selects the measurement with the given ID")
+    print("")
+
+
+def main_command_j(meas: List[MeasurementDB], command: str):
+    """Implements the `j` command of the main environment."""
+    try:
+        idx = int(command[1:])
+    except ValueError:
+        print("main: argument for `j` must be a number")
+        return
+    try:
+        entry = meas[idx]
+    except IndexError:
+        print(f"s: entry {idx} not found")
+        return
+    json.dump(entry.raw(), sys.stdout, indent=4)
+    sys.stdout.write("\n")
+
+
+def main_command_l_or_slash_finish(summary: Tabular):
+    """Finishes running an `l` or `/` command in the main environment."""
+    if len(summary) <= 0:
+        print("")
+        print('no "interesting" measurements to show')
+        print("")
+        print("hint: use `l' to list all measurements")
+        print("hint: use `h' for help")
+        print("")
+        return
+    print("")
+    print(summary.tabulatex())
+    print("")
+    print(f"listed {len(summary)} measurements")
+    print("")
+    print("hint: use `s<id>' to select the measurement with the given <id>")
+    print("hint: use `h' for help")
+    print("")
+
+
+def main_command_l_or_slash_filter(
+    msmts: List[MeasurementDB], filter: Callable[[MeasurementDB], bool]
+) -> Tabular:
+    """Filter functionality for either `l` or `/` in the main environment"""
+    summary = Tabular()
+    for idx, meas in enumerate(msmts):
+        if filter(meas):
+            summary.appendrow(
+                [
+                    ("idx", idx),
+                    ("url", meas.url()),
+                    ("flags", meas.tags()),
+                ]
+            )
+    return summary
+
+
+def main_command_l(msmts: List[MeasurementDB], all: bool):
+    """Lists all the available measurements."""
+
+    def filter(meas):
+        return all or len(meas.tags()) > 0
+
+    summary = main_command_l_or_slash_filter(msmts, filter)
+    main_command_l_or_slash_finish(summary)
+
+
+def main_command_slash(msmts: List[MeasurementDB], command: str):
+    """Implements the `/` command of the main environment."""
+    pattern = command[1:]
+    regex = re.compile(pattern)
+
+    def filter(meas) -> bool:
+        return bool(regex.search(meas.url()))
+
+    summary = main_command_l_or_slash_filter(msmts, filter)
+    main_command_l_or_slash_finish(summary)
+
+
+def main_command_s(msmts: List[MeasurementDB], command: str):
+    """Implements the `s` command of the main environment."""
+    try:
+        idx = int(command[1:])
+    except ValueError:
+        print("dbsteps: argument for `s' must be a number")
+        return
+    try:
+        meas = msmts[idx]
+    except IndexError:
+        print(f"dbsteps: measurement {idx} not found")
+        return
+    s_interactive(idx, meas)
+
+
+def main_command_c(msmts: List[MeasurementDB], command: str):
+    """Implements the `c` command of the main environment."""
+    modifier = command[1:]
+    if modifier != "i" and modifier != "u":
+        print("")
+        print("error: the `c' command has two forms: `ci` and `cu'")
+        print("")
+        print("hint: use `l' to list measurements")
+        print("hint: use `h' for help")
+        print("")
+        return
+    tags = {}
+    tot = 0
+    for meas in msmts:
+        if modifier == "i":
+            for tag in meas.tags():
+                tags.setdefault(tag, 0)
+                tags[tag] += 1
+                tot += 1
+        else:
+            v = " ".join(meas.tags())
+            tags.setdefault(v, 0)
+            tags[v] += 1
+            tot += 1
+    tagslist = sorted(tags.items(), key=lambda v: v[1], reverse=True)
+    tagslist.append(("Total", tot))
+    final = []
+    if tot <= 0:
+        print("")
+        print("no blocking detected")
+        print("")
+        print("hint: use `l' to list measurements")
+        print("hint: use `h' for help")
+        print("")
+        return
+    for tag, count in tagslist:
+        percentage = f"{((100 *count)/tot):.1f}%"
+        final.append(
+            (
+                tag,
+                count,
+                percentage,
+            )
+        )
+    print(
+        tabulate.tabulate(
+            final,
+            headers=["tag", "count", "percentage"],
+            tablefmt="grid",
+            stralign="right",
+        )
+    )
+    print("")
+    print("hint: use `#<tagName>' to filter by tag name (e.g., `#bogon`)")
+    print("hint: use `h' for help")
+    print("")
+
+
+def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
+    """Implements the `#` command of the main environment."""
+    idx = tag.find(":")
+    samplecount = None
+    if idx >= 0:
+        sample = tag[idx + 1 :]
+        tag = tag[:idx]
+        try:
+            samplecount = int(sample)
+        except ValueError:
+            print("error: the sample argument must be an integer")
+    selected = Tabular()
+    for idx, meas in enumerate(msmts):
+        if tag in meas.tags():
+            selected.appendrow(
+                [
+                    ("idx", idx),
+                    ("url", meas.url()),
+                    ("flags", meas.tags()),
+                ]
+            )
+    if samplecount is not None:
+        selected.shuffle()
+        selected.shrink(samplecount)
+    print(selected.tabulatex())
+    print("")
+    print(f"showing {len(selected)} results matching the selected criteria")
+    print("")
+    print("hint: use `s<ID>' to select and focus on the measurement with ID <ID>")
+    print("hint: use `h' for help")
+    print("")
+
+
+def main_interactive(msmts: List[MeasurementDB]):
+    """Runs an interactive shell allowing to see measurements."""
+    print("")
+    print(f"loaded {len(msmts)} measurements; entering the main environment...")
+    print("")
+    print("hint: use `ci' or `cu' to classify failures")
+    print('hint: use `li\' to list "interesting" measurements')
+    print("hint: use `h' for help")
+    print("")
+    while True:
+        command = input("🐚🐚🐚 main> ")
+        if command.startswith("#"):
+            main_command_hashtag(msmts, command)
+            continue
+        if command.startswith("/"):
+            main_command_slash(msmts, command)
+            continue
+        if command.startswith("c"):
+            main_command_c(msmts, command)
+            continue
+        if command.startswith("j"):
+            main_command_j(msmts, command)
+            continue
+        if command == "h":
+            main_command_help()
+            continue
+        if command == "l" or command == "li":
+            main_command_l(msmts, command != "li")
+            continue
+        if command == "q":
+            break
+        if command.startswith("s"):
+            main_command_s(msmts, command)
+            continue
+        print(f"dbsteps: {command}: command not found (try 'h' for help)")
+
+
+def main():
+    """Main function"""
+    parser = argparse.ArgumentParser(description="Interactively explore measurements.")
+    parser.add_argument(
+        "file",
+        action="store",
+        help="specify JSONL file containing measurements",
+        nargs=1,
+    )
+    msmts = load(parser.parse_args().file[0])
+    try:
+        main_interactive(msmts)
+    except EOFError:
+        pass
+
+
+if __name__ == "__main__":
+    main()
