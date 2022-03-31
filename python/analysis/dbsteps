@@ -32,7 +32,7 @@ from ooni.dataformat.archival import (
     WebstepsTestKeys,
 )
 
-from ooni import jsonl
+from ooni.dataformat import jsonl
 
 from ooni.dataformat.dblike import (
     DBLikeEntry,

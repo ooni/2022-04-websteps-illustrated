@@ -25,6 +25,9 @@ import this submodule if you need to parse measurex's cache;
 - `flatdecode` contains additional routines for decoding HTTP
 and DNS round trips expressed in the flat data format;
 
+- `jsonl` contains code to load OONI measurements in the archival
+data format from JSONL files;
+
 - `testcase` contains code to import testcases from
 ./python/testcase/create runs and to load imported testcases
 (YAML files) which is used by ./python/testcase/shell;

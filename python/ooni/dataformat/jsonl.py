@@ -10,7 +10,7 @@ from typing import (
     Iterator,
 )
 
-from .dataformat.typecast import (
+from .typecast import (
     DictWrapper,
 )
 
