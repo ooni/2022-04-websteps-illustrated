@@ -4,7 +4,6 @@
 
 import argparse
 import base64
-import traceback
 from urllib.parse import urlparse
 from dnslib import DNSRecord
 import json
@@ -29,10 +28,7 @@ from ooni.dataformat.archival import (
     DNSPingSinglePingResult,
     DNSPingSinglePingReply,
     WebstepsAnalysisDNSOrEndpoint,
-    WebstepsTestKeys,
 )
-
-from ooni.dataformat import jsonl
 
 from ooni.dataformat.dblike import (
     DBLikeEntry,
@@ -43,19 +39,7 @@ from ooni.dataformat.dblike import (
 
 from ooni.tabulatex import Tabular
 
-
-def load(filepath: str) -> List[DBLikeWebstepsTestKeys]:
-    """Loads measurements from file."""
-    out: List[DBLikeWebstepsTestKeys] = []
-    for measurement in jsonl.reader(filepath):
-        try:
-            meas = WebstepsTestKeys(measurement.getdictionary("test_keys"))
-        except ValueError:
-            traceback.print_exc()
-            raise
-        mdb = DBLikeWebstepsTestKeys(meas)
-        out.append(mdb)
-    return out
+from ooni.dataformat import dblike
 
 
 def s_command_help():
@@ -716,7 +700,7 @@ def main():
         help="specify JSONL file containing measurements",
         nargs=1,
     )
-    msmts = load(parser.parse_args().file[0])
+    msmts = dblike.load(parser.parse_args().file[0])
     try:
         main_interactive(msmts)
     except EOFError:

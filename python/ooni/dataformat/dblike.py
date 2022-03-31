@@ -8,6 +8,7 @@ that you can overlay on top of the archival module.
 from __future__ import annotations
 
 from enum import Enum
+import traceback
 
 from typing import (
     Any,
@@ -33,6 +34,8 @@ from .archival import (
 from ..tabulatex import (
     Tabular,
 )
+
+from . import jsonl
 
 
 class DBLikeKind(Enum):
@@ -94,14 +97,16 @@ class DBLikeURLMeasurement:
         self._ssm = ssm
 
     def tabular(self) -> Tabular:
-        return Tabular.create([
-            ("id", self._ssm.id),
-            ("endpoint_ids", self._ssm.endpoint_ids),
-            ("url", self._ssm.url),
-            ("cookies", self._ssm.cookies),
-            ("dns", [x.id for x in self._ssm.dns]),
-            ("endpoint", [x.id for x in self._ssm.endpoint]),
-        ])
+        return Tabular.create(
+            [
+                ("id", self._ssm.id),
+                ("endpoint_ids", self._ssm.endpoint_ids),
+                ("url", self._ssm.url),
+                ("cookies", self._ssm.cookies),
+                ("dns", [x.id for x in self._ssm.dns]),
+                ("endpoint", [x.id for x in self._ssm.endpoint]),
+            ]
+        )
 
     def step_id(self) -> int:
         return self._ssm.id
@@ -125,23 +130,27 @@ class DBLikeURLMeasurement:
 class DBLikeDNSLookupMeasurement:
     """Wrapper for a MeasurexDNSLookupMeasurement."""
 
-    def __init__(self, step_id: int, origin: DBLikeOrigin, dns: MeasurexDNSLookupMeasurement):
+    def __init__(
+        self, step_id: int, origin: DBLikeOrigin, dns: MeasurexDNSLookupMeasurement
+    ):
         self._step_id = step_id
         self._dns = dns
         self._origin = origin
 
     def tabular(self) -> Tabular:
-        return Tabular.create([
-            ("step_id", self._step_id),
-            ("id", self._dns.id),
-            ("origin", self._origin),
-            ("resolver", self._dns.resolver_url()),
-            ("lookup_types", self._dns.lookup_types()),
-            ("domain", self._dns.domain),
-            ("failure", self._dns.failure),
-            ("addresses", self._dns.addresses),
-            ("ptrs", self._dns.ptrs())
-        ])
+        return Tabular.create(
+            [
+                ("step_id", self._step_id),
+                ("id", self._dns.id),
+                ("origin", self._origin),
+                ("resolver", self._dns.resolver_url()),
+                ("lookup_types", self._dns.lookup_types()),
+                ("domain", self._dns.domain),
+                ("failure", self._dns.failure),
+                ("addresses", self._dns.addresses),
+                ("ptrs", self._dns.ptrs()),
+            ]
+        )
 
     def step_id(self) -> int:
         return self._step_id
@@ -165,27 +174,31 @@ class DBLikeDNSLookupMeasurement:
 class DBLikeEndpointMeasurement:
     """Wrapper for and MeasurexEndpointMeasurement."""
 
-    def __init__(self, step_id: int, origin: DBLikeOrigin, epnt: MeasurexEndpointMeasurement):
+    def __init__(
+        self, step_id: int, origin: DBLikeOrigin, epnt: MeasurexEndpointMeasurement
+    ):
         self._step_id = step_id
         self._epnt = epnt
         self._origin = origin
 
     def tabular(self) -> Tabular:
-        return Tabular.create([
-            ("step_id", self._step_id),
-            ("id", self._epnt.id),
-            ("origin", self._origin),
-            ("url", self._epnt.url),
-            ("network", self._epnt.network),
-            ("address", self._epnt.address),
-            ("cookies_names", self._epnt.cookies_names),
-            ("failed_operation", self._epnt.failed_operation),
-            ("failure", self._epnt.failure),
-            ("location", self._epnt.location),
-            ("title", self._epnt.title),
-            ("status", self._epnt.status_code),
-            ("body_len", self._epnt.body_length),
-        ])
+        return Tabular.create(
+            [
+                ("step_id", self._step_id),
+                ("id", self._epnt.id),
+                ("origin", self._origin),
+                ("url", self._epnt.url),
+                ("network", self._epnt.network),
+                ("address", self._epnt.address),
+                ("cookies_names", self._epnt.cookies_names),
+                ("failed_operation", self._epnt.failed_operation),
+                ("failure", self._epnt.failure),
+                ("location", self._epnt.location),
+                ("title", self._epnt.title),
+                ("status", self._epnt.status_code),
+                ("body_len", self._epnt.body_length),
+            ]
+        )
 
     def step_id(self) -> int:
         return self._step_id
@@ -209,18 +222,25 @@ class DBLikeEndpointMeasurement:
 class DBLikeAnalysis:
     """Wrapper for WebstepsAnalysisDNSOrEndpoint."""
 
-    def __init__(self, step_id: int, origin: DBLikeOrigin, analysis: WebstepsAnalysisDNSOrEndpoint):
+    def __init__(
+        self,
+        step_id: int,
+        origin: DBLikeOrigin,
+        analysis: WebstepsAnalysisDNSOrEndpoint,
+    ):
         self._step_id = step_id
         self._analysis = analysis
         self._origin = origin
 
     def tabular(self) -> Tabular:
-        return Tabular.create([
-            ("step_id", self._step_id),
-            ("id", self._analysis.id),
-            ("refs", self._analysis.refs),
-            ("flags", self._analysis.flags.tags()),
-        ])
+        return Tabular.create(
+            [
+                ("step_id", self._step_id),
+                ("id", self._analysis.id),
+                ("refs", self._analysis.refs),
+                ("flags", self._analysis.flags.tags()),
+            ]
+        )
 
     def step_id(self) -> int:
         return self._step_id
@@ -249,16 +269,18 @@ class DBLikeDNSPingSinglePingReply:
         self._reply = reply
 
     def tabular(self) -> Tabular:
-        return Tabular.create([
-            ("step_id", self._step_id),
-            ("id", self._reply.id),
-            ("source_address", self._reply.source_address),
-            ("failure", self._reply.failure),
-            ("t", self._reply.t),
-            ("reply", self._reply.reply),
-            ("addresses", self._reply.addresses),
-            ("alpns", self._reply.alpns),
-        ])
+        return Tabular.create(
+            [
+                ("step_id", self._step_id),
+                ("id", self._reply.id),
+                ("source_address", self._reply.source_address),
+                ("failure", self._reply.failure),
+                ("t", self._reply.t),
+                ("reply", self._reply.reply),
+                ("addresses", self._reply.addresses),
+                ("alpns", self._reply.alpns),
+            ]
+        )
 
     def step_id(self) -> int:
         return self._step_id
@@ -287,15 +309,17 @@ class DBLikeDNSPingSinglePingResult:
         self._ping = ping
 
     def tabular(self) -> Tabular:
-        return Tabular.create([
-            ("step_id", self._step_id),
-            ("id", self._ping.id),
-            ("hostname", self._ping.hostname),
-            ("query", self._ping.query),
-            ("replies", [x.id for x in self._ping.replies]),
-            ("resolver_address", self._ping.resolver_address),
-            ("t", self._ping.t),
-        ])
+        return Tabular.create(
+            [
+                ("step_id", self._step_id),
+                ("id", self._ping.id),
+                ("hostname", self._ping.hostname),
+                ("query", self._ping.query),
+                ("replies", [x.id for x in self._ping.replies]),
+                ("resolver_address", self._ping.resolver_address),
+                ("t", self._ping.t),
+            ]
+        )
 
     def step_id(self) -> int:
         return self._step_id
@@ -326,10 +350,12 @@ class DBLikeWebstepsTestKeys:
 
     def tabular(self) -> Tabular:
         """Converts to tabular format."""
-        return Tabular.create([
-            ("url", self.url()),
-            ("tags", self.tags()),
-        ])
+        return Tabular.create(
+            [
+                ("url", self.url()),
+                ("tags", self.tags()),
+            ]
+        )
 
     def raw(self) -> Dict[str, Any]:
         """Returns the raw data that generated this database."""
@@ -417,7 +443,9 @@ class DBLikeWebstepsTestKeys:
                 for reply in ping.replies:
                     self._table[reply.id] = DBLikeDNSPingSinglePingReply(step_id, reply)
 
-    def _load_probe_additional(self, step_id: int, epnts: List[MeasurexEndpointMeasurement]):
+    def _load_probe_additional(
+        self, step_id: int, epnts: List[MeasurexEndpointMeasurement]
+    ):
         for epnt in epnts:
             self._load_endpoint(step_id, DBLikeOrigin.PROBE, epnt)
 
@@ -428,8 +456,27 @@ class DBLikeWebstepsTestKeys:
             for epnt in analysis.endpoint:
                 self._table[epnt.id] = DBLikeAnalysis(step_id, DBLikeOrigin.PROBE, epnt)
 
-    def _load_dns(self, step_id: int, origin: DBLikeOrigin, dns: MeasurexDNSLookupMeasurement):
+    def _load_dns(
+        self, step_id: int, origin: DBLikeOrigin, dns: MeasurexDNSLookupMeasurement
+    ):
         self._table[dns.id] = DBLikeDNSLookupMeasurement(step_id, origin, dns)
 
-    def _load_endpoint(self, step_id: int, origin: DBLikeOrigin, epnt: MeasurexEndpointMeasurement):
+    def _load_endpoint(
+        self, step_id: int, origin: DBLikeOrigin, epnt: MeasurexEndpointMeasurement
+    ):
         self._table[epnt.id] = DBLikeEndpointMeasurement(step_id, origin, epnt)
+
+
+def load(filepath: str) -> List[DBLikeWebstepsTestKeys]:
+    """Loads measurements from a JSONL file and returns them
+    as a list of DBLike Websteps Test Keys."""
+    out: List[DBLikeWebstepsTestKeys] = []
+    for measurement in jsonl.reader(filepath):
+        try:
+            meas = WebstepsTestKeys(measurement.getdictionary("test_keys"))
+        except ValueError:
+            traceback.print_exc()
+            raise
+        mdb = DBLikeWebstepsTestKeys(meas)
+        out.append(mdb)
+    return out
