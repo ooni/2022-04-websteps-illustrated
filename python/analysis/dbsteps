@@ -25,19 +25,15 @@ import readline as _
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0]))))
 
+from ooni.dataformat import dblikedecode
+
 from ooni.dataformat.archival import (
-    MeasurexDNSLookupMeasurement,
-    MeasurexEndpointMeasurement,
-    DNSPingSinglePingResult,
-    DNSPingSinglePingReply,
     WebstepsAnalysisDNSOrEndpoint,
 )
 
 from ooni.dataformat.dblike import (
     DBLikeEntry,
-    DBLikeKind,
     DBLikeWebstepsTestKeys,
-    DBLikeOrigin,
 )
 
 from ooni import htmlx
@@ -99,95 +95,6 @@ def s_command_help():
     print("")
 
 
-def s_decode_http_round_trips(origin: DBLikeOrigin, http: MeasurexEndpointMeasurement):
-    """Attempts to decode HTTP round trips."""
-    raw = http.raw
-    # Explanation: there was a bug where the name of the variable
-    # was `requests` even though it was a single request. We're going
-    # to keep the old name around because we have traces that use
-    # the old name and it would be a pity to not decode them.
-    req = raw.get("request")
-    if req is None:
-        req = raw.get("requests")
-        if req is None:
-            print("")
-            print(f"BUG: did not find request or requests: {raw}")
-            print("")
-            return
-    reqdata = req.get("request")
-    if not reqdata:
-        return
-    print("")
-    print(f"// origin: {origin}")
-    print(f"// endpoint: {http.address}/{http.network}")
-    print(f"// url: {http.url}")
-    print("")
-    method = reqdata["method"]
-    url = reqdata["url"]
-    parsed = urlparse(url)
-    pathquery = parsed.path
-    if parsed.query:
-        pathquery += "?" + parsed.query
-    print(f"> {method} {pathquery}")
-    hdrs = reqdata.get("headers_list")
-    if hdrs:
-        for hdr in hdrs:
-            print(f"> {hdr[0]}: {hdr[1]}")
-    print(">")
-    respdata = req.get("response")
-    if respdata:
-        status = respdata.get("code")
-        if status is not None and status > 0:
-            print(f"< {status}")
-            hdrs = respdata.get("headers_list")
-            if hdrs:
-                for hdr in hdrs:
-                    print(f"< {hdr[0]}: {hdr[1]}")
-            print("<")
-            print("")
-            bodylength = respdata.get("body_length")
-            print(f"// body_length: {bodylength}")
-            bodytrunc = respdata.get("body_is_truncated")
-            print(f"// body_is_truncated: {bodytrunc}")
-            bodytlsh = respdata.get("body_tlsh")
-            print(f"// body_tlsh: {bodytlsh}")
-            body = respdata.get("body")
-            print("")
-            print(body)
-    print("")
-    failure = req.get("failure")
-    if failure:
-        print(f"ERROR: {failure}")
-        print("")
-
-
-def s_decode_dns_round_trips(dns: MeasurexDNSLookupMeasurement):
-    """Attempts to decode DNS round trips."""
-    raw = dns.raw
-    rtlist = raw.get("dns_round_trips")
-    if not rtlist:
-        print("nothing to decode")
-        return
-    for idx, rt in enumerate(rtlist):
-        print(f"decoding DNS round trip {idx}:")
-        raw_query = rt.get("raw_query")
-        if not raw_query:
-            continue
-        if raw_query.get("format", "") != "base64":
-            continue
-        print("")
-        print(DNSRecord.parse(base64.b64decode(raw_query.get("data"))))
-        print("")
-        raw_reply = rt.get("raw_reply")
-        if not raw_reply:
-            continue
-        if raw_reply.get("format", "") != "base64":
-            continue
-        print("")
-        print(DNSRecord.parse(base64.b64decode(raw_reply.get("data"))))
-        print("")
-
-
 def s_command_d(meas: DBLikeWebstepsTestKeys, command: str):
     """Implements the d command of the s environment."""
     try:
@@ -200,21 +107,7 @@ def s_command_d(meas: DBLikeWebstepsTestKeys, command: str):
     except KeyError:
         print(f"s: entry {idx} not found")
         return
-    if entry.kind() == DBLikeKind.ENDPOINT:
-        s_decode_http_round_trips(entry.origin(), entry.unwrap())
-        return
-    if entry.kind() == DBLikeKind.DNS:
-        s_decode_dns_round_trips(entry.unwrap())
-        return
-    if entry.kind() == DBLikeKind.DNS_SINGLE_PING_RESULT:
-        result: DNSPingSinglePingResult = entry.unwrap()
-        print(DNSRecord.parse(result.query))
-        return
-    if entry.kind() == DBLikeKind.DNS_SINGLE_PING_REPLY:
-        reply: DNSPingSinglePingReply = entry.unwrap()
-        print(DNSRecord.parse(reply.reply))
-        return
-    print(f"s: cannot decode: {entry}")
+    dblikedecode.entry(entry)
 
 
 def s_command_j(meas: DBLikeWebstepsTestKeys, command: str):
