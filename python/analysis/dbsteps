@@ -35,25 +35,25 @@ from ooni.dataformat.archival import (
 from ooni import jsonl
 
 from analysis.dblike import (
-    Entry,
-    Kind,
-    MeasurementDB,
-    Origin,
+    DBLikeEntry,
+    DBLikeKind,
+    DBLikeWebstepsTestKeys,
+    DBLikeOrigin,
 )
 
 from ooni.tabulatex import Tabular
 
 
-def load(filepath: str) -> List[MeasurementDB]:
+def load(filepath: str) -> List[DBLikeWebstepsTestKeys]:
     """Loads measurements from file."""
-    out: List[MeasurementDB] = []
+    out: List[DBLikeWebstepsTestKeys] = []
     for measurement in jsonl.reader(filepath):
         try:
             meas = WebstepsTestKeys(measurement.getdictionary("test_keys"))
         except ValueError:
             traceback.print_exc()
             raise
-        mdb = MeasurementDB(meas)
+        mdb = DBLikeWebstepsTestKeys(meas)
         out.append(mdb)
     return out
 
@@ -102,7 +102,7 @@ def s_command_help():
     print("")
 
 
-def s_decode_http_round_trips(origin: Origin, http: MeasurexEndpointMeasurement):
+def s_decode_http_round_trips(origin: DBLikeOrigin, http: MeasurexEndpointMeasurement):
     """Attempts to decode HTTP round trips."""
     raw = http.raw
     # Explanation: there was a bug where the name of the variable
@@ -191,7 +191,7 @@ def s_decode_dns_round_trips(dns: MeasurexDNSLookupMeasurement):
         print("")
 
 
-def s_command_d(meas: MeasurementDB, command: str):
+def s_command_d(meas: DBLikeWebstepsTestKeys, command: str):
     """Implements the d command of the s environment."""
     try:
         idx = int(command[1:])
@@ -203,24 +203,24 @@ def s_command_d(meas: MeasurementDB, command: str):
     except KeyError:
         print(f"s: entry {idx} not found")
         return
-    if entry.kind() == Kind.ENDPOINT:
+    if entry.kind() == DBLikeKind.ENDPOINT:
         s_decode_http_round_trips(entry.origin(), entry.unwrap())
         return
-    if entry.kind() == Kind.DNS:
+    if entry.kind() == DBLikeKind.DNS:
         s_decode_dns_round_trips(entry.unwrap())
         return
-    if entry.kind() == Kind.DNS_SINGLE_PING_RESULT:
+    if entry.kind() == DBLikeKind.DNS_SINGLE_PING_RESULT:
         result: DNSPingSinglePingResult = entry.unwrap()
         print(DNSRecord.parse(result.query))
         return
-    if entry.kind() == Kind.DNS_SINGLE_PING_REPLY:
+    if entry.kind() == DBLikeKind.DNS_SINGLE_PING_REPLY:
         reply: DNSPingSinglePingReply = entry.unwrap()
         print(DNSRecord.parse(reply.reply))
         return
     print(f"s: cannot decode: {entry}")
 
 
-def s_command_j(meas: MeasurementDB, command: str):
+def s_command_j(meas: DBLikeWebstepsTestKeys, command: str):
     """Implements the j command of the s environment."""
     if len(command[1:]) <= 0:
         json.dump(meas.raw(), sys.stdout, indent=4)
@@ -240,7 +240,7 @@ def s_command_j(meas: MeasurementDB, command: str):
     sys.stdout.write("\n")
 
 
-def s_command_v(meas: MeasurementDB, command: str):
+def s_command_v(meas: DBLikeWebstepsTestKeys, command: str):
     """Implements the v command of the s environment."""
     try:
         idx = int(command[1:])
@@ -262,7 +262,7 @@ def s_command_v(meas: MeasurementDB, command: str):
     print("")
 
 
-def s_command_lm(idx: int, meas: MeasurementDB, disable_hints: bool = False):
+def s_command_lm(idx: int, meas: DBLikeWebstepsTestKeys, disable_hints: bool = False):
     """Implements the lm command of the s environment."""
     print("")
     print(f"viewing selected measurement {idx}")
@@ -275,9 +275,9 @@ def s_command_lm(idx: int, meas: MeasurementDB, disable_hints: bool = False):
         print("")
 
 
-def s_command_lia(meas_idx: int, meas: MeasurementDB):
+def s_command_lia(meas_idx: int, meas: DBLikeWebstepsTestKeys):
     """Implements the lia command of the s environment."""
-    entries: List[Entry] = []
+    entries: List[DBLikeEntry] = []
     for elem in meas.list_analysis():
         analysis: WebstepsAnalysisDNSOrEndpoint = elem.unwrap()
         if not analysis.flags.tags():
@@ -301,7 +301,7 @@ def s_command_lia(meas_idx: int, meas: MeasurementDB):
     print("")
 
 
-def s_command_ld(meas_idx: int, meas: MeasurementDB, command: str, disable_hints: bool = False):
+def s_command_ld(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disable_hints: bool = False):
     """Implements the ld command of the s environment."""
     url_idx: Optional[int] = None
     if len(command[2:]):
@@ -325,7 +325,7 @@ def s_command_ld(meas_idx: int, meas: MeasurementDB, command: str, disable_hints
         print("")
 
 
-def s_command_le(meas_idx: int, meas: MeasurementDB, command: str, disable_hints: bool = False):
+def s_command_le(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disable_hints: bool = False):
     """Implements the le command of the s environment."""
     url_idx: Optional[int] = None
     if len(command[2:]):
@@ -349,7 +349,7 @@ def s_command_le(meas_idx: int, meas: MeasurementDB, command: str, disable_hints
         print("")
 
 
-def s_command_la(meas_idx: int, meas: MeasurementDB, command: str, disable_hints: bool = False):
+def s_command_la(meas_idx: int, meas: DBLikeWebstepsTestKeys, command: str, disable_hints: bool = False):
     """Implements the la command of the s environment."""
     url_idx: Optional[int] = None
     if len(command[2:]):
@@ -373,7 +373,7 @@ def s_command_la(meas_idx: int, meas: MeasurementDB, command: str, disable_hints
         print("")
 
 
-def s_command_lu(idx: int, meas: MeasurementDB, disable_hints: bool = False):
+def s_command_lu(idx: int, meas: DBLikeWebstepsTestKeys, disable_hints: bool = False):
     """Implements the lu command of the s environment."""
     print("")
     print(f"viewing the URLs measured as part of selected measurement {idx}")
@@ -387,7 +387,7 @@ def s_command_lu(idx: int, meas: MeasurementDB, disable_hints: bool = False):
         print("")
 
 
-def s_truncate_url(meas: MeasurementDB):
+def s_truncate_url(meas: DBLikeWebstepsTestKeys):
     """Returns meas' URL and possibly truncates it."""
     url = meas.url()
     if len(url) > 47:
@@ -395,7 +395,7 @@ def s_truncate_url(meas: MeasurementDB):
     return url
 
 
-def s_interactive(idx: int, meas: MeasurementDB):
+def s_interactive(idx: int, meas: DBLikeWebstepsTestKeys):
     """The s environment (aka "selected" measurement)."""
     print("")
     print(f"selecting measurement {idx}; entering into the `s' environment...")
@@ -489,7 +489,7 @@ def main_command_help():
     print("")
 
 
-def main_command_j(meas: List[MeasurementDB], command: str):
+def main_command_j(meas: List[DBLikeWebstepsTestKeys], command: str):
     """Implements the `j` command of the main environment."""
     try:
         idx = int(command[1:])
@@ -526,7 +526,7 @@ def main_command_l_or_slash_finish(summary: Tabular):
 
 
 def main_command_l_or_slash_filter(
-    msmts: List[MeasurementDB], filter: Callable[[MeasurementDB], bool]
+    msmts: List[DBLikeWebstepsTestKeys], filter: Callable[[DBLikeWebstepsTestKeys], bool]
 ) -> Tabular:
     """Filter functionality for either `l` or `/` in the main environment"""
     summary = Tabular()
@@ -542,7 +542,7 @@ def main_command_l_or_slash_filter(
     return summary
 
 
-def main_command_l(msmts: List[MeasurementDB], all: bool):
+def main_command_l(msmts: List[DBLikeWebstepsTestKeys], all: bool):
     """Lists all the available measurements."""
 
     def filter(meas):
@@ -552,7 +552,7 @@ def main_command_l(msmts: List[MeasurementDB], all: bool):
     main_command_l_or_slash_finish(summary)
 
 
-def main_command_slash(msmts: List[MeasurementDB], command: str):
+def main_command_slash(msmts: List[DBLikeWebstepsTestKeys], command: str):
     """Implements the `/` command of the main environment."""
     pattern = command[1:]
     regex = re.compile(pattern)
@@ -564,7 +564,7 @@ def main_command_slash(msmts: List[MeasurementDB], command: str):
     main_command_l_or_slash_finish(summary)
 
 
-def main_command_s(msmts: List[MeasurementDB], command: str):
+def main_command_s(msmts: List[DBLikeWebstepsTestKeys], command: str):
     """Implements the `s` command of the main environment."""
     try:
         idx = int(command[1:])
@@ -579,7 +579,7 @@ def main_command_s(msmts: List[MeasurementDB], command: str):
     s_interactive(idx, meas)
 
 
-def main_command_c(msmts: List[MeasurementDB], command: str):
+def main_command_c(msmts: List[DBLikeWebstepsTestKeys], command: str):
     """Implements the `c` command of the main environment."""
     modifier = command[1:]
     if modifier != "i" and modifier != "u":
@@ -637,7 +637,7 @@ def main_command_c(msmts: List[MeasurementDB], command: str):
     print("")
 
 
-def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
+def main_command_hashtag(msmts: List[DBLikeWebstepsTestKeys], tag: str):
     """Implements the `#` command of the main environment."""
     idx = tag.find(":")
     samplecount = None
@@ -670,7 +670,7 @@ def main_command_hashtag(msmts: List[MeasurementDB], tag: str):
     print("")
 
 
-def main_interactive(msmts: List[MeasurementDB]):
+def main_interactive(msmts: List[DBLikeWebstepsTestKeys]):
     """Runs an interactive shell allowing to see measurements."""
     print("")
     print(f"loaded {len(msmts)} measurements; entering the main environment...")

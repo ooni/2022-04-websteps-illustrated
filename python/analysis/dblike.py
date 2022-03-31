@@ -11,7 +11,6 @@ from typing import (
     Optional,
     Protocol,
 )
-from urllib.parse import urlunparse
 
 from ooni.dataformat.archival import (
     WebstepsAnalysis,
@@ -31,7 +30,7 @@ from ooni.tabulatex import (
 )
 
 
-class Kind(Enum):
+class DBLikeKind(Enum):
     """The kind of an entry."""
 
     ANALYSIS = "analysis"
@@ -43,7 +42,7 @@ class Kind(Enum):
     URL = "url"
 
 
-class Origin(Enum):
+class DBLikeOrigin(Enum):
     """The origin of an entry."""
 
     NONE = ""
@@ -51,7 +50,7 @@ class Origin(Enum):
     TH = "th"
 
 
-class Entry(Protocol):
+class DBLikeEntry(Protocol):
     """An entry into the MeasurementDB structure."""
 
     def tabular(self) -> Tabular:
@@ -66,13 +65,13 @@ class Entry(Protocol):
         """Returns the unique ID of this entry."""
         return 0
 
-    def kind(self) -> Kind:
+    def kind(self) -> DBLikeKind:
         """Returns the kind of this entry."""
-        return Kind.NONE
+        return DBLikeKind.NONE
 
-    def origin(self) -> Origin:
+    def origin(self) -> DBLikeOrigin:
         """Returns the origin of this entry."""
-        return Origin.NONE
+        return DBLikeOrigin.NONE
 
     def raw(self) -> Dict[str, Any]:
         """Returns the raw data that generated this entry."""
@@ -83,7 +82,7 @@ class Entry(Protocol):
         return None
 
 
-class URLMeasurementWrapper:
+class DBLikeURLMeasurement:
     """Wrapper for MeasurexURLMeasurement."""
 
     def __init__(self, ssm: WebstepsSingleStepMeasurement):
@@ -105,11 +104,11 @@ class URLMeasurementWrapper:
     def id(self) -> int:
         return self._ssm.id
 
-    def kind(self) -> Kind:
-        return Kind.URL
+    def kind(self) -> DBLikeKind:
+        return DBLikeKind.URL
 
-    def origin(self) -> Origin:
-        return Origin.PROBE
+    def origin(self) -> DBLikeOrigin:
+        return DBLikeOrigin.PROBE
 
     def raw(self) -> Dict[str, Any]:
         return self._ssm.raw
@@ -118,10 +117,10 @@ class URLMeasurementWrapper:
         return self._ssm
 
 
-class DNSLookupMeasurementWrapper:
+class DBLikeDNSLookupMeasurement:
     """Wrapper for a MeasurexDNSLookupMeasurement."""
 
-    def __init__(self, step_id: int, origin: Origin, dns: MeasurexDNSLookupMeasurement):
+    def __init__(self, step_id: int, origin: DBLikeOrigin, dns: MeasurexDNSLookupMeasurement):
         self._step_id = step_id
         self._dns = dns
         self._origin = origin
@@ -145,10 +144,10 @@ class DNSLookupMeasurementWrapper:
     def id(self) -> int:
         return self._dns.id
 
-    def kind(self) -> Kind:
-        return Kind.DNS
+    def kind(self) -> DBLikeKind:
+        return DBLikeKind.DNS
 
-    def origin(self) -> Origin:
+    def origin(self) -> DBLikeOrigin:
         return self._origin
 
     def raw(self) -> Dict[str, Any]:
@@ -158,10 +157,10 @@ class DNSLookupMeasurementWrapper:
         return self._dns
 
 
-class EndpointMeasurementWrapper:
+class DBLikeEndpointMeasurement:
     """Wrapper for and MeasurexEndpointMeasurement."""
 
-    def __init__(self, step_id: int, origin: Origin, epnt: MeasurexEndpointMeasurement):
+    def __init__(self, step_id: int, origin: DBLikeOrigin, epnt: MeasurexEndpointMeasurement):
         self._step_id = step_id
         self._epnt = epnt
         self._origin = origin
@@ -189,10 +188,10 @@ class EndpointMeasurementWrapper:
     def id(self) -> int:
         return self._epnt.id
 
-    def kind(self) -> Kind:
-        return Kind.ENDPOINT
+    def kind(self) -> DBLikeKind:
+        return DBLikeKind.ENDPOINT
 
-    def origin(self) -> Origin:
+    def origin(self) -> DBLikeOrigin:
         return self._origin
 
     def raw(self) -> Dict[str, Any]:
@@ -202,10 +201,10 @@ class EndpointMeasurementWrapper:
         return self._epnt
 
 
-class AnalysisDNSOrEndpointWrapper:
+class DBLikeAnalysis:
     """Wrapper for WebstepsAnalysisDNSOrEndpoint."""
 
-    def __init__(self, step_id: int, origin: Origin, analysis: WebstepsAnalysisDNSOrEndpoint):
+    def __init__(self, step_id: int, origin: DBLikeOrigin, analysis: WebstepsAnalysisDNSOrEndpoint):
         self._step_id = step_id
         self._analysis = analysis
         self._origin = origin
@@ -224,10 +223,10 @@ class AnalysisDNSOrEndpointWrapper:
     def id(self) -> int:
         return self._analysis.id
 
-    def kind(self) -> Kind:
-        return Kind.ANALYSIS
+    def kind(self) -> DBLikeKind:
+        return DBLikeKind.ANALYSIS
 
-    def origin(self) -> Origin:
+    def origin(self) -> DBLikeOrigin:
         return self._origin
 
     def raw(self) -> Dict[str, Any]:
@@ -237,7 +236,7 @@ class AnalysisDNSOrEndpointWrapper:
         return self._analysis
 
 
-class DNSSinglePingReplyWrapper:
+class DBLikeDNSPingSinglePingReply:
     """Wrapper for DNSPingSinglePingResult."""
 
     def __init__(self, step_id: int, reply: DNSPingSinglePingReply):
@@ -262,11 +261,11 @@ class DNSSinglePingReplyWrapper:
     def id(self) -> int:
         return self._reply.id
 
-    def kind(self) -> Kind:
-        return Kind.DNS_SINGLE_PING_REPLY
+    def kind(self) -> DBLikeKind:
+        return DBLikeKind.DNS_SINGLE_PING_REPLY
 
-    def origin(self) -> Origin:
-        return Origin.PROBE
+    def origin(self) -> DBLikeOrigin:
+        return DBLikeOrigin.PROBE
 
     def raw(self) -> Dict[str, Any]:
         return self._reply.raw
@@ -275,7 +274,7 @@ class DNSSinglePingReplyWrapper:
         return self._reply
 
 
-class DNSSinglePingResultWrapper:
+class DBLikeDNSPingSinglePingResult:
     """Wrapper for DNSPingSinglePingResult."""
 
     def __init__(self, step_id: int, ping: DNSPingSinglePingResult):
@@ -299,11 +298,11 @@ class DNSSinglePingResultWrapper:
     def id(self) -> int:
         return self._ping.id
 
-    def kind(self) -> Kind:
-        return Kind.DNS_SINGLE_PING_RESULT
+    def kind(self) -> DBLikeKind:
+        return DBLikeKind.DNS_SINGLE_PING_RESULT
 
-    def origin(self) -> Origin:
-        return Origin.PROBE
+    def origin(self) -> DBLikeOrigin:
+        return DBLikeOrigin.PROBE
 
     def raw(self) -> Dict[str, Any]:
         return self._ping.raw
@@ -312,12 +311,12 @@ class DNSSinglePingResultWrapper:
         return self._ping
 
 
-class MeasurementDB:
-    """Wraps a measurement providing DB-like access."""
+class DBLikeWebstepsTestKeys:
+    """Database-like access to websteps measurements."""
 
     def __init__(self, meas: WebstepsTestKeys):
         self._meas = meas
-        self._table: Dict[int, Entry] = {}
+        self._table: Dict[int, DBLikeEntry] = {}
         self._load(meas)
 
     def tabular(self) -> Tabular:
@@ -339,48 +338,48 @@ class MeasurementDB:
         """Returns the measurement URL."""
         return self._meas.url
 
-    def list_analysis(self, url_idx: Optional[int] = None) -> List[Entry]:
+    def list_analysis(self, url_idx: Optional[int] = None) -> List[DBLikeEntry]:
         """Returns all the analysis entries."""
-        out: List[Entry] = []
+        out: List[DBLikeEntry] = []
         for entry in self._table.values():
-            if entry.kind() != Kind.ANALYSIS:
+            if entry.kind() != DBLikeKind.ANALYSIS:
                 continue
             if url_idx is not None and entry.step_id() != url_idx:
                 continue
             out.append(entry)
         return out
 
-    def list_dns(self, url_idx: Optional[int]) -> List[Entry]:
+    def list_dns(self, url_idx: Optional[int]) -> List[DBLikeEntry]:
         """Returns all the dns entries."""
-        out: List[Entry] = []
+        out: List[DBLikeEntry] = []
         for entry in self._table.values():
-            if entry.kind() != Kind.DNS:
+            if entry.kind() != DBLikeKind.DNS:
                 continue
             if url_idx is not None and entry.step_id() != url_idx:
                 continue
             out.append(entry)
         return out
 
-    def list_endpoint(self, url_idx: Optional[int]) -> List[Entry]:
+    def list_endpoint(self, url_idx: Optional[int]) -> List[DBLikeEntry]:
         """Returns all the endpoint entries."""
-        out: List[Entry] = []
+        out: List[DBLikeEntry] = []
         for entry in self._table.values():
-            if entry.kind() != Kind.ENDPOINT:
+            if entry.kind() != DBLikeKind.ENDPOINT:
                 continue
             if url_idx is not None and entry.step_id() != url_idx:
                 continue
             out.append(entry)
         return out
 
-    def list_urls(self) -> List[Entry]:
+    def list_urls(self) -> List[DBLikeEntry]:
         """Returns the list of URLs measured in this measurement."""
-        out: List[Entry] = []
+        out: List[DBLikeEntry] = []
         for entry in self._table.values():
-            if entry.kind() == Kind.URL:
+            if entry.kind() == DBLikeKind.URL:
                 out.append(entry)
         return out
 
-    def find_entry(self, id: int) -> Entry:
+    def find_entry(self, id: int) -> DBLikeEntry:
         """Returns the entry with the given ID or throws KeyError."""
         return self._table[id]
 
@@ -393,39 +392,39 @@ class MeasurementDB:
             self._load_analysis(step.id, step.analysis)
 
     def _load_probe_initial(self, ssm: WebstepsSingleStepMeasurement):
-        self._table[ssm.id] = URLMeasurementWrapper(ssm)
+        self._table[ssm.id] = DBLikeURLMeasurement(ssm)
         for d in ssm.dns:
-            self._load_dns(ssm.id, Origin.PROBE, d)
+            self._load_dns(ssm.id, DBLikeOrigin.PROBE, d)
         for e in ssm.endpoint:
-            self._load_endpoint(ssm.id, Origin.PROBE, e)
+            self._load_endpoint(ssm.id, DBLikeOrigin.PROBE, e)
 
     def _load_th(self, step_id: int, th: Optional[WebstepsTHResponse]):
         if th is not None:
             for dns in th.dns:
-                self._load_dns(step_id, Origin.TH, dns)
+                self._load_dns(step_id, DBLikeOrigin.TH, dns)
             for epnt in th.endpoint:
-                self._load_endpoint(step_id, Origin.TH, epnt)
+                self._load_endpoint(step_id, DBLikeOrigin.TH, epnt)
 
     def _load_dnsping(self, step_id: int, dnsping: Optional[DNSPingResult]):
         if dnsping is not None:
             for ping in dnsping.pings:
-                self._table[ping.id] = DNSSinglePingResultWrapper(step_id, ping)
+                self._table[ping.id] = DBLikeDNSPingSinglePingResult(step_id, ping)
                 for reply in ping.replies:
-                    self._table[reply.id] = DNSSinglePingReplyWrapper(step_id, reply)
+                    self._table[reply.id] = DBLikeDNSPingSinglePingReply(step_id, reply)
 
     def _load_probe_additional(self, step_id: int, epnts: List[MeasurexEndpointMeasurement]):
         for epnt in epnts:
-            self._load_endpoint(step_id, Origin.PROBE, epnt)
+            self._load_endpoint(step_id, DBLikeOrigin.PROBE, epnt)
 
     def _load_analysis(self, step_id: int, analysis: Optional[WebstepsAnalysis]):
         if analysis is not None:
             for dns in analysis.dns:
-                self._table[dns.id] = AnalysisDNSOrEndpointWrapper(step_id, Origin.PROBE, dns)
+                self._table[dns.id] = DBLikeAnalysis(step_id, DBLikeOrigin.PROBE, dns)
             for epnt in analysis.endpoint:
-                self._table[epnt.id] = AnalysisDNSOrEndpointWrapper(step_id, Origin.PROBE, epnt)
+                self._table[epnt.id] = DBLikeAnalysis(step_id, DBLikeOrigin.PROBE, epnt)
 
-    def _load_dns(self, step_id: int, origin: Origin, dns: MeasurexDNSLookupMeasurement):
-        self._table[dns.id] = DNSLookupMeasurementWrapper(step_id, origin, dns)
+    def _load_dns(self, step_id: int, origin: DBLikeOrigin, dns: MeasurexDNSLookupMeasurement):
+        self._table[dns.id] = DBLikeDNSLookupMeasurement(step_id, origin, dns)
 
-    def _load_endpoint(self, step_id: int, origin: Origin, epnt: MeasurexEndpointMeasurement):
-        self._table[epnt.id] = EndpointMeasurementWrapper(step_id, origin, epnt)
+    def _load_endpoint(self, step_id: int, origin: DBLikeOrigin, epnt: MeasurexEndpointMeasurement):
+        self._table[epnt.id] = DBLikeEndpointMeasurement(step_id, origin, epnt)
