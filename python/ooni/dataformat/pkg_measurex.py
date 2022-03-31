@@ -5,6 +5,7 @@ See internal/measurex/*.go
 """
 
 from __future__ import annotations
+from typing import List, Set
 from urllib.parse import urlunparse
 
 from .typecast import (
@@ -24,6 +25,7 @@ from .pkg_archival import (
     FlatHTTPRoundTripEvent,
     FlatNetworkEvent,
     FlatQUICTLSHandshake,
+    resolver_url,
 )
 
 
@@ -119,6 +121,25 @@ class MeasurexArchivalDNSLookupMeasurement:
             ArchivalDNSLookupResult(DictWrapper(x)) for x in entry.getlist("queries")
         ]
         self.raw = entry.unwrap()
+
+    def lookup_types(self) -> List[str]:
+        """Returns the lookup types in this measurement."""
+        out: Set[str] = set()
+        for query in self.queries:
+            out.add(query.query_type)
+        return list(out)
+
+    def ptrs(self) -> List[str]:
+        """Returns the PTRs in this measurement."""
+        out: Set[str] = set()
+        for query in self.queries:
+            for answer in query.answers:
+                if answer.answer_type == "PTR":
+                    out.add(answer.hostname)
+        return list(out)
+
+    def resolver_url(self) -> str:
+        return resolver_url(self.resolver_network, self.resolver_address)
 
 
 class MeasurexArchivalEndpointMeasurement:

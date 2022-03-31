@@ -11,6 +11,7 @@ from typing import (
     Optional,
     Protocol,
 )
+from urllib.parse import urlunparse
 
 from ooni.dataformat.archival import (
     WebstepsAnalysis,
@@ -130,11 +131,12 @@ class DNSLookupMeasurementWrapper:
             ("step_id", self._step_id),
             ("id", self._dns.id),
             ("origin", self._origin),
-            ("resolver_network", self._dns.resolver_network),
-            ("resolver_address", self._dns.resolver_address),
+            ("resolver", self._dns.resolver_url()),
+            ("lookup_types", self._dns.lookup_types()),
             ("domain", self._dns.domain),
             ("failure", self._dns.failure),
             ("addresses", self._dns.addresses),
+            ("ptrs", self._dns.ptrs())
         ])
 
     def step_id(self) -> int:
@@ -168,11 +170,17 @@ class EndpointMeasurementWrapper:
         return Tabular.create([
             ("step_id", self._step_id),
             ("id", self._epnt.id),
+            ("origin", self._origin),
             ("url", self._epnt.url),
             ("network", self._epnt.network),
             ("address", self._epnt.address),
+            ("cookies_names", self._epnt.cookies_names),
             ("failed_operation", self._epnt.failed_operation),
             ("failure", self._epnt.failure),
+            ("location", self._epnt.location),
+            ("title", self._epnt.title),
+            ("status", self._epnt.status_code),
+            ("body_len", self._epnt.body_length),
         ])
 
     def step_id(self) -> int:

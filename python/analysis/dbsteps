@@ -15,6 +15,7 @@ import tabulate
 from typing import (
     Callable,
     List,
+    Optional,
 )
 
 # Imported to make `input()` better
@@ -72,14 +73,17 @@ def s_command_help():
     print("  j<id>")
     print("    views the JSON of the observation or analysis with the given <id>")
     print("")
-    print("  la<id>")
-    print("    lists probe's analysis for the given URL <id>")
+    print("  l")
+    print("    equivalent to running in sequence lm, lu, ld, le, la")
     print("")
-    print("  ld<id>")
-    print("    lists dns results for the given URL <id>")
+    print("  la[<id>]")
+    print("    lists probe's analysis for the given step <id> or for all steps (if no <id> is specified)")
     print("")
-    print("  le<id>")
-    print("    lists endpoint results for the given URL <id>")
+    print("  ld[<id>]")
+    print("    lists dns results for the given step <id> or for all steps (if no <id> is specified)")
+    print("")
+    print("  le[<id>]")
+    print("    lists endpoint results for the given step <id> or for all steps (if no <id> is specified)")
     print("")
     print("  lia")
     print('    lists "interesting" analysis')
@@ -150,6 +154,9 @@ def s_decode_http_round_trips(origin: Origin, http: MeasurexEndpointMeasurement)
             print(f"// body_is_truncated: {bodytrunc}")
             bodytlsh = respdata.get("body_tlsh")
             print(f"// body_tlsh: {bodytlsh}")
+            body = respdata.get("body")
+            print("")
+            print(body)
     print("")
     failure = req.get("failure")
     if failure:
@@ -255,16 +262,17 @@ def s_command_v(meas: MeasurementDB, command: str):
     print("")
 
 
-def s_command_lm(idx: int, meas: MeasurementDB):
+def s_command_lm(idx: int, meas: MeasurementDB, disable_hints: bool = False):
     """Implements the lm command of the s environment."""
     print("")
     print(f"viewing selected measurement {idx}")
     print("")
     print(meas.tabular().tabulatex())
     print("")
-    print("hint: use `lu` to list the URLs measured within this measurement")
-    print("hint: use `h' for help")
-    print("")
+    if not disable_hints:
+        print("hint: use `lu` to list the URLs measured within this measurement")
+        print("hint: use `h' for help")
+        print("")
 
 
 def s_command_lia(meas_idx: int, meas: MeasurementDB):
@@ -293,70 +301,79 @@ def s_command_lia(meas_idx: int, meas: MeasurementDB):
     print("")
 
 
-def s_command_ld(meas_idx: int, meas: MeasurementDB, command: str):
+def s_command_ld(meas_idx: int, meas: MeasurementDB, command: str, disable_hints: bool = False):
     """Implements the ld command of the s environment."""
-    try:
-        url_idx = int(command[2:])
-    except ValueError:
-        print("s: argument for `ld' must be a number")
-        return
+    url_idx: Optional[int] = None
+    if len(command[2:]):
+        try:
+            url_idx = int(command[2:])
+        except ValueError:
+            print("s: argument for `ld' must be a number")
+            return
     entries = meas.list_dns(url_idx)
     if not entries:
         print(f"warning: cannot find dns for URL {url_idx}")
         return
     print("")
-    print(f"viewing dns for selected measurement {meas_idx} and URL {url_idx}")
+    print(f"viewing dns for selected measurement {meas_idx} and step {url_idx or 'any'}")
     print("")
     print(Tabular.mapcreate(entries).tabulatex())
     print("")
-    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
-    print("hint: use `h' for help")
-    print("")
+    if not disable_hints:
+        print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+        print("hint: use `h' for help")
+        print("")
 
 
-def s_command_le(meas_idx: int, meas: MeasurementDB, command: str):
+def s_command_le(meas_idx: int, meas: MeasurementDB, command: str, disable_hints: bool = False):
     """Implements the le command of the s environment."""
-    try:
-        url_idx = int(command[2:])
-    except ValueError:
-        print("s: argument for `le' must be a number")
-        return
+    url_idx: Optional[int] = None
+    if len(command[2:]):
+        try:
+            url_idx = int(command[2:])
+        except ValueError:
+            print("s: argument for `le' must be a number")
+            return
     entries = meas.list_endpoint(url_idx)
     if not entries:
         print(f"warning: cannot find endpoint for URL {url_idx}")
         return
     print("")
-    print(f"viewing endpoint for selected measurement {meas_idx} and URL {url_idx}")
+    print(f"viewing endpoint for selected measurement {meas_idx} and step {url_idx or 'any'}")
     print("")
-    print(Tabular.mapcreate(entries).tabulatex())
+    print(Tabular.mapcreate(entries).tabulatex(sortkey=lambda x: x[5]))
     print("")
-    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
-    print("hint: use `h' for help")
-    print("")
+    if not disable_hints:
+        print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+        print("hint: use `h' for help")
+        print("")
 
 
-def s_command_la(meas_idx: int, meas: MeasurementDB, command: str):
+def s_command_la(meas_idx: int, meas: MeasurementDB, command: str, disable_hints: bool = False):
     """Implements the la command of the s environment."""
-    try:
-        url_idx = int(command[2:])
-    except ValueError:
-        print("s: argument for `la' must be a number")
-        return
+    url_idx: Optional[int] = None
+    if len(command[2:]):
+        try:
+            url_idx = int(command[2:])
+        except ValueError:
+            print("s: argument for `la' must be a number")
+            return
     entries = meas.list_analysis(url_idx)
     if not entries:
         print(f"warning: cannot find analysis for URL {url_idx}")
         return
     print("")
-    print(f"viewing analysis for selected measurement {meas_idx} and URL {url_idx}")
+    print(f"viewing analysis for selected measurement {meas_idx} and step {url_idx or 'any'}")
     print("")
     print(Tabular.mapcreate(entries).tabulatex())
     print("")
-    print("hint: use `v<id>' to view the observation or analyis with the given <id>")
-    print("hint: use `h' for help")
-    print("")
+    if not disable_hints:
+        print("hint: use `v<id>' to view the observation or analyis with the given <id>")
+        print("hint: use `h' for help")
+        print("")
 
 
-def s_command_lu(idx: int, meas: MeasurementDB):
+def s_command_lu(idx: int, meas: MeasurementDB, disable_hints: bool = False):
     """Implements the lu command of the s environment."""
     print("")
     print(f"viewing the URLs measured as part of selected measurement {idx}")
@@ -364,9 +381,10 @@ def s_command_lu(idx: int, meas: MeasurementDB):
     entries = meas.list_urls()
     print(Tabular.mapcreate(entries).tabulatex())
     print("")
-    print(f'hint: use `lia\' to list "interesting" analysis')
-    print("hint: use `h' for help")
-    print("")
+    if not disable_hints:
+        print(f'hint: use `lia\' to list "interesting" analysis')
+        print("hint: use `h' for help")
+        print("")
 
 
 def s_truncate_url(meas: MeasurementDB):
@@ -382,7 +400,7 @@ def s_interactive(idx: int, meas: MeasurementDB):
     print("")
     print(f"selecting measurement {idx}; entering into the `s' environment...")
     print("")
-    print("hint: use `lm' to print the selected measurement")
+    print("hint: use `l' to see all the information we have on this measurement")
     print("hint: use `h' for help")
     print("")
     while True:
@@ -395,6 +413,16 @@ def s_interactive(idx: int, meas: MeasurementDB):
             continue
         if command.startswith("j"):
             s_command_j(meas, command)
+            continue
+        if command == "l":
+            s_command_lm(idx, meas, disable_hints=True)
+            s_command_lu(idx, meas, disable_hints=True)
+            s_command_ld(idx, meas, "ld", disable_hints=True)
+            s_command_le(idx, meas, "le", disable_hints=True)
+            s_command_la(idx, meas, "la", disable_hints=True)
+            print("hint: use `lia' to list interesting analyses")
+            print("hint: use `h' for help")
+            print("")
             continue
         if command.startswith("la"):
             s_command_la(idx, meas, command)

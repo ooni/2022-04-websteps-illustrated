@@ -77,6 +77,9 @@ class ArchivalDNSLookupResult:
         self.started = entry.getfloat("started")
         self.t = entry.getfloat("t")
 
+    def resolver_url(self) -> str:
+        return resolver_url(self.engine, self.resolver_address)
+
 
 class ArchivalNetworkEvent:
     """Corresponds to internal/model.ArchivalNetworkEvent."""
@@ -268,6 +271,13 @@ class FlatDNSRoundTripEvent:
         self.started = data.getstring("Started")
 
 
+def resolver_url(network: str, address: str) -> str:
+    """Returns the resolver URL given a resolver network and address."""
+    if network == "doh":
+        return address
+    return urlunparse((network, address, "/", "", "", ""))
+
+
 class FlatDNSLookupEvent:
     """Corresponds to internal/archival.FlatDNSLookupEvent."""
 
@@ -286,11 +296,7 @@ class FlatDNSLookupEvent:
         self.started = data.getstring("Started")
 
     def resolver_url(self) -> str:
-        if self.resolver_network == "doh":
-            return self.resolver_address
-        return urlunparse(
-            (self.resolver_network, self.resolver_address, "/", "", "", "")
-        )
+        return resolver_url(self.resolver_network, self.resolver_address)
 
 
 class FlatNetworkEvent:
