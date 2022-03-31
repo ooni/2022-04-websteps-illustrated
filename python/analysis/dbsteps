@@ -632,6 +632,7 @@ def main_command_hashtag(msmts: List[DBLikeWebstepsTestKeys], tag: str):
             samplecount = int(sample)
         except ValueError:
             print("error: the sample argument must be an integer")
+            return
     selected = Tabular()
     for idx, meas in enumerate(msmts):
         if tag in meas.tags():
