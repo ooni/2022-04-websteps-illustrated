@@ -322,7 +322,7 @@ class FlatQUICTLSHandshake:
         self.finished = data.getstring("Finished")
         self.negotiated_proto = data.getstring("NegotiatedProto")
         self.network = data.getstring("Network")
-        self.peer_certs = [StrWrapper(x) for x in data.getlist("PeerCerts")]
+        self.peer_certs = [StrWrapper(x).unwrap() for x in data.getlist("PeerCerts")]
         self.remote_addr = data.getstring("RemoteAddr")
         self.sni = data.getstring("SNI")
         self.skip_verify = data.getbool("SkipVerify")
