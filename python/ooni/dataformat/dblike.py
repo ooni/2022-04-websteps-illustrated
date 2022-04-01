@@ -466,6 +466,8 @@ class DBLikeWebstepsTestKeys:
                 self._table[dns.id] = DBLikeAnalysis(step_id, DBLikeOrigin.PROBE, dns)
             for epnt in analysis.endpoint:
                 self._table[epnt.id] = DBLikeAnalysis(step_id, DBLikeOrigin.PROBE, epnt)
+            for th in analysis.th:
+                self._table[th.id] = DBLikeAnalysis(step_id, DBLikeOrigin.PROBE, th)
 
     def _load_dns(
         self, step_id: int, origin: DBLikeOrigin, dns: MeasurexDNSLookupMeasurement
