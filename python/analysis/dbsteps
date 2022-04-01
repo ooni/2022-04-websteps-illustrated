@@ -47,6 +47,10 @@ import tempfiledir
 def s_command_help():
     """Prints the help screen."""
     print("")
+    print("  b")
+    print("    generates HTML webpage for the measurement and shows it in the browser")
+    print("")
+    print("")
     print("  d<id>")
     print("    decodes the observation with the given <id>")
     print("")
@@ -321,6 +325,9 @@ def s_interactive(idx: int, meas: DBLikeWebstepsTestKeys):
     print("")
     while True:
         command = input(f"📡📡📡 s:{idx} [{s_truncate_url(meas)}]> ")
+        if command == "b":
+            command_b(meas)
+            continue
         if command.startswith("d"):
             s_command_d(meas, command)
             continue
@@ -728,6 +735,11 @@ def main_command_b(msmts: List[DBLikeWebstepsTestKeys], command: str):
     except IndexError:
         print("error: no such measurement")
         return
+    return command_b(meas)
+
+
+def command_b(meas: DBLikeWebstepsTestKeys):
+    """Helper to implement the b command in many environments."""
     doc, _, _ = yattag.doc.Doc().tagtext()
     with doc.tag("html"):
         doc.attr(lang="en")
