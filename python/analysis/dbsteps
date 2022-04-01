@@ -4,6 +4,7 @@
 
 import argparse
 import base64
+import random
 from urllib.parse import urlparse, urlunparse
 import webbrowser
 from dnslib import DNSRecord
@@ -511,47 +512,65 @@ def main_command_c(msmts: List[DBLikeWebstepsTestKeys], command: str):
         print("hint: use `h' for help")
         print("")
         return
+
+    samples = {}
     tags = {}
     tot = 0
-    for meas in msmts:
+    for idx, meas in enumerate(msmts):
         if modifier == "i":
             for tag in meas.tags():
                 tags.setdefault(tag, 0)
                 tags[tag] += 1
+                samples.setdefault(tag, [])
+                samples[tag].append(idx)
                 tot += 1
         else:
-            v = " ".join(meas.tags())
+            v = "\n".join(meas.tags())
             tags.setdefault(v, 0)
             tags[v] += 1
+            samples.setdefault(v, [])
+            samples[v].append(idx)
             tot += 1
+
     tagslist = sorted(tags.items(), key=lambda v: v[1], reverse=True)
     tagslist.append(("Total", tot))
     final = []
     if tot <= 0:
         print("")
-        print("no blocking detected")
+        print("no anomalies detected")
         print("")
         print("hint: use `l' to list measurements")
         print("hint: use `h' for help")
         print("")
         return
+
+    def getsamples(samples, tag):
+        if tag == "Total":
+            return []
+        v = samples[tag]
+        random.shuffle(v)
+        return v[:4]
+
     for tag, count in tagslist:
         percentage = f"{((100 *count)/tot):.1f}%"
         final.append(
             (
                 tag,
                 count,
+                getsamples(samples, tag),
                 percentage,
             )
         )
+
     print(
         tabulate.tabulate(
             final,
-            headers=["tag", "count", "percentage"],
+            headers=["tag", "count", "samples", "percentage"],
             tablefmt="grid",
             stralign="right",
         )
     )
+
     print("")
     print("hint: use `#<tagName>' to filter by tag name (e.g., `#bogon`)")
     print("hint: use `h' for help")
