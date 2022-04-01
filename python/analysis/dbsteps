@@ -3,11 +3,9 @@
 """Allows to navigate measurements."""
 
 import argparse
-import base64
 import random
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlunparse
 import webbrowser
-from dnslib import DNSRecord
 import json
 import os
 import re
@@ -322,7 +320,7 @@ def s_interactive(idx: int, meas: DBLikeWebstepsTestKeys):
     print("hint: use `h' for help")
     print("")
     while True:
-        command = input(f"🐚🐚🐚 s:{idx} [{s_truncate_url(meas)}]> ")
+        command = input(f"📡📡📡 s:{idx} [{s_truncate_url(meas)}]> ")
         if command.startswith("d"):
             s_command_d(meas, command)
             continue
@@ -361,10 +359,6 @@ def s_interactive(idx: int, meas: DBLikeWebstepsTestKeys):
             s_command_lu(idx, meas)
             continue
         if command == "q":
-            print("")
-            print("leaving the `s' environment...")
-            print('hint: use `li\' to list "interesting" measurements')
-            print("")
             break
         if command.startswith("v"):
             s_command_v(meas, command)
@@ -387,8 +381,14 @@ def main_command_help():
     print("  ci")
     print("    classifies the failure tags _individually_")
     print("")
+    print("  cii")
+    print("    interactively classifies the failure tags _individually_")
+    print("")
     print("  cu")
     print("    classifies the failure tags _per URL_")
+    print("")
+    print("  cui")
+    print("    interactively classifies the failure tags _per URL_")
     print("")
     print("  h")
     print("    prints this help screen")
@@ -501,12 +501,104 @@ def main_command_s(msmts: List[DBLikeWebstepsTestKeys], command: str):
     s_interactive(idx, meas)
 
 
+def inspect_command_help():
+    """Implements the `h` command of the inspect environment."""
+    print("")
+    print("  a")
+    print("    shows _again_ the cii/cui row we're currently inspecting")
+    print("")
+    print("  b<id>")
+    print("    generates HTML webpage for the measurement and shows it in the browser")
+    print("")
+    print("  h")
+    print("    prints this help screen")
+    print("")
+    print("  j<id>")
+    print("    prints the JSON of the measurement with <id>")
+    print("")
+    print("  n")
+    print("    cycles to the _next_ cii/cui result")
+    print("")
+    print("  q")
+    print("    _quits_ the interactive inspection of cii/cui results")
+    print("")
+    print("  s<id>")
+    print("    selects the measurement with the given ID")
+    print("")
+
+
+def inspect_interactive(msmts: List[DBLikeWebstepsTestKeys], line: str) -> bool:
+    """Interactive prompt for cii or cui."""
+    print(line)
+    print("")
+    while True:
+        command = input("🧐🧐🧐 inspect> ")
+        if command == "a":
+            print(line)
+            print("")
+            continue
+        if command.startswith("b"):
+            main_command_b(msmts, command)
+            continue
+        if command.startswith("j"):
+            main_command_j(msmts, command)
+            continue
+        if command.startswith("h"):
+            inspect_command_help()
+            continue
+        if command == "n" or command == "q":
+            return command == "n"
+        if command.startswith("s"):
+            main_command_s(msmts, command)
+            print("")
+            print("leaving the `s' environment...")
+            print("")
+            print("hint: use `a' to see _again_ the cii/cui row we're inspecting")
+            print("hint: use `n' to skip to the _next_ row")
+            print("hint: use `q' to _quit_ iterating through cii/cui results")
+            print("")
+            continue
+        print(f"dbsteps: {command}: command not found (try 'h' for help)")
+
+
 def main_command_c(msmts: List[DBLikeWebstepsTestKeys], command: str):
     """Implements the `c` command of the main environment."""
-    modifier = command[1:]
-    if modifier != "i" and modifier != "u":
+
+    interactive = False
+    if len(command) > 1:
+        modifier = command[1]
+        if modifier != "i" and modifier != "u":
+            print("")
+            print(
+                "error: the `c' command has two forms: `ci` (or `cii`) and `cu' (or `cui`)"
+            )
+            print("")
+            print("hint: use `l' to list measurements")
+            print("hint: use `h' for help")
+            print("")
+            return
+        if len(command) > 2:
+            iflag = command[2]
+            if iflag != "i":
+                print("")
+                print("error: expected `cii` or `cui`")
+                print("")
+                print("hint: use `l' to list measurements")
+                print("hint: use `h' for help")
+                print("")
+                return
+            interactive = True
+        if len(command) > 3:
+            print("")
+            print("error: expected ci, cii, cu, or cui")
+            print("")
+            print("hint: use `l' to list measurements")
+            print("hint: use `h' for help")
+            print("")
+            return
+    else:
         print("")
-        print("error: the `c' command has two forms: `ci` and `cu'")
+        print("error: expected ci, cii, cu, or cui")
         print("")
         print("hint: use `l' to list measurements")
         print("hint: use `h' for help")
@@ -562,14 +654,27 @@ def main_command_c(msmts: List[DBLikeWebstepsTestKeys], command: str):
             )
         )
 
-    print(
-        tabulate.tabulate(
-            final,
-            headers=["tag", "count", "samples", "percentage"],
-            tablefmt="grid",
-            stralign="right",
-        )
+    tablefmt = "grid"
+    if interactive:
+        tablefmt = "simple"
+    table = tabulate.tabulate(
+        final,
+        headers=["tag", "count", "samples", "percentage"],
+        tablefmt=tablefmt,
+        stralign="right",
     )
+    seendashes = False
+    for line in table.splitlines():
+        if interactive:
+            if not seendashes:
+                print(line)
+                if line.startswith("-------"):
+                    seendashes = True
+                continue
+            if not inspect_interactive(msmts, line):
+                break
+        else:
+            print(line)
 
     print("")
     print("hint: use `#<tagName>' to filter by tag name (e.g., `#bogon`)")
@@ -680,6 +785,10 @@ def main_interactive(msmts: List[DBLikeWebstepsTestKeys]):
             break
         if command.startswith("s"):
             main_command_s(msmts, command)
+            print("")
+            print("leaving the `s' environment...")
+            print('hint: use `li\' to list "interesting" measurements')
+            print("")
             continue
         print(f"dbsteps: {command}: command not found (try 'h' for help)")
 
