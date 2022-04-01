@@ -99,15 +99,15 @@ def _websteps_analysis(doc: SimpleDoc, analysis: List[DBLikeEntry]):
 
 def websteps_measurement(doc: SimpleDoc, tks: DBLikeWebstepsTestKeys):
     """Transforms a websteps measurement into an HTML page."""
-    with doc.tag("h1"):
+    with doc.tag("h2"):
         doc.text("Steps")
     _websteps_steps(doc, tks)
-    with doc.tag("h1"):
+    with doc.tag("h2"):
         doc.text("Analysis")
     _websteps_analysis(doc, tks.list_analysis(None))
-    with doc.tag("h1"):
+    with doc.tag("h2"):
         doc.text("DNS")
     _websteps_dns(doc, tks.list_dns(None))
-    with doc.tag("h1"):
+    with doc.tag("h2"):
         doc.text("Endpoint")
     _websteps_endpoint(doc, tks.list_endpoint(None))

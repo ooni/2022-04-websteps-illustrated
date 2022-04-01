@@ -326,7 +326,7 @@ def s_interactive(idx: int, meas: DBLikeWebstepsTestKeys):
     while True:
         command = input(f"📡📡📡 s:{idx} [{s_truncate_url(meas)}]> ")
         if command == "b":
-            command_b(meas)
+            command_b(idx, meas)
             continue
         if command.startswith("d"):
             s_command_d(meas, command)
@@ -735,19 +735,21 @@ def main_command_b(msmts: List[DBLikeWebstepsTestKeys], command: str):
     except IndexError:
         print("error: no such measurement")
         return
-    return command_b(meas)
+    return command_b(index, meas)
 
 
-def command_b(meas: DBLikeWebstepsTestKeys):
+def command_b(idx: int, meas: DBLikeWebstepsTestKeys):
     """Helper to implement the b command in many environments."""
     doc, _, _ = yattag.doc.Doc().tagtext()
     with doc.tag("html"):
         doc.attr(lang="en")
         with doc.tag("title"):
-            doc.text("Single websteps measurement")
+            doc.text(f"Websteps measurement #{idx}")
         with doc.tag("link"):
             doc.attr(href="main.css", rel="stylesheet")
         with doc.tag("body"):
+            with doc.tag("h1"):
+                doc.text(f"Websteps measurement #{idx}")
             htmlx.websteps_measurement(doc, meas)
             with doc.tag("script"):
                 doc.attr(src="main.js")
