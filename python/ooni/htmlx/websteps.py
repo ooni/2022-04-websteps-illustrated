@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 from ..dataformat import dblikedecode
+from ..dataformat import dblike
 
 from ..dataformat.dblike import (
     DBLikeEntry,
@@ -20,7 +21,7 @@ from yattag.simpledoc import SimpleDoc
 def _websteps_steps(doc: SimpleDoc, tks: DBLikeWebstepsTestKeys):
     with doc.tag("table"):
         doc.attr(klass="styled-table")
-        tab = Tabular.mapcreate(tks.list_urls())
+        tab = dblike.entries_to_tabular(tks.list_urls())
         with doc.tag("thead"):
             with doc.tag("tr"):
                 for column in tab.columns():
@@ -42,7 +43,7 @@ def _websteps_dns(doc: SimpleDoc, dns: List[DBLikeEntry]):
 
 
 def _websteps_endpoint(doc: SimpleDoc, epnt: List[DBLikeEntry]):
-    tab = Tabular.mapcreate(epnt)
+    tab = dblike.entries_to_tabular(epnt)
     idx_index: Optional[int] = None
     with doc.tag("table"):
         doc.attr(klass="styled-table")
@@ -79,7 +80,7 @@ def _websteps_endpoint(doc: SimpleDoc, epnt: List[DBLikeEntry]):
 
 
 def _websteps_analysis(doc: SimpleDoc, analysis: List[DBLikeEntry]):
-    tab = Tabular.mapcreate(analysis)
+    tab = dblike.entries_to_tabular(analysis)
     with doc.tag("table"):
         doc.attr(klass="styled-table")
         with doc.tag("thead"):

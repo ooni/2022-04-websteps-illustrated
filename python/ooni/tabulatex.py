@@ -52,14 +52,6 @@ class Tabular:
         tab._rows.append(row)
         return tab
 
-    @staticmethod
-    def mapcreate(entries: List[Tabulable]) -> Tabular:
-        """Returns the tabular obtained calling tabular() on each entry."""
-        tab = Tabular()
-        for entry in entries:
-            tab.append(entry.tabular())
-        return tab
-
     def append(self, tab: Tabular):
         """Appends the given tabular to the current tabular, if the
         columns are compatible, otherwise raise TypeError."""

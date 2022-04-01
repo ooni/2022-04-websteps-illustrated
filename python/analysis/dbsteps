@@ -184,7 +184,7 @@ def s_command_lia(meas_idx: int, meas: DBLikeWebstepsTestKeys):
     print("")
     print(f'viewing "interesting" analysis for selected measurement {meas_idx}')
     print("")
-    print(Tabular.mapcreate(entries).tabulatex())
+    print(dblike.entries_to_tabular(entries).tabulatex())
     print("")
     print("hint: use `v<id>' to view the observation or analyis with the given <id>")
     print("hint: use `h' for help")
@@ -214,7 +214,7 @@ def s_command_ld(
         f"viewing dns for selected measurement {meas_idx} and step {url_idx or 'any'}"
     )
     print("")
-    print(Tabular.mapcreate(entries).tabulatex())
+    print(dblike.entries_to_tabular(entries).tabulatex())
     print("")
     if not disable_hints:
         print(
@@ -247,7 +247,7 @@ def s_command_le(
         f"viewing endpoint for selected measurement {meas_idx} and step {url_idx or 'any'}"
     )
     print("")
-    print(Tabular.mapcreate(entries).tabulatex(sortkey=lambda x: x[5]))
+    print(dblike.entries_to_tabular(entries).tabulatex(sortkey=lambda x: x[5]))
     print("")
     if not disable_hints:
         print(
@@ -280,7 +280,7 @@ def s_command_la(
         f"viewing analysis for selected measurement {meas_idx} and step {url_idx or 'any'}"
     )
     print("")
-    print(Tabular.mapcreate(entries).tabulatex())
+    print(dblike.entries_to_tabular(entries).tabulatex())
     print("")
     if not disable_hints:
         print(
@@ -296,7 +296,7 @@ def s_command_lu(idx: int, meas: DBLikeWebstepsTestKeys, disable_hints: bool = F
     print(f"viewing the URLs measured as part of selected measurement {idx}")
     print("")
     entries = meas.list_urls()
-    print(Tabular.mapcreate(entries).tabulatex())
+    print(dblike.entries_to_tabular(entries).tabulatex())
     print("")
     if not disable_hints:
         print(f'hint: use `lia\' to list "interesting" analysis')

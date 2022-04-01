@@ -93,6 +93,14 @@ class DBLikeEntry(Protocol):
         return None
 
 
+def entries_to_tabular(entries: List[DBLikeEntry]) -> Tabular:
+    """Converts a list of entries to the tabular format."""
+    tab = Tabular()
+    for entry in entries:
+        tab.append(entry.tabular())
+    return tab
+
+
 class DBLikeURLMeasurement:
     """Wrapper for MeasurexURLMeasurement."""
 
