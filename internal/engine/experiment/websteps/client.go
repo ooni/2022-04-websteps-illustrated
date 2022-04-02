@@ -566,7 +566,7 @@ func (thm *THResponse) URLAddressList(domain string) (o []*measurex.URLAddress, 
 
 func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 	mx measurex.AbstractMeasurer, ssm *SingleStepMeasurement) {
-	addrslist, _ := c.expandProbeKnowledge(mx, ssm)
+	addrslist, _ := c.expandProbeKnowledge(ssm)
 	// Here we need to specify "measure again" because the addresses appear to be
 	// already tested though it's the TH that has tested them, not us.
 	plan, _ := ssm.ProbeInitial.NewEndpointPlanWithAddressList(
@@ -592,7 +592,7 @@ func (c *Client) measureAdditionalEndpoints(ctx context.Context,
 // to return and false otherwise. Beware that returning a non-empty
 // list doesn't imply that the probe will end up testing it. Limitations
 // on the maximum number of addresses per family apply.
-func (c *Client) expandProbeKnowledge(mx measurex.AbstractMeasurer,
+func (c *Client) expandProbeKnowledge(
 	ssm *SingleStepMeasurement) ([]*measurex.URLAddress, bool) {
 	// 1. gather the lists for the probe and the th
 	pal, _ := ssm.probeInitialURLAddressList()
