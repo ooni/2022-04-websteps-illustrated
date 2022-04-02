@@ -56,6 +56,7 @@ func newSingleStepMeasurement(discover *measurex.URLMeasurement) *SingleStepMeas
 	return &SingleStepMeasurement{
 		ProbeInitial:    discover,
 		TH:              &THResponse{},
+		DNSPing:         nil,
 		ProbeAdditional: []*measurex.EndpointMeasurement{},
 		Analysis:        &Analysis{},
 	}
