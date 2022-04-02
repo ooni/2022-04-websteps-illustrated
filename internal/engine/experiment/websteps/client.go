@@ -234,16 +234,17 @@ func (ssm *SingleStepMeasurement) rememberVisitedURLs(q *measurex.URLRedirectDeq
 // that are stored inside the test keys.
 func (ssm *SingleStepMeasurement) redirects(
 	mx measurex.AbstractMeasurer) (o []*measurex.URLMeasurement, v bool) {
-	if ssm.ProbeInitial != nil {
-		r, _ := mx.Redirects(ssm.ProbeInitial.Endpoint, ssm.ProbeInitial.Options)
-		o = append(o, r...)
+	if ssm.ProbeInitial == nil {
+		return nil, false
 	}
+	r1, _ := mx.Redirects(ssm.ProbeInitial.Endpoint, ssm.ProbeInitial.Options)
+	o = append(o, r1...)
 	if ssm.TH != nil {
-		r, _ := mx.Redirects(ssm.TH.Endpoint, ssm.ProbeInitial.Options)
-		o = append(o, r...)
+		r2, _ := mx.Redirects(ssm.TH.Endpoint, ssm.ProbeInitial.Options)
+		o = append(o, r2...)
 	}
-	r, _ := mx.Redirects(ssm.ProbeAdditional, ssm.ProbeInitial.Options)
-	o = append(o, r...)
+	r3, _ := mx.Redirects(ssm.ProbeAdditional, ssm.ProbeInitial.Options)
+	o = append(o, r3...)
 	return o, len(o) > 0
 }
 
