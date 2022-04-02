@@ -32,7 +32,7 @@ type CLI struct {
 func getopt() *CLI {
 	opts := &CLI{
 		Archival:     false,
-		Backend:      "wss://0.th.ooni.org/websteps/v1/th",
+		Backend:      "wss://0.th.ooni.org/websteps/v1/websocket",
 		Both:         false,
 		Help:         false,
 		Input:        "",

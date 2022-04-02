@@ -240,7 +240,7 @@ func (c *Client) websocketRecvAsync(conn *websocket.Conn, out chan<- *THResponse
 			out <- &THResponseOrError{Err: err}
 			return
 		}
-		reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
+		reader = io.LimitReader(reader, THHMaxAcceptableMessageSize)
 		data, err := netxlite.ReadAllContext(context.Background(), reader)
 		if err != nil {
 			logcat.Shrugf("[thclient] cannot read message body: %s", err.Error())
@@ -298,16 +298,49 @@ type THHandler struct {
 	IDGenerator *measurex.IDGenerator
 }
 
-// THHMaxAcceptableWebSocketMessage is the maximum websocket message size.
-const THHMaxAcceptableWebSocketMessage = 1 << 20
+// THHMaxAcceptableMessageSize is the maximum websocket/http message size.
+const THHMaxAcceptableMessageSize = 1 << 20
 
-// ServeHTTP implements http.Handler.ServeHTTP.
-func (thh *THHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	thr := thh.newTHRequestHandler()
-	thr.do(w, req)
+// ServeWithHTTP serves clients that choose to use the HTTP API.
+func (thh *THHandler) ServeWithHTTP(w http.ResponseWriter, req *http.Request) {
+	thh.newTHRequestHandler().serveWithHTTP(w, req)
 }
 
-func (thr *THRequestHandler) do(w http.ResponseWriter, req *http.Request) {
+func (thr *THRequestHandler) serveWithHTTP(w http.ResponseWriter, req *http.Request) {
+	reader := io.LimitReader(req.Body, THHMaxAcceptableMessageSize)
+	data, err := netxlite.ReadAllContext(context.Background(), reader)
+	if err != nil {
+		logcat.Shrugf("[thh] cannot read message body: %s", err.Error())
+		w.WriteHeader(400)
+		return
+	}
+	var thReq THRequest
+	if err := json.Unmarshal(data, &thReq); err != nil {
+		logcat.Shrugf("[thh] cannot unmarshal message: %s", err.Error())
+		w.WriteHeader(400)
+		return
+	}
+	thRespOrError := <-thr.stepAsync(&thReq)
+	if thRespOrError.Err != nil {
+		logcat.Shrugf("[thh] TH goroutine failed: %s", thRespOrError.Err.Error())
+		w.WriteHeader(500)
+		return
+	}
+	data, err = json.Marshal(thRespOrError.Resp)
+	if err != nil {
+		logcat.Shrugf("[thh] cannot marshal message: %s", err.Error())
+		w.WriteHeader(500)
+		return
+	}
+	w.Write(data)
+}
+
+// ServeWithWebsocket serves clients that choose to use the websocket API.
+func (thh *THHandler) ServeWithWebsocket(w http.ResponseWriter, req *http.Request) {
+	thh.newTHRequestHandler().serveWithWebsocket(w, req)
+}
+
+func (thr *THRequestHandler) serveWithWebsocket(w http.ResponseWriter, req *http.Request) {
 	conn, err := thr.upgrade(w, req)
 	if err != nil {
 		return // error already logged
@@ -375,7 +408,7 @@ func (thr *THRequestHandler) readMsg(conn *websocket.Conn) (*THRequest, error) {
 		logcat.Shrugf("[thh] received non-text message")
 		return nil, err
 	}
-	reader = io.LimitReader(reader, THHMaxAcceptableWebSocketMessage)
+	reader = io.LimitReader(reader, THHMaxAcceptableMessageSize)
 	data, err := netxlite.ReadAllContext(context.Background(), reader)
 	if err != nil {
 		logcat.Shrugf("[thh] cannot read message body: %s", err.Error())

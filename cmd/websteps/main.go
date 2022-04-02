@@ -41,7 +41,7 @@ type CLI struct {
 // getopt parses command line flags.
 func getopt() (getoptx.Parser, *CLI) {
 	opts := &CLI{
-		Backend:              "wss://0.th.ooni.org/websteps/v1/th",
+		Backend:              "wss://0.th.ooni.org/websteps/v1/websocket",
 		CacheDisableNetwork:  false,
 		Emoji:                false,
 		Help:                 false,

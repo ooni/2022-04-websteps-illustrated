@@ -153,7 +153,8 @@ func main() {
 
 	// 7. configure and start the HTTP server in the background
 	mux := http.NewServeMux()
-	mux.Handle("/", thh)
+	mux.Handle("/websteps/v1/http", http.HandlerFunc(thh.ServeWithHTTP))
+	mux.Handle("/websteps/v1/websocket", http.HandlerFunc(thh.ServeWithWebsocket))
 	srv := &http.Server{Addr: opts.Address, Handler: mux}
 	go srv.Serve(listener)
 
