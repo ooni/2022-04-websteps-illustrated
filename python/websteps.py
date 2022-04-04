@@ -566,13 +566,13 @@ class FlatNetworkEvent:
     def unmarshal(m: Any):
         msg = dict(m)
         o = FlatNetworkEvent()
-        o.Count = m.get("Count", 0) or 0
-        o.Failure = m.get("Failure", "") or ""
-        o.Finished = m.get("Finished", "") or ""
-        o.Network = m.get("Network", "") or ""
-        o.Operation = m.get("Operation", "") or ""
-        o.RemoteAddr = m.get("RemoteAddr", "") or ""
-        o.Started = m.get("Started", "") or ""
+        o.Count = msg.get("Count", 0) or 0
+        o.Failure = msg.get("Failure", "") or ""
+        o.Finished = msg.get("Finished", "") or ""
+        o.Network = msg.get("Network", "") or ""
+        o.Operation = msg.get("Operation", "") or ""
+        o.RemoteAddr = msg.get("RemoteAddr", "") or ""
+        o.Started = msg.get("Started", "") or ""
         return o
 
 
@@ -1600,7 +1600,7 @@ def new_url_address_list(
 ) -> List[MeasurexURLAddress]:
     """Generates a new URL address list from the given set of parameters.
 
-    Correspons to NewURLAddressList in internal/measurex/url.go."""
+    Corresponds to NewURLAddressList in internal/measurex/url.go."""
     # Note: the Go implementation tries not to mess up the order with which we
     # receive addresses so here we use an ordered dict.
     uniq: OrderedDict[str, int] = OrderedDict()
