@@ -107,7 +107,13 @@ when there are transient timeouts;
 TH and the probe's measurements that is based on replaying
 measurements collected on the field (thus being more
 true to real world censorship than simulated censorship
-using `jafar` or similar tools).
+using `jafar` or similar tools);
+
+10. robust caching mechanism for the TH;
+
+11. started experimenting with using `TLSH` to classify
+webpages in addition to using the traditional Web Connectivity
+algorithm (but this effort is so far a bit inconclusive).
 
 This work addresses in part of completely:
 
