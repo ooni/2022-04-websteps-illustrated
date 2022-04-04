@@ -113,7 +113,19 @@ using `jafar` or similar tools);
 
 11. started experimenting with using `TLSH` to classify
 webpages in addition to using the traditional Web Connectivity
-algorithm (but this effort is so far a bit inconclusive).
+algorithm (but this effort is so far a bit inconclusive);
+
+12. TH protocol using WebSocket in addition to web APIs to
+increase robustness when middleboxes close connections that
+stay silent for a number of seconds;
+
+13. figure out ways in which the original, optimistic
+let's-measure-every-endpoint model breaks when coupled with
+the typical OONI constraints of timing and single-URL-at-a-time
+and add to the algorithm reasonable settings to strike a
+balance between depth and breadth;
+
+14. learn that my effort estimate is usually off by a 5x factor 😬.
 
 This work addresses in part of completely:
 
@@ -147,7 +159,8 @@ checking that we're still passing these test cases;
 if possible (especially python data structs that depend on
 Go data structs: that would be nice);
 
-- [ ] perform again a performance comparison with Web Connectivity;
+- [ ] perform again a performance comparison with Web Connectivity
+and also a comparison in terms of accuracy;
 
 - [ ] double check that our level of parallelism is adequate
 for testing in low bandwidth scenarios;
@@ -157,7 +170,12 @@ generally aim to reduce the diff between this fork and the
 original codebase;
 
 - [ ] sync up the OONI issue tracker with the work I have
-beem doing here basically in `sti` mode.
+beem doing here basically in `sti` mode;
+
+- [ ] extend the underlying library to add support for as many
+raw errors as possible;
+
+- [ ] decide how to adapt tutorials to changes in here.
 
 
 ## Nginx setup
