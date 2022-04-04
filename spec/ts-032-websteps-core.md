@@ -1953,3 +1953,9 @@ accidentally include PII. Implementations MUST discover
 the user's IP address and ensure to replace it with a
 string such as `[redacted]` (like OONI Probe does)
 before submitting the measurement JSON.
+
+## 6. Copyright and license
+
+Copyright 2022 Open Observatory of Network Interference.
+
+SPDX-License-Identifier: BSD-3-Clause.
