@@ -235,8 +235,8 @@ performed by the client to an equivalent one performed by the TH;
 addresses discovered by the client to the ones using addresses
 discovered by the TH.
 
-We provide more details on the purpose of these comparisons in a separate
-document that explains websteps data analysis.
+We provide more details on the purpose of these comparisons in
+the analysis section of this document.
 
 The `AnalysisDetails` structure looks like this:
 
@@ -395,7 +395,9 @@ We define the following types of resolvers:
 | dot | `"<addresss>:<port>"` | DNS over TLS |
 | system | `""` | System resolver (i.e., `getaddrinfo`) |
 | tcp | `"<address>:<port>"` | DNS over TCP |
-| udp | `"<address>`:`<port>"` | UDP over UDP |
+| udp | `"<address>:<port>"` | UDP over UDP |
+
+When `<address>` is IPv6, it is quoted using `[` and `]` (e.g., `[::1]`).
 
 Clients MUST support `getaddrinfo` lookup types using the `system` resolver. All
 other kinds of lookups and resolvers are OPTIONAL.
@@ -640,7 +642,7 @@ one IP address discovered by the UDP resolver.
 The `new_endpoint_plans` algorithm honors the following flags:
 
 1. `EXCLUDE_BOGONS`: this flag tells the endpoint measurement planner to
-exclude bogons from the planning. We only use this flag in the TH for apparent reasons.
+exclude bogons from the planning. We only use this flag in the TH for obvious reasons.
 
 2. `ONLY_HTTP3`: this flag tells the endpoint planner to generate a plan for
 measuring HTTP3 endpoints only. The client uses this flag to measure the endpoints
@@ -734,7 +736,7 @@ class DNSLookupEvent:
 
 where:
 
-- `alpns` contains the discovered ALPNs (only applicable for `HTTPSSvc` queries);
+- `alpns` contains the discovered ALPNs (only applicable for the `https` lookup type);
 
 - `addresses` contains the discovered addresses for `getaddrinfo` and `https` lookup types;
 
@@ -806,6 +808,11 @@ the same order as the original lookup to consistently test the same addresses.
 
 The client executes a list of EndpointPlans that produces a list of
 EndpointMeasurements. Every entry in the plan produces a measurement.
+
+**EDITOR'S NOTE**: here we should mention options controlling
+the parallelism. We should also add a section discussing the
+impact of parallelism on measurements quality. We should discuss,
+in particular, the potential impact of policer devices.
 
 If the URL scheme is HTTP, the client performs a TCP connect followed by
 a GET request using the configured headers and cookies.
@@ -1037,6 +1044,8 @@ contains a snapshot of the original body;
 
 - `url` is the URL for this measurement.
 
+**EDITOR'S NOTE**: here we should discuss HTTPHeader's structure.
+
 Bandwidth constrained clients MAY enforce a maximum snapshot size of zero for
 HTTP, HTTPS connectivity, and HTTPS throttling request, thus saving lots of
 bandwidth because they do not fetch the body. A client implementation SHOULD
@@ -1050,6 +1059,11 @@ different: it uses PascalCase, has a more complex representation of cookies, and
 the endpoint paths are slightly different. We should fix these inconsistencies
 in the implementations before making this spec final.
 
+**EDITOR'S NOTE**: this section should mention that the TH
+attempts to opportunistically extract CNAMEs from A/AAAA
+lookups and performs reverse lookups of the non-bogon addresses
+discovered by itself or by the client.
+
 The test helper (TH) exposes two endpoints:
 
 1. `https://$domain/api/v1/websteps/http`
@@ -1058,10 +1072,10 @@ The test helper (TH) exposes two endpoints:
 
 The former endpoint is a web API, and the latter uses WebSocket.
 
-The check-in API will provide WebSocket clients with a list of available
+The check-in API will provide clients with a list of available
 TH URLs. Clients SHOULD attempt all available URLs before giving up. They
 SHOULD also remember which URLs worked and attempt using them first in
-subsequent attempts to round trip with the TH.
+subsequent round trips with the TH.
 
 For both web and WebSocket endpoints, clients send the following THRequest:
 
@@ -1937,5 +1951,5 @@ or all the `SingleStepMeasurement` flags.
 As for Web Connectivity, websteps measurements may
 accidentally include PII. Implementations MUST discover
 the user's IP address and ensure to replace it with a
-string such as `[redacted]` before submitting the
-measurement JSON (like OONI Probe does).
+string such as `[redacted]` (like OONI Probe does)
+before submitting the measurement JSON.
