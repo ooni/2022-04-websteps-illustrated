@@ -180,7 +180,7 @@ func analyzeSingleDNSLookup(mx measurex.AbstractMeasurer, lookup *measurex.DNSLo
 		logcat.Bugf(
 			"[#%d] cannot find matching measurement for #%d: %s",
 			score.ID, lookup.ID, lookup.Summary())
-		score.Flags |= AnalysisInconclusive
+		score.Flags |= AnalysisProbeBug
 		return score
 	}
 

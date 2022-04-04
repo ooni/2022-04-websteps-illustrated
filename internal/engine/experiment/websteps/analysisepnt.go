@@ -120,7 +120,7 @@ func analyzeSingleEndpointMeasurement(
 	if !found {
 		analysisEndpointFindMatchingMeasurement(score.ID, epnt, otherEpnts, analysisLookupDebug)
 		logcat.Bugf("[#%d] cannot find matching measurement for #%d: %s", score.ID, epnt.ID, epnt.Summary())
-		score.Flags |= AnalysisInconclusive
+		score.Flags |= AnalysisProbeBug
 		return score
 	}
 
