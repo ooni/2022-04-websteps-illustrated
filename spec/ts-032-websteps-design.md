@@ -115,6 +115,7 @@ provides a honest side-by-side comparison of websteps and Web Connectivity featu
 | risk of #dnsDiff false positives     | higher(?) | low |
 | risk of #httpDiff false negatives    | low | higher(?) |
 | honours cookies for redirects        | yes | yes |
+| tries to avoid unnecessary redirects | no | yes |
 
 Some clarifications are in order. When I say "tries to avoid
 DNS and HTTP diff" I mean that websteps analysis tries its
