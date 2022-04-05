@@ -127,6 +127,12 @@ balance between depth and breadth;
 
 14. learn that my effort estimate is usually off by a 5x factor 😬.
 
+15. the design incorporates future improvements in the check-in
+API that will allow us to customize how we measure URLs
+depending on the context (so, we will be able to say for
+each URL in a given country and ASN, the amount of body bytes
+to download, whether to follow redirects, etc).
+
 This work addresses in part of completely:
 
 | issue | level of completion |
