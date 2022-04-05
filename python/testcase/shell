@@ -288,7 +288,7 @@ def sh_rerun_run_probe(emoji: bool, basedir: str, target_url: str):
     argv = [
         "./websteps",
         "-b",
-        "ws://127.0.0.1:9876",
+        "ws://127.0.0.1:9876/websteps/v1/websocket",
         "-C",
         os.path.join(basedir, "testcase", "cache", "probe"),
         "-i",
