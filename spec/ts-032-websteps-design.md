@@ -112,7 +112,7 @@ provides a honest side-by-side comparison of websteps and Web Connectivity featu
 | integration testing strategy(*)      | jafar | mxcache |
 | TH supports websockets               | no | yes |
 | tries to avoid DNS and HTTP diff     | no | yes |
-| risk of #dnsDiff false positives     | medium | low |
+| risk of #dnsDiff false positives     | higher(?) | low |
 | risk of #httpDiff false negatives    | low | higher(?) |
 | honours cookies for redirects        | yes | yes |
 
