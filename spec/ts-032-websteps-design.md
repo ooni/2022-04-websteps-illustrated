@@ -97,9 +97,9 @@ provides a honest side-by-side comparison of websteps and Web Connectivity featu
 | separates observation and analysis   | no | yes |
 | optimized for low bandwidth          | no | configurable |
 | data model complexity                | nested | flat/ID-addressable |
-| extensible model w/ follow-ups       | hard | easier/built-in |
+| extensible model w/ follow-ups       | harder | easier/built-in |
 | discovers multiple blocking reasons  | no | yes |
-| generated JSONs size                 | high | higher |
+| generated JSONs size                 | large (bodies!) | larger |
 | ready for a richer check-in API      | no | yes |
 | HTTPS oracle to validate DNS lookups | no | yes |
 | TH oracle to validate DNS lookups    | no | yes |
