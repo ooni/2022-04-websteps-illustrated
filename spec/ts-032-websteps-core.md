@@ -192,8 +192,9 @@ class Options:
 
 where:
 
-- `do_not_follow_http_and_https` indicates whether we should measure
-HTTP and HTTPS regardless of the URL's scheme;
+- `do_not_follow_http_and_https` when `true` means we will strictly
+measure the protocol indicated in the scheme, when `false` means
+we will instead measure HTTP and HTTPS regardless of the URL scheme;
 
 - `greedy_mode` controls whether a websteps client should stop after
 a step has found any anomalous results;
