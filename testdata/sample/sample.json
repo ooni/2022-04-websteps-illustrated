@@ -1,0 +1,1374 @@
+{
+    "url": "https://chinadigitaltimes.net/",
+    "steps": [
+        {
+            "id": 1,
+            "endpoint_ids": [],
+            "url": "https://chinadigitaltimes.net/",
+            "cookies": null,
+            "dns": [
+                {
+                    "id": 2,
+                    "domain": "chinadigitaltimes.net",
+                    "resolver_network": "udp",
+                    "resolver_address": "[2606:4700:4700::1111]:53",
+                    "failure": "network_unreachable",
+                    "addresses": null,
+                    "queries": [
+                        {
+                            "answers": [],
+                            "engine": "udp",
+                            "failure": "network_unreachable",
+                            "hostname": "chinadigitaltimes.net",
+                            "query_type": "AAAA",
+                            "raw_query": {
+                                "format": "base64",
+                                "data": "AuABAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB"
+                            },
+                            "resolver_address": "[2606:4700:4700::1111]:53",
+                            "started": 24717.617490165,
+                            "t": 24717.617531202
+                        },
+                        {
+                            "answers": [],
+                            "engine": "udp",
+                            "failure": "network_unreachable",
+                            "hostname": "chinadigitaltimes.net",
+                            "query_type": "A",
+                            "raw_query": {
+                                "format": "base64",
+                                "data": "01MBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB"
+                            },
+                            "resolver_address": "[2606:4700:4700::1111]:53",
+                            "started": 24717.617544637,
+                            "t": 24717.617553865
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "domain": "chinadigitaltimes.net",
+                    "resolver_network": "udp",
+                    "resolver_address": "149.112.112.112:53",
+                    "failure": null,
+                    "addresses": [
+                        "203.98.7.65"
+                    ],
+                    "queries": [
+                        {
+                            "answers": [
+                                {
+                                    "answer_type": "A",
+                                    "ipv4": "243.185.187.39",
+                                    "ttl": 125
+                                }
+                            ],
+                            "engine": "udp",
+                            "failure": null,
+                            "hostname": "chinadigitaltimes.net",
+                            "query_type": "AAAA",
+                            "raw_query": {
+                                "format": "base64",
+                                "data": "JgYBAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAAB"
+                            },
+                            "raw_reply": {
+                                "format": "base64",
+                                "data": "JgaBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAAQABAAAAfQAE87m7Jw=="
+                            },
+                            "resolver_address": "149.112.112.112:53",
+                            "started": 24717.617582929,
+                            "t": 24717.619655436
+                        },
+                        {
+                            "answers": [
+                                {
+                                    "answer_type": "A",
+                                    "ipv4": "203.98.7.65",
+                                    "ttl": 155
+                                }
+                            ],
+                            "engine": "udp",
+                            "failure": null,
+                            "hostname": "chinadigitaltimes.net",
+                            "query_type": "A",
+                            "raw_query": {
+                                "format": "base64",
+                                "data": "+7ABAAABAAAAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQAB"
+                            },
+                            "raw_reply": {
+                                "format": "base64",
+                                "data": "+7CBgAABAAEAAAAAEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAAAmwAEy2IHQQ=="
+                            },
+                            "resolver_address": "149.112.112.112:53",
+                            "started": 24717.617941231,
+                            "t": 24717.621888495
+                        }
+                    ]
+                },
+                {
+                    "id": 4,
+                    "domain": "chinadigitaltimes.net",
+                    "resolver_network": "system",
+                    "resolver_address": "",
+                    "failure": null,
+                    "addresses": [
+                        "8.7.198.45",
+                        "2001::c765:8526"
+                    ],
+                    "queries": [
+                        {
+                            "answers": [
+                                {
+                                    "answer_type": "A",
+                                    "ipv4": "8.7.198.45"
+                                },
+                                {
+                                    "answer_type": "AAAA",
+                                    "ipv4": "2001::c765:8526"
+                                }
+                            ],
+                            "engine": "system",
+                            "failure": null,
+                            "hostname": "chinadigitaltimes.net",
+                            "query_type": "ANY",
+                            "started": 24717.617693516,
+                            "t": 24717.729363751
+                        }
+                    ]
+                }
+            ],
+            "endpoint": [
+                {
+                    "id": 9,
+                    "url": "http://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "[2001::c765:8526]:80",
+                    "cookies_names": null,
+                    "failure": "network_unreachable",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "2001::c765:8526",
+                        "port": 80,
+                        "status": {
+                            "failure": "network_unreachable",
+                            "success": false
+                        },
+                        "started": 26274.358338285,
+                        "t": 26274.358384392
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                },
+                {
+                    "id": 10,
+                    "url": "https://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "[2001::c765:8526]:443",
+                    "cookies_names": null,
+                    "failure": "network_unreachable",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "2001::c765:8526",
+                        "port": 443,
+                        "status": {
+                            "failure": "network_unreachable",
+                            "success": false
+                        },
+                        "started": 26274.35839923,
+                        "t": 26274.358413797
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                },
+                {
+                    "id": 5,
+                    "url": "http://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "8.7.198.45:80",
+                    "cookies_names": null,
+                    "failure": "generic_timeout_error",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "8.7.198.45",
+                        "port": 80,
+                        "status": {
+                            "failure": "generic_timeout_error",
+                            "success": false
+                        },
+                        "started": 26274.358160141,
+                        "t": 26289.358336646
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                },
+                {
+                    "id": 8,
+                    "url": "https://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "203.98.7.65:443",
+                    "cookies_names": null,
+                    "failure": "generic_timeout_error",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "203.98.7.65",
+                        "port": 443,
+                        "status": {
+                            "failure": "generic_timeout_error",
+                            "success": false
+                        },
+                        "started": 26274.358272412,
+                        "t": 26289.358366572
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                },
+                {
+                    "id": 6,
+                    "url": "https://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "8.7.198.45:443",
+                    "cookies_names": null,
+                    "failure": "generic_timeout_error",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "8.7.198.45",
+                        "port": 443,
+                        "status": {
+                            "failure": "generic_timeout_error",
+                            "success": false
+                        },
+                        "started": 26274.358225795,
+                        "t": 26289.358383243
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                },
+                {
+                    "id": 7,
+                    "url": "http://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "203.98.7.65:80",
+                    "cookies_names": null,
+                    "failure": "generic_timeout_error",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "203.98.7.65",
+                        "port": 80,
+                        "status": {
+                            "failure": "generic_timeout_error",
+                            "success": false
+                        },
+                        "started": 26274.358249679,
+                        "t": 26289.358404173
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                }
+            ],
+            "th": {
+                "dns": [
+                    {
+                        "id": 11,
+                        "domain": "chinadigitaltimes.net",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": null,
+                        "addresses": [
+                            "172.67.25.190",
+                            "104.22.42.172",
+                            "104.22.43.172",
+                            "2606:4700:10::6816:2bac",
+                            "2606:4700:10::6816:2aac",
+                            "2606:4700:10::ac43:19be"
+                        ],
+                        "queries": [
+                            {
+                                "answers": [
+                                    {
+                                        "answer_type": "A",
+                                        "ipv4": "172.67.25.190",
+                                        "ttl": 300
+                                    },
+                                    {
+                                        "answer_type": "A",
+                                        "ipv4": "104.22.42.172",
+                                        "ttl": 300
+                                    },
+                                    {
+                                        "answer_type": "A",
+                                        "ipv4": "104.22.43.172",
+                                        "ttl": 300
+                                    }
+                                ],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "chinadigitaltimes.net",
+                                "query_type": "A",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "RjUBAAABAAAAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABAAApEAAAAIAAAE4ADABKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "RjWBgAABAAMAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAAQABwAwAAQABAAABLAAErEMZvsAMAAEAAQAAASwABGgWKqzADAABAAEAAAEsAARoFiusAAApBNAAAIAAAXIADAFuAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            },
+                            {
+                                "answers": [
+                                    {
+                                        "answer_type": "AAAA",
+                                        "ipv4": "2606:4700:10::6816:2bac",
+                                        "ttl": 300
+                                    },
+                                    {
+                                        "answer_type": "AAAA",
+                                        "ipv4": "2606:4700:10::6816:2aac",
+                                        "ttl": 300
+                                    },
+                                    {
+                                        "answer_type": "AAAA",
+                                        "ipv4": "2606:4700:10::ac43:19be",
+                                        "ttl": 300
+                                    }
+                                ],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "chinadigitaltimes.net",
+                                "query_type": "AAAA",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "84MBAAABAAAAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABAAApEAAAAIAAAE4ADABKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "84OBgAABAAMAAAABEWNoaW5hZGlnaXRhbHRpbWVzA25ldAAAHAABwAwAHAABAAABLAAQJgZHAAAQAAAAAAAAaBYrrMAMABwAAQAAASwAECYGRwAAEAAAAAAAAGgWKqzADAAcAAEAAAEsABAmBkcAABAAAAAAAACsQxm+AAApBNAAAIAAAU4ADAFKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 12,
+                        "domain": "c.a.a.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.",
+                        "reverse_address": "2606:4700:10::6816:2aac",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_refused_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "c.a.a.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "wZsBAAABAAAAAAABAWMBYQFhATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "wZuBhQABAAAAAAABAWMBYQFhATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 13,
+                        "domain": "c.a.b.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.",
+                        "reverse_address": "2606:4700:10::6816:2bac",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_refused_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "c.a.b.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "G+UBAAABAAAAAAABAWMBYQFiATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "G+WBhQABAAAAAAABAWMBYQFiATIBNgExATgBNgEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApBNAAAIAAAW8ADAFrAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 14,
+                        "domain": "172.42.22.104.in-addr.arpa.",
+                        "reverse_address": "104.22.42.172",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_nxdomain_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "172.42.22.104.in-addr.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "JDMBAAABAAAAAAABAzE3MgI0MgIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "JDOBgwABAAAAAQABAzE3MgI0MgIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAHAEwAGAAEAAA4QADIEY3J1egJucwpjbG91ZGZsYXJlA2NvbQADZG5zwEB5RTqYAAAnEAAACWAACTqAAAAOEAAAKQTQAACAAAFfAAwBWwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 15,
+                        "domain": "65.7.98.203.in-addr.arpa.",
+                        "reverse_address": "203.98.7.65",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_refused_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "65.7.98.203.in-addr.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "akQBAAABAAAAAAABAjY1ATcCOTgDMjAzB2luLWFkZHIEYXJwYQAADAABAAApEAAAAIAAAEsADABHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "akSBhQABAAAAAAABAjY1ATcCOTgDMjAzB2luLWFkZHIEYXJwYQAADAABAAApBNAAAIAAAZ8ADAGbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 16,
+                        "domain": "45.198.7.8.in-addr.arpa.",
+                        "reverse_address": "8.7.198.45",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_refused_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "45.198.7.8.in-addr.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "8hwBAAABAAAAAAABAjQ1AzE5OAE3ATgHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAATAAMAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "8hyBhQABAAAAAAABAjQ1AzE5OAE3ATgHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABoAAMAZwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 17,
+                        "domain": "190.25.67.172.in-addr.arpa.",
+                        "reverse_address": "172.67.25.190",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_refused_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "190.25.67.172.in-addr.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "sowBAAABAAAAAAABAzE5MAIyNQI2NwMxNzIHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "soyBhQABAAAAAAABAzE5MAIyNQI2NwMxNzIHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABnQAMAZkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 18,
+                        "domain": "172.43.22.104.in-addr.arpa.",
+                        "reverse_address": "104.22.43.172",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_refused_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "172.43.22.104.in-addr.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "wqYBAAABAAAAAAABAzE3MgI0MwIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkQAAAAgAAASQAMAEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "wqaBhQABAAAAAAABAzE3MgI0MwIyMgMxMDQHaW4tYWRkcgRhcnBhAAAMAAEAACkE0AAAgAABnQAMAZkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    },
+                    {
+                        "id": 19,
+                        "domain": "e.b.9.1.3.4.c.a.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.",
+                        "reverse_address": "2606:4700:10::ac43:19be",
+                        "resolver_network": "doh",
+                        "resolver_address": "https://dns.cloudflare.com/dns-query",
+                        "failure": "dns_nxdomain_error",
+                        "addresses": null,
+                        "queries": [
+                            {
+                                "answers": [],
+                                "engine": "doh",
+                                "failure": null,
+                                "hostname": "e.b.9.1.3.4.c.a.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa",
+                                "query_type": "PTR",
+                                "raw_query": {
+                                    "format": "base64",
+                                    "data": "kqkBAAABAAAAAAABAWUBYgE5ATEBMwE0AWMBYQEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABAAApEAAAAIAAABsADAAXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+                                },
+                                "raw_reply": {
+                                    "format": "base64",
+                                    "data": "kqmBgwABAAAAAQABAWUBYgE5ATEBMwE0AWMBYQEwATABMAEwATABMAEwATABMAEwATABMAEwATEBMAEwATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAADAABATABMAE3ATQBNgEwATYBMgNpcDYEYXJwYQAABgABAAAOEABABGxlYWgCbnMKY2xvdWRmbGFyZQNjb20AA2RucwpjbG91ZGZsYXJlA2NvbQCG/+BqAAAnEAAACWAACTqAAAAOEAAAKQTQAACAAAELAAwBBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                },
+                                "resolver_address": "https://dns.cloudflare.com/dns-query",
+                                "started": 26290.2610159,
+                                "t": 26290.2610159
+                            }
+                        ]
+                    }
+                ],
+                "endpoint": [
+                    {
+                        "id": 20,
+                        "url": "http://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "[2606:4700:10::6816:2bac]:80",
+                        "cookies_names": null,
+                        "failure": null,
+                        "failed_operation": null,
+                        "status_code": 301,
+                        "location": "https://chinadigitaltimes.net/",
+                        "body_length": 0,
+                        "title": "",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": {
+                            "failure": null,
+                            "request": {
+                                "body": "",
+                                "body_is_truncated": false,
+                                "headers_list": [
+                                    [
+                                        "Accept",
+                                        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                                    ],
+                                    [
+                                        "Accept-Language",
+                                        "en-US,en;q=0.9"
+                                    ],
+                                    [
+                                        "Host",
+                                        "chinadigitaltimes.net"
+                                    ],
+                                    [
+                                        "User-Agent",
+                                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                    ]
+                                ],
+                                "headers": {
+                                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                    "Accept-Language": "en-US,en;q=0.9",
+                                    "Host": "chinadigitaltimes.net",
+                                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                },
+                                "method": "GET",
+                                "tor": {
+                                    "exit_ip": null,
+                                    "exit_name": null,
+                                    "is_tor": false
+                                },
+                                "x_transport": "tcp",
+                                "url": "http://chinadigitaltimes.net/"
+                            },
+                            "response": {
+                                "body": "",
+                                "body_length": 0,
+                                "body_is_truncated": false,
+                                "body_tlsh": "",
+                                "code": 301,
+                                "headers_list": [
+                                    [
+                                        "Cache-Control",
+                                        "max-age=3600"
+                                    ],
+                                    [
+                                        "Cf-Ray",
+                                        "6f470b3fbdce96f5-SJC"
+                                    ],
+                                    [
+                                        "Connection",
+                                        "keep-alive"
+                                    ],
+                                    [
+                                        "Date",
+                                        "Thu, 31 Mar 2022 06:31:45 GMT"
+                                    ],
+                                    [
+                                        "Expires",
+                                        "Thu, 31 Mar 2022 07:31:45 GMT"
+                                    ],
+                                    [
+                                        "Location",
+                                        "https://chinadigitaltimes.net/"
+                                    ],
+                                    [
+                                        "Server",
+                                        "cloudflare"
+                                    ]
+                                ],
+                                "headers": {
+                                    "Cache-Control": "max-age=3600",
+                                    "Cf-Ray": "6f470b3fbdce96f5-SJC",
+                                    "Connection": "keep-alive",
+                                    "Date": "Thu, 31 Mar 2022 06:31:45 GMT",
+                                    "Expires": "Thu, 31 Mar 2022 07:31:45 GMT",
+                                    "Location": "https://chinadigitaltimes.net/",
+                                    "Server": "cloudflare"
+                                }
+                            },
+                            "started": 26290.2610159,
+                            "t": 26290.2610159
+                        }
+                    },
+                    {
+                        "id": 21,
+                        "url": "http://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "172.67.25.190:80",
+                        "cookies_names": null,
+                        "failure": null,
+                        "failed_operation": null,
+                        "status_code": 301,
+                        "location": "https://chinadigitaltimes.net/",
+                        "body_length": 0,
+                        "title": "",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": {
+                            "failure": null,
+                            "request": {
+                                "body": "",
+                                "body_is_truncated": false,
+                                "headers_list": [
+                                    [
+                                        "Accept",
+                                        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                                    ],
+                                    [
+                                        "Accept-Language",
+                                        "en-US,en;q=0.9"
+                                    ],
+                                    [
+                                        "Host",
+                                        "chinadigitaltimes.net"
+                                    ],
+                                    [
+                                        "User-Agent",
+                                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                    ]
+                                ],
+                                "headers": {
+                                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                    "Accept-Language": "en-US,en;q=0.9",
+                                    "Host": "chinadigitaltimes.net",
+                                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                },
+                                "method": "GET",
+                                "tor": {
+                                    "exit_ip": null,
+                                    "exit_name": null,
+                                    "is_tor": false
+                                },
+                                "x_transport": "tcp",
+                                "url": "http://chinadigitaltimes.net/"
+                            },
+                            "response": {
+                                "body": "",
+                                "body_length": 0,
+                                "body_is_truncated": false,
+                                "body_tlsh": "",
+                                "code": 301,
+                                "headers_list": [
+                                    [
+                                        "Cache-Control",
+                                        "max-age=3600"
+                                    ],
+                                    [
+                                        "Cf-Ray",
+                                        "6f470b3fbb79942c-SJC"
+                                    ],
+                                    [
+                                        "Connection",
+                                        "keep-alive"
+                                    ],
+                                    [
+                                        "Date",
+                                        "Thu, 31 Mar 2022 06:31:45 GMT"
+                                    ],
+                                    [
+                                        "Expires",
+                                        "Thu, 31 Mar 2022 07:31:45 GMT"
+                                    ],
+                                    [
+                                        "Location",
+                                        "https://chinadigitaltimes.net/"
+                                    ],
+                                    [
+                                        "Server",
+                                        "cloudflare"
+                                    ]
+                                ],
+                                "headers": {
+                                    "Cache-Control": "max-age=3600",
+                                    "Cf-Ray": "6f470b3fbb79942c-SJC",
+                                    "Connection": "keep-alive",
+                                    "Date": "Thu, 31 Mar 2022 06:31:45 GMT",
+                                    "Expires": "Thu, 31 Mar 2022 07:31:45 GMT",
+                                    "Location": "https://chinadigitaltimes.net/",
+                                    "Server": "cloudflare"
+                                }
+                            },
+                            "started": 26290.2610159,
+                            "t": 26290.2610159
+                        }
+                    },
+                    {
+                        "id": 22,
+                        "url": "https://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "172.67.25.190:443",
+                        "cookies_names": null,
+                        "failure": null,
+                        "failed_operation": null,
+                        "status_code": 200,
+                        "location": "",
+                        "body_length": 4096,
+                        "title": "China Digital Times (CDT) - Covering China from Cyberspace",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": {
+                            "failure": null,
+                            "request": {
+                                "body": "",
+                                "body_is_truncated": false,
+                                "headers_list": [
+                                    [
+                                        "Accept",
+                                        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                                    ],
+                                    [
+                                        "Accept-Language",
+                                        "en-US,en;q=0.9"
+                                    ],
+                                    [
+                                        "Host",
+                                        "chinadigitaltimes.net"
+                                    ],
+                                    [
+                                        "User-Agent",
+                                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                    ]
+                                ],
+                                "headers": {
+                                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                    "Accept-Language": "en-US,en;q=0.9",
+                                    "Host": "chinadigitaltimes.net",
+                                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                },
+                                "method": "GET",
+                                "tor": {
+                                    "exit_ip": null,
+                                    "exit_name": null,
+                                    "is_tor": false
+                                },
+                                "x_transport": "tcp",
+                                "url": "https://chinadigitaltimes.net/"
+                            },
+                            "response": {
+                                "body": "",
+                                "body_length": 4096,
+                                "body_is_truncated": true,
+                                "body_tlsh": "f9811df35e2b2c29136091d03077314c812ea74bc9a6ed93e1df1ccddae96a465f3265",
+                                "code": 200,
+                                "headers_list": [
+                                    [
+                                        "Age",
+                                        "47"
+                                    ],
+                                    [
+                                        "Cache-Control",
+                                        "no-store, no-cache, must-revalidate"
+                                    ],
+                                    [
+                                        "Cf-Apo-Via",
+                                        "tcache"
+                                    ],
+                                    [
+                                        "Cf-Cache-Status",
+                                        "HIT"
+                                    ],
+                                    [
+                                        "Cf-Edge-Cache",
+                                        "cache,platform=wordpress"
+                                    ],
+                                    [
+                                        "Cf-Ray",
+                                        "6f470b3fc99e96c3-SJC"
+                                    ],
+                                    [
+                                        "Content-Type",
+                                        "text/html; charset=UTF-8"
+                                    ],
+                                    [
+                                        "Date",
+                                        "Thu, 31 Mar 2022 06:31:45 GMT"
+                                    ],
+                                    [
+                                        "Expect-Ct",
+                                        "max-age=604800, report-uri=\"https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct\""
+                                    ],
+                                    [
+                                        "Expires",
+                                        "Thu, 19 Nov 1981 08:52:00 GMT"
+                                    ],
+                                    [
+                                        "Last-Modified",
+                                        "Thu, 31 Mar 2022 06:30:58 GMT"
+                                    ],
+                                    [
+                                        "Link",
+                                        "<https://chinadigitaltimes.net/wp-json/>; rel=\"https://api.w.org/\""
+                                    ],
+                                    [
+                                        "Pragma",
+                                        "no-cache"
+                                    ],
+                                    [
+                                        "Server",
+                                        "cloudflare"
+                                    ],
+                                    [
+                                        "Strict-Transport-Security",
+                                        "max-age=31536000; includeSubDomains"
+                                    ],
+                                    [
+                                        "Vary",
+                                        "Accept-Encoding, Accept-Encoding"
+                                    ],
+                                    [
+                                        "X-Content-Type-Options",
+                                        "nosniff"
+                                    ]
+                                ],
+                                "headers": {
+                                    "Age": "47",
+                                    "Cache-Control": "no-store, no-cache, must-revalidate",
+                                    "Cf-Apo-Via": "tcache",
+                                    "Cf-Cache-Status": "HIT",
+                                    "Cf-Edge-Cache": "cache,platform=wordpress",
+                                    "Cf-Ray": "6f470b3fc99e96c3-SJC",
+                                    "Content-Type": "text/html; charset=UTF-8",
+                                    "Date": "Thu, 31 Mar 2022 06:31:45 GMT",
+                                    "Expect-Ct": "max-age=604800, report-uri=\"https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct\"",
+                                    "Expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+                                    "Last-Modified": "Thu, 31 Mar 2022 06:30:58 GMT",
+                                    "Link": "<https://chinadigitaltimes.net/wp-json/>; rel=\"https://api.w.org/\"",
+                                    "Pragma": "no-cache",
+                                    "Server": "cloudflare",
+                                    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+                                    "Vary": "Accept-Encoding, Accept-Encoding",
+                                    "X-Content-Type-Options": "nosniff"
+                                }
+                            },
+                            "started": 26290.2610159,
+                            "t": 26290.2610159
+                        }
+                    },
+                    {
+                        "id": 23,
+                        "url": "https://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "8.7.198.45:443",
+                        "cookies_names": null,
+                        "failure": "generic_timeout_error",
+                        "failed_operation": "connect",
+                        "status_code": 0,
+                        "location": "",
+                        "body_length": 0,
+                        "title": "",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": null
+                    },
+                    {
+                        "id": 24,
+                        "url": "http://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "203.98.7.65:80",
+                        "cookies_names": null,
+                        "failure": "generic_timeout_error",
+                        "failed_operation": "connect",
+                        "status_code": 0,
+                        "location": "",
+                        "body_length": 0,
+                        "title": "",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": null
+                    },
+                    {
+                        "id": 25,
+                        "url": "https://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "203.98.7.65:443",
+                        "cookies_names": null,
+                        "failure": "generic_timeout_error",
+                        "failed_operation": "connect",
+                        "status_code": 0,
+                        "location": "",
+                        "body_length": 0,
+                        "title": "",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": null
+                    },
+                    {
+                        "id": 26,
+                        "url": "http://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "8.7.198.45:80",
+                        "cookies_names": null,
+                        "failure": "generic_timeout_error",
+                        "failed_operation": "connect",
+                        "status_code": 0,
+                        "location": "",
+                        "body_length": 0,
+                        "title": "",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": null
+                    },
+                    {
+                        "id": 27,
+                        "url": "https://chinadigitaltimes.net/",
+                        "network": "tcp",
+                        "address": "[2606:4700:10::6816:2bac]:443",
+                        "cookies_names": null,
+                        "failure": "generic_timeout_error",
+                        "failed_operation": "http_round_trip",
+                        "status_code": 0,
+                        "location": "",
+                        "body_length": 0,
+                        "title": "",
+                        "network_events": null,
+                        "tcp_connect": null,
+                        "quic_tls_handshake": null,
+                        "request": {
+                            "failure": "generic_timeout_error",
+                            "request": {
+                                "body": "",
+                                "body_is_truncated": false,
+                                "headers_list": [
+                                    [
+                                        "Accept",
+                                        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                                    ],
+                                    [
+                                        "Accept-Language",
+                                        "en-US,en;q=0.9"
+                                    ],
+                                    [
+                                        "Host",
+                                        "chinadigitaltimes.net"
+                                    ],
+                                    [
+                                        "User-Agent",
+                                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                    ]
+                                ],
+                                "headers": {
+                                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                    "Accept-Language": "en-US,en;q=0.9",
+                                    "Host": "chinadigitaltimes.net",
+                                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                },
+                                "method": "GET",
+                                "tor": {
+                                    "exit_ip": null,
+                                    "exit_name": null,
+                                    "is_tor": false
+                                },
+                                "x_transport": "tcp",
+                                "url": "https://chinadigitaltimes.net/"
+                            },
+                            "response": {
+                                "body": "",
+                                "body_length": 0,
+                                "body_is_truncated": false,
+                                "body_tlsh": "",
+                                "code": 0,
+                                "headers_list": null,
+                                "headers": null
+                            },
+                            "started": 26290.2610159,
+                            "t": 26290.2610159
+                        }
+                    }
+                ]
+            },
+            "dnsping": null,
+            "probe_additional": [
+                {
+                    "id": 28,
+                    "url": "http://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "[2606:4700:10::6816:2bac]:80",
+                    "cookies_names": null,
+                    "failure": "network_unreachable",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "2606:4700:10::6816:2bac",
+                        "port": 80,
+                        "status": {
+                            "failure": "network_unreachable",
+                            "success": false
+                        },
+                        "started": 26290.264403224,
+                        "t": 26290.264466953
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                },
+                {
+                    "id": 29,
+                    "url": "https://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "[2606:4700:10::6816:2bac]:443",
+                    "cookies_names": null,
+                    "failure": "network_unreachable",
+                    "failed_operation": "connect",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": null,
+                    "tcp_connect": {
+                        "ip": "2606:4700:10::6816:2bac",
+                        "port": 443,
+                        "status": {
+                            "failure": "network_unreachable",
+                            "success": false
+                        },
+                        "started": 26290.26468875,
+                        "t": 26290.264709108
+                    },
+                    "quic_tls_handshake": null,
+                    "request": null
+                },
+                {
+                    "id": 30,
+                    "url": "http://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "172.67.25.190:80",
+                    "cookies_names": null,
+                    "failure": "connection_reset",
+                    "failed_operation": "http_round_trip",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": [
+                        {
+                            "address": "172.67.25.190:80",
+                            "failure": null,
+                            "num_bytes": 282,
+                            "operation": "write",
+                            "proto": "tcp",
+                            "started": 26290.461055804,
+                            "t": 26290.461066674
+                        },
+                        {
+                            "address": "172.67.25.190:80",
+                            "failure": "connection_reset",
+                            "operation": "read",
+                            "proto": "tcp",
+                            "started": 26290.461031508,
+                            "t": 26290.463245281
+                        },
+                        {
+                            "failure": null,
+                            "operation": "bytes_read",
+                            "started": 26290.463290676,
+                            "t": 26290.463290676
+                        },
+                        {
+                            "failure": null,
+                            "num_bytes": 282,
+                            "operation": "bytes_written",
+                            "started": 26290.463290676,
+                            "t": 26290.463290676
+                        }
+                    ],
+                    "tcp_connect": {
+                        "ip": "172.67.25.190",
+                        "port": 80,
+                        "status": {
+                            "failure": null,
+                            "success": true
+                        },
+                        "started": 26290.264724297,
+                        "t": 26290.460774206
+                    },
+                    "quic_tls_handshake": null,
+                    "request": {
+                        "failure": "connection_reset",
+                        "request": {
+                            "body": "",
+                            "body_is_truncated": false,
+                            "headers_list": [
+                                [
+                                    "Accept",
+                                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                                ],
+                                [
+                                    "Accept-Language",
+                                    "en-US,en;q=0.9"
+                                ],
+                                [
+                                    "Host",
+                                    "chinadigitaltimes.net"
+                                ],
+                                [
+                                    "User-Agent",
+                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                                ]
+                            ],
+                            "headers": {
+                                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                "Accept-Language": "en-US,en;q=0.9",
+                                "Host": "chinadigitaltimes.net",
+                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+                            },
+                            "method": "GET",
+                            "tor": {
+                                "exit_ip": null,
+                                "exit_name": null,
+                                "is_tor": false
+                            },
+                            "x_transport": "tcp",
+                            "url": "http://chinadigitaltimes.net/"
+                        },
+                        "response": {
+                            "body": "",
+                            "body_length": 0,
+                            "body_is_truncated": false,
+                            "body_tlsh": "",
+                            "code": 0,
+                            "headers_list": null,
+                            "headers": null
+                        },
+                        "started": 26290.460851391,
+                        "t": 26290.463274075
+                    }
+                },
+                {
+                    "id": 31,
+                    "url": "https://chinadigitaltimes.net/",
+                    "network": "tcp",
+                    "address": "172.67.25.190:443",
+                    "cookies_names": null,
+                    "failure": "connection_reset",
+                    "failed_operation": "tls_handshake",
+                    "status_code": 0,
+                    "location": "",
+                    "body_length": 0,
+                    "title": "",
+                    "network_events": [
+                        {
+                            "address": "172.67.25.190:443",
+                            "failure": null,
+                            "num_bytes": 291,
+                            "operation": "write",
+                            "proto": "tcp",
+                            "started": 26290.474623494,
+                            "t": 26290.474633603
+                        },
+                        {
+                            "address": "172.67.25.190:443",
+                            "failure": "connection_reset",
+                            "operation": "read",
+                            "proto": "tcp",
+                            "started": 26290.474636238,
+                            "t": 26290.477953069
+                        }
+                    ],
+                    "tcp_connect": {
+                        "ip": "172.67.25.190",
+                        "port": 443,
+                        "status": {
+                            "failure": null,
+                            "success": true
+                        },
+                        "started": 26290.264760785,
+                        "t": 26290.471506558
+                    },
+                    "quic_tls_handshake": {
+                        "address": "172.67.25.190:443",
+                        "cipher_suite": "",
+                        "failure": "connection_reset",
+                        "negotiated_protocol": "",
+                        "no_tls_verify": false,
+                        "peer_certificates": null,
+                        "proto": "tcp",
+                        "server_name": "chinadigitaltimes.net",
+                        "started": 26290.474509681,
+                        "t": 26290.477960693,
+                        "tags": null,
+                        "tls_version": ""
+                    },
+                    "request": null
+                }
+            ],
+            "analysis": {
+                "dns": [
+                    {
+                        "id": 33,
+                        "refs": [
+                            3,
+                            11
+                        ],
+                        "flags": 32
+                    },
+                    {
+                        "id": 34,
+                        "refs": [
+                            4
+                        ],
+                        "flags": 4
+                    }
+                ],
+                "endpoint": [
+                    {
+                        "id": 43,
+                        "refs": [
+                            30,
+                            21
+                        ],
+                        "flags": 65536
+                    },
+                    {
+                        "id": 44,
+                        "refs": [
+                            31,
+                            22
+                        ],
+                        "flags": 4096
+                    }
+                ],
+                "th": null
+            },
+            "flags": 69668
+        }
+    ],
+    "flags": 69668
+}

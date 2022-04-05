@@ -1,0 +1,930 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <title>Websteps measurement #2082</title>
+  <link href="main.css" rel="stylesheet"></link>
+  <body>
+    <h1>Websteps measurement #2082</h1>
+    <h2>Steps</h2>
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th title="click to sort by id">id</th>
+          <th title="click to sort by endpoint_ids">endpoint_ids</th>
+          <th title="click to sort by url">url</th>
+          <th title="click to sort by cookies">cookies</th>
+          <th title="click to sort by dns">dns</th>
+          <th title="click to sort by endpoint">endpoint</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>[]</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>[]</td>
+          <td>[2, 3, 4]</td>
+          <td>[9, 10, 5, 8, 6, 7]</td>
+        </tr>
+      </tbody>
+    </table>
+    <h2>Analysis</h2>
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th title="click to sort by step_id">step_id</th>
+          <th title="click to sort by id">id</th>
+          <th title="click to sort by refs">refs</th>
+          <th title="click to sort by flags">flags</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>33</td>
+          <td>[3, 11]</td>
+          <td>['#dnsDiff']</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>34</td>
+          <td>[4]</td>
+          <td>['#bogon']</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>43</td>
+          <td>[30, 21]</td>
+          <td>['#httpReset']</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>44</td>
+          <td>[31, 22]</td>
+          <td>['#tlsReset']</td>
+        </tr>
+      </tbody>
+    </table>
+    <h2>DNS</h2>
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th title="click to sort by step_id">step_id</th>
+          <th title="click to sort by id">id</th>
+          <th title="click to sort by origin">origin</th>
+          <th title="click to sort by resolver">resolver</th>
+          <th title="click to sort by lookup_types">lookup_types</th>
+          <th title="click to sort by domain">domain</th>
+          <th title="click to sort by failure">failure</th>
+          <th title="click to sort by addresses">addresses</th>
+          <th title="click to sort by ptrs">ptrs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-2'); return false;">
+          <td>1</td>
+          <td>2</td>
+          <td>probe</td>
+          <td>udp://[2606:4700:4700::1111]:53/</td>
+          <td>['A', 'AAAA']</td>
+          <td>chinadigitaltimes.net</td>
+          <td>network_unreachable</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-3'); return false;">
+          <td>1</td>
+          <td>3</td>
+          <td>probe</td>
+          <td>udp://149.112.112.112:53/</td>
+          <td>['A', 'AAAA']</td>
+          <td>chinadigitaltimes.net</td>
+          <td>None</td>
+          <td>['203.98.7.65']</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-4'); return false;">
+          <td>1</td>
+          <td>4</td>
+          <td>probe</td>
+          <td>system:/</td>
+          <td>['ANY']</td>
+          <td>chinadigitaltimes.net</td>
+          <td>None</td>
+          <td>['8.7.198.45', '2001::c765:8526']</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-11'); return false;">
+          <td>1</td>
+          <td>11</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['A', 'AAAA']</td>
+          <td>chinadigitaltimes.net</td>
+          <td>None</td>
+          <td>['172.67.25.190', '104.22.42.172', '104.22.43.172', '2606:4700:10::6816:2bac', '2606:4700:10::6816:2aac', '2606:4700:10::ac43:19be']</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-12'); return false;">
+          <td>1</td>
+          <td>12</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>c.a.a.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.</td>
+          <td>dns_refused_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-13'); return false;">
+          <td>1</td>
+          <td>13</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>c.a.b.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.</td>
+          <td>dns_refused_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-14'); return false;">
+          <td>1</td>
+          <td>14</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>172.42.22.104.in-addr.arpa.</td>
+          <td>dns_nxdomain_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-15'); return false;">
+          <td>1</td>
+          <td>15</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>65.7.98.203.in-addr.arpa.</td>
+          <td>dns_refused_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-16'); return false;">
+          <td>1</td>
+          <td>16</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>45.198.7.8.in-addr.arpa.</td>
+          <td>dns_refused_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-17'); return false;">
+          <td>1</td>
+          <td>17</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>190.25.67.172.in-addr.arpa.</td>
+          <td>dns_refused_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-18'); return false;">
+          <td>1</td>
+          <td>18</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>172.43.22.104.in-addr.arpa.</td>
+          <td>dns_refused_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-19'); return false;">
+          <td>1</td>
+          <td>19</td>
+          <td>th</td>
+          <td>https://dns.cloudflare.com/dns-query</td>
+          <td>['PTR']</td>
+          <td>e.b.9.1.3.4.c.a.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa.</td>
+          <td>dns_nxdomain_error</td>
+          <td>[]</td>
+          <td>[]</td>
+        </tr>
+      </tbody>
+    </table>
+    <pre style="display: none;" class="starts-hidden details" id="details-2">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 736
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      AAAA
+
+decoding DNS round trip 1:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 54099
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      A
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-3">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 9734
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      AAAA
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 9734
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      AAAA
+;; ANSWER SECTION:
+chinadigitaltimes.net.  125     IN      A       243.185.187.39
+
+decoding DNS round trip 1:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 64432
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      A
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 64432
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      A
+;; ANSWER SECTION:
+chinadigitaltimes.net.  155     IN      A       203.98.7.65
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-4">decoding DNS round trip 0:
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-11">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 17973
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      A
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 17973
+;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      A
+;; ANSWER SECTION:
+chinadigitaltimes.net.  300     IN      A       172.67.25.190
+chinadigitaltimes.net.  300     IN      A       104.22.42.172
+chinadigitaltimes.net.  300     IN      A       104.22.43.172
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+decoding DNS round trip 1:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 62339
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      AAAA
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 62339
+;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;chinadigitaltimes.net.         IN      AAAA
+;; ANSWER SECTION:
+chinadigitaltimes.net.  300     IN      AAAA    2606:4700:10::6816:2bac
+chinadigitaltimes.net.  300     IN      AAAA    2606:4700:10::6816:2aac
+chinadigitaltimes.net.  300     IN      AAAA    2606:4700:10::ac43:19be
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-12">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 49563
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;c.a.a.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa. IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 49563
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;c.a.a.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa. IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-13">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 7141
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;c.a.b.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa. IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 7141
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;c.a.b.2.6.1.8.6.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa. IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-14">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 9267
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;172.42.22.104.in-addr.arpa.    IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NXDOMAIN, id: 9267
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+;; QUESTION SECTION:
+;172.42.22.104.in-addr.arpa.    IN      PTR
+;; AUTHORITY SECTION:
+22.104.in-addr.arpa.    3600    IN      SOA     cruz.ns.cloudflare.com. dns.cloudflare.com. 2034580120 10000 2400 604800 3600
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-15">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 27204
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;65.7.98.203.in-addr.arpa.      IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 27204
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;65.7.98.203.in-addr.arpa.      IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-16">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 61980
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;45.198.7.8.in-addr.arpa.       IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 61980
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;45.198.7.8.in-addr.arpa.       IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-17">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 45708
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;190.25.67.172.in-addr.arpa.    IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 45708
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;190.25.67.172.in-addr.arpa.    IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-18">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 49830
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;172.43.22.104.in-addr.arpa.    IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: REFUSED, id: 49830
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;172.43.22.104.in-addr.arpa.    IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-19">decoding DNS round trip 0:
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 37545
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+;; QUESTION SECTION:
+;e.b.9.1.3.4.c.a.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa. IN      PTR
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 4096
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000
+
+
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NXDOMAIN, id: 37545
+;; flags: qr rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+;; QUESTION SECTION:
+;e.b.9.1.3.4.c.a.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.0.0.7.4.6.0.6.2.ip6.arpa. IN      PTR
+;; AUTHORITY SECTION:
+0.0.7.4.6.0.6.2.ip6.arpa. 3600    IN      SOA     leah.ns.cloudflare.com. dns.cloudflare.com. 2264916074 10000 2400 604800 3600
+;; ADDITIONAL SECTION:
+;; OPT PSEUDOSECTION
+; EDNS: version: 0, flags: do; udp: 1232
+; EDNS: code: 12; data: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+</pre>
+    <h2>Endpoint</h2>
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th title="click to sort by step_id">step_id</th>
+          <th title="click to sort by id">id</th>
+          <th title="click to sort by origin">origin</th>
+          <th title="click to sort by url">url</th>
+          <th title="click to sort by network">network</th>
+          <th title="click to sort by address">address</th>
+          <th title="click to sort by cookies_names">cookies_names</th>
+          <th title="click to sort by failed_operation">failed_operation</th>
+          <th title="click to sort by failure">failure</th>
+          <th title="click to sort by location">location</th>
+          <th title="click to sort by title">title</th>
+          <th title="click to sort by status">status</th>
+          <th title="click to sort by body_len">body_len</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-9'); return false;">
+          <td>1</td>
+          <td>9</td>
+          <td>probe</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>[2001::c765:8526]:80</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>network_unreachable</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-10'); return false;">
+          <td>1</td>
+          <td>10</td>
+          <td>probe</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>[2001::c765:8526]:443</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>network_unreachable</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-5'); return false;">
+          <td>1</td>
+          <td>5</td>
+          <td>probe</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>8.7.198.45:80</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-8'); return false;">
+          <td>1</td>
+          <td>8</td>
+          <td>probe</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>203.98.7.65:443</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-6'); return false;">
+          <td>1</td>
+          <td>6</td>
+          <td>probe</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>8.7.198.45:443</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-7'); return false;">
+          <td>1</td>
+          <td>7</td>
+          <td>probe</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>203.98.7.65:80</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-20'); return false;">
+          <td>1</td>
+          <td>20</td>
+          <td>th</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>[2606:4700:10::6816:2bac]:80</td>
+          <td>[]</td>
+          <td>None</td>
+          <td>None</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td></td>
+          <td>301</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-21'); return false;">
+          <td>1</td>
+          <td>21</td>
+          <td>th</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>172.67.25.190:80</td>
+          <td>[]</td>
+          <td>None</td>
+          <td>None</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td></td>
+          <td>301</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-22'); return false;">
+          <td>1</td>
+          <td>22</td>
+          <td>th</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>172.67.25.190:443</td>
+          <td>[]</td>
+          <td>None</td>
+          <td>None</td>
+          <td></td>
+          <td>China Digital Times (CDT) - Covering China from Cyberspace</td>
+          <td>200</td>
+          <td>4096</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-23'); return false;">
+          <td>1</td>
+          <td>23</td>
+          <td>th</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>8.7.198.45:443</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-24'); return false;">
+          <td>1</td>
+          <td>24</td>
+          <td>th</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>203.98.7.65:80</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-25'); return false;">
+          <td>1</td>
+          <td>25</td>
+          <td>th</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>203.98.7.65:443</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-26'); return false;">
+          <td>1</td>
+          <td>26</td>
+          <td>th</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>8.7.198.45:80</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-27'); return false;">
+          <td>1</td>
+          <td>27</td>
+          <td>th</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>[2606:4700:10::6816:2bac]:443</td>
+          <td>[]</td>
+          <td>http_round_trip</td>
+          <td>generic_timeout_error</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-28'); return false;">
+          <td>1</td>
+          <td>28</td>
+          <td>probe</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>[2606:4700:10::6816:2bac]:80</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>network_unreachable</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-29'); return false;">
+          <td>1</td>
+          <td>29</td>
+          <td>probe</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>[2606:4700:10::6816:2bac]:443</td>
+          <td>[]</td>
+          <td>connect</td>
+          <td>network_unreachable</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-30'); return false;">
+          <td>1</td>
+          <td>30</td>
+          <td>probe</td>
+          <td>http://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>172.67.25.190:80</td>
+          <td>[]</td>
+          <td>http_round_trip</td>
+          <td>connection_reset</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+        <tr title="click to show details (and escape to hide details)" onclick="makeVisible('details-31'); return false;">
+          <td>1</td>
+          <td>31</td>
+          <td>probe</td>
+          <td>https://chinadigitaltimes.net/</td>
+          <td>tcp</td>
+          <td>172.67.25.190:443</td>
+          <td>[]</td>
+          <td>tls_handshake</td>
+          <td>connection_reset</td>
+          <td></td>
+          <td></td>
+          <td>0</td>
+          <td>0</td>
+        </tr>
+      </tbody>
+    </table>
+    <pre style="display: none;" class="starts-hidden details" id="details-9"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-10"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-5"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-8"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-6"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-7"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-20">
+// origin: th
+// endpoint: [2606:4700:10::6816:2bac]:80/tcp
+// url: http://chinadigitaltimes.net/
+
+&gt; GET /
+&gt; Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+&gt; Accept-Language: en-US,en;q=0.9
+&gt; Host: chinadigitaltimes.net
+&gt; User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36
+&gt;
+&lt; 301
+&lt; Cache-Control: max-age=3600
+&lt; Cf-Ray: 6f470b3fbdce96f5-SJC
+&lt; Connection: keep-alive
+&lt; Date: Thu, 31 Mar 2022 06:31:45 GMT
+&lt; Expires: Thu, 31 Mar 2022 07:31:45 GMT
+&lt; Location: https://chinadigitaltimes.net/
+&lt; Server: cloudflare
+&lt;
+
+// body_length: 0
+// body_is_truncated: False
+// body_tlsh: 
+
+
+
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-21">
+// origin: th
+// endpoint: 172.67.25.190:80/tcp
+// url: http://chinadigitaltimes.net/
+
+&gt; GET /
+&gt; Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+&gt; Accept-Language: en-US,en;q=0.9
+&gt; Host: chinadigitaltimes.net
+&gt; User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36
+&gt;
+&lt; 301
+&lt; Cache-Control: max-age=3600
+&lt; Cf-Ray: 6f470b3fbb79942c-SJC
+&lt; Connection: keep-alive
+&lt; Date: Thu, 31 Mar 2022 06:31:45 GMT
+&lt; Expires: Thu, 31 Mar 2022 07:31:45 GMT
+&lt; Location: https://chinadigitaltimes.net/
+&lt; Server: cloudflare
+&lt;
+
+// body_length: 0
+// body_is_truncated: False
+// body_tlsh: 
+
+
+
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-22">
+// origin: th
+// endpoint: 172.67.25.190:443/tcp
+// url: https://chinadigitaltimes.net/
+
+&gt; GET /
+&gt; Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+&gt; Accept-Language: en-US,en;q=0.9
+&gt; Host: chinadigitaltimes.net
+&gt; User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36
+&gt;
+&lt; 200
+&lt; Age: 47
+&lt; Cache-Control: no-store, no-cache, must-revalidate
+&lt; Cf-Apo-Via: tcache
+&lt; Cf-Cache-Status: HIT
+&lt; Cf-Edge-Cache: cache,platform=wordpress
+&lt; Cf-Ray: 6f470b3fc99e96c3-SJC
+&lt; Content-Type: text/html; charset=UTF-8
+&lt; Date: Thu, 31 Mar 2022 06:31:45 GMT
+&lt; Expect-Ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+&lt; Expires: Thu, 19 Nov 1981 08:52:00 GMT
+&lt; Last-Modified: Thu, 31 Mar 2022 06:30:58 GMT
+&lt; Link: &lt;https://chinadigitaltimes.net/wp-json/&gt;; rel="https://api.w.org/"
+&lt; Pragma: no-cache
+&lt; Server: cloudflare
+&lt; Strict-Transport-Security: max-age=31536000; includeSubDomains
+&lt; Vary: Accept-Encoding, Accept-Encoding
+&lt; X-Content-Type-Options: nosniff
+&lt;
+
+// body_length: 4096
+// body_is_truncated: True
+// body_tlsh: f9811df35e2b2c29136091d03077314c812ea74bc9a6ed93e1df1ccddae96a465f3265
+
+
+
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-23"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-24"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-25"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-26"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-27">
+// origin: th
+// endpoint: [2606:4700:10::6816:2bac]:443/tcp
+// url: https://chinadigitaltimes.net/
+
+&gt; GET /
+&gt; Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+&gt; Accept-Language: en-US,en;q=0.9
+&gt; Host: chinadigitaltimes.net
+&gt; User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36
+&gt;
+
+ERROR: generic_timeout_error
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-28"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-29"></pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-30">
+// origin: probe
+// endpoint: 172.67.25.190:80/tcp
+// url: http://chinadigitaltimes.net/
+
+&gt; GET /
+&gt; Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+&gt; Accept-Language: en-US,en;q=0.9
+&gt; Host: chinadigitaltimes.net
+&gt; User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36
+&gt;
+
+ERROR: connection_reset
+
+</pre>
+    <pre style="display: none;" class="starts-hidden details" id="details-31"></pre>
+    <script src="main.js"></script>
+  </body>
+</html>
