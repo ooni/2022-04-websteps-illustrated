@@ -686,6 +686,26 @@ def new_endpoint_plans(um: URLMeasurement, ual: List[URLAddress],
         return out
 ```
 
+The implementation of `is_http` and `is_https` depends on the value of
+`do_not_follow_http_and_https` as follows:
+
+```Python
+class URLMeasurement:
+    # ...
+
+    def is_http(self) -> bool:
+        return (
+            not self.options.do_not_follow_http_and_https
+            or self.url_scheme() == "http"
+        )
+
+    def is_https(self) -> bool:
+        return (
+            not self.options.do_not_follow_http_and_https
+            or self.url_scheme() == "https"
+        )
+```
+
 Note that we always exclude the loopback address from the planning. Doing that
 is safe because there is no legitimate case in which it makes sense to follow a
 redirect to the localhost.
