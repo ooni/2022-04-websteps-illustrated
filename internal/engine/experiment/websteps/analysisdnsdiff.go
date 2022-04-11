@@ -166,7 +166,7 @@ func analysisDNSHasOverlappingANSs(
 			return true
 		}
 	}
-	logcat.Infof("[#%d] #%d and #%d have overlapping ASNs: %+v",
+	logcat.Infof("[#%d] #%d and #%d do not have overlapping ASNs: %+v",
 		scoreID, lookup.ID, peerLookup.ID, asnmap)
 	return false
 }
