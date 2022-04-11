@@ -307,12 +307,16 @@ def s_command_lu(idx: int, meas: DBLikeWebstepsTestKeys, disable_hints: bool = F
         print("")
 
 
+def truncate_string(s: str, maxlen: int) -> str:
+    """Truncates a string after the given number of bytes."""
+    if len(s) > maxlen:
+        s = s[:maxlen] + "..."
+    return s
+
+
 def s_truncate_url(meas: DBLikeWebstepsTestKeys):
     """Returns meas' URL and possibly truncates it."""
-    url = meas.url()
-    if len(url) > 47:
-        url = url[:47] + " ..."
-    return url
+    return truncate_string(meas.url(), 47)
 
 
 def s_interactive(idx: int, meas: DBLikeWebstepsTestKeys):
@@ -464,8 +468,9 @@ def main_command_l_or_slash_filter(
             summary.appendrow(
                 [
                     ("idx", idx),
-                    ("url", meas.url()),
-                    ("flags", meas.tags()),
+                    ("url", truncate_string(meas.url(), 47)),
+                    ("flags", "\n".join(meas.tags())),
+                    ("len", len(meas.list_urls())),
                 ]
             )
     return summary
