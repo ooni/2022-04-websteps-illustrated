@@ -93,6 +93,9 @@ func CanonicalURLString(URL *SimpleURL) string {
 	u := newURLWithScheme(URL, URL.Scheme)
 	// TODO(bassosimone): canonicalize path if needed?
 	// TODO(bassosimone): how about IDNA?
+	if u.Path == "" {
+		u.Path = "/"
+	}
 	v := u.Query()
 	u.RawQuery = v.Encode()
 	u.RawQuery, _ = url.QueryUnescape(u.RawQuery)
