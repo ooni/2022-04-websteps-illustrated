@@ -87,7 +87,10 @@ def endpoint(probe_th: str, epnt: MeasurexEndpointMeasurement) -> str:
                 print(f"# body_length: {epnt.response_body_length()}", file=out)
             if probe_th == "probe" and epnt.http_round_trip.response_body:
                 body = base64.b64decode(epnt.http_round_trip.response_body)
-                print(body.decode("utf-8"), file=out)
+                try:
+                    print(body.decode("utf-8"), file=out)
+                except UnicodeDecodeError:
+                    print(body, file=out)
     print(
         f"{probe_th}: [#{epnt.id}] result: {_failure_or_null(epnt.failure)}", file=out
     )
