@@ -656,9 +656,10 @@ func (mx *Measurer) Redirects(
 				Cookies:     epnt.NewCookies, // first set of equally-named cookies wins
 				Options: opts.Chain(&Options{
 					// Note: all other fields intentionally left empty. We do not
-					// want to continue following HTTP and HTTPS after we have done
-					// that for the initial URL we needed to measure.
-					DoNotInitiallyForceHTTPAndHTTPS: true,
+					// want to continue following HTTP and HTTPS if we've been
+					// redirected to HTTPS. We want to continue doing that if the
+					// location is HTTP because we want extra HTTPS info.
+					DoNotInitiallyForceHTTPAndHTTPS: epnt.Location.Scheme == "https",
 					HTTPRequestHeaders:              requestHeaders,
 				}),
 				DNS:      []*DNSLookupMeasurement{},

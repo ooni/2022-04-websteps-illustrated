@@ -46,6 +46,10 @@ type Options struct {
 
 	// DoNotInitiallyForceHTTPAndHTTPS controls whether we're going to
 	// initially force using both HTTP and HTTPS for the first URL.
+	//
+	// TODO(bassosimone): per the latest spec, we should rename this
+	// variable to become DoNotFollowHTTPAndHTTPS (or maybe we can even
+	// find a better name that is even more explanatory).
 	DoNotInitiallyForceHTTPAndHTTPS bool `json:",omitempty"`
 
 	// MaxAddressesPerFamily controls the maximum number of IP addresses
