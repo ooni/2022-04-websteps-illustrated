@@ -97,6 +97,9 @@ func (cae *CachingEngine) run(plans []*SinglePingPlan, out chan<- *Result) {
 			continue
 		}
 		ping.ID = cae.NextID()
+		for _, reply := range ping.Replies {
+			reply.ID = cae.NextID()
+		}
 		logcat.Noticef("dnsping: import from cache: %s... %d replies",
 			ping.Describe(), len(ping.Replies))
 		pings = append(pings, ping)
