@@ -17,7 +17,7 @@ command:
 - https://github.githubassets.com/images/modules/open_graph/github-logo.png
 - --emoji
 created: 20220411T091331Z
-description: null
+description: "case where the DNS lies but the lie and the real IPs are both on Amazon"
 imported: 20220411T091740Z
 probe_asn: AS45090
 probe_cc: CN
