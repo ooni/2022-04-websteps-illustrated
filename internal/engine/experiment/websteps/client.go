@@ -202,7 +202,8 @@ func (c *Client) steps(ctx context.Context, input string, flags int64) {
 		q.Append(redirects...)
 		ssm.Flags = ssm.aggregateFlags()
 		if AnalysisFlagsContainAnomalies(ssm.Flags) && (flags&LoopFlagGreedy) != 0 {
-			logcat.Notice("greedy mode: stop as soon as we see anomalies")
+			logcat.Emit(logcat.NOTICE, logcat.SCRUTINIZE,
+				"greedy mode: stop as soon as we see anomalies")
 			break
 		}
 		logcat.Infof("work queue: %s", q.String())
