@@ -92,9 +92,10 @@ func (e *EndpointPlan) Summary() string {
 
 func (e *EndpointPlan) tlsConfig() *tls.Config {
 	return &tls.Config{
-		ServerName: e.Options.sniForEndpointPlan(e),
-		NextProtos: e.Options.alpnForEndpointPlan(e),
-		RootCAs:    netxlite.NewDefaultCertPool(),
+		InsecureSkipVerify: e.Options.tlsSkipVerify(),
+		NextProtos:         e.Options.alpnForEndpointPlan(e),
+		RootCAs:            netxlite.NewDefaultCertPool(),
+		ServerName:         e.Options.sniForEndpointPlan(e),
 	}
 }
 

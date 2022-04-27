@@ -16,6 +16,7 @@ import (
 	"github.com/bassosimone/websteps-illustrated/internal/engine/experiment/websteps"
 	"github.com/bassosimone/websteps-illustrated/internal/logcat"
 	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/bassosimone/websteps-illustrated/internal/privileges"
 	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 )
 
@@ -113,7 +114,7 @@ func main() {
 	// 2. drop root privileges if needed. This function must run first and
 	// for sure before we attempt to write to the disk. Files will have wrong
 	// ownership if we drop privileges after writing to the disk.
-	dropprivileges(opts.User)
+	privileges.Drop(opts.User)
 
 	// 3. open cache and setup a periodic trimming goroutine.
 	cache, hasCache := maybeOpenCache(ctx, opts)
