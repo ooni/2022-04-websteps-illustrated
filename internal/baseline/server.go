@@ -32,17 +32,17 @@ func NewServer(certfile, keyfile string) *Server {
 // Listen starts listening. This operation requires root privileges
 // on most Unix systems except macOS. You SHOULD drop privileges once
 // you've called this operation and before calling Listener.Start.
-func (s *Server) Listen() (*Listener, error) {
-	dns, err := net.ListenPacket("udp", ":53")
+func (s *Server) Listen(address string) (*Listener, error) {
+	dns, err := net.ListenPacket("udp", net.JoinHostPort(address, "53"))
 	if err != nil {
 		return nil, err
 	}
-	https, err := net.Listen("tcp", ":443")
+	https, err := net.Listen("tcp", net.JoinHostPort(address, "443"))
 	if err != nil {
 		dns.Close()
 		return nil, err
 	}
-	http, err := net.Listen("tcp", ":80")
+	http, err := net.Listen("tcp", net.JoinHostPort(address, "80"))
 	if err != nil {
 		https.Close()
 		dns.Close()

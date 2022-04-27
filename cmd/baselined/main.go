@@ -14,6 +14,7 @@ import (
 
 // CLI is the command line interface.
 type CLI struct {
+	Address string `doc:"IPv4 or IPv6 address where to listen" short:"A"`
 	Datadir string `doc:"directory where to write data (e.g., TLS certs)"`
 	Help    bool   `doc:"prints this help message" short:"h"`
 	User    string `doc:"user to drop privileges to (Linux only; default: nobody)" short:"u"`
@@ -22,6 +23,7 @@ type CLI struct {
 // getopt parses command line options.
 func getopt() *CLI {
 	opts := &CLI{
+		Address: "127.0.0.1",
 		Datadir: ".",
 		Help:    false,
 		User:    "nobody",
@@ -44,10 +46,10 @@ func tlsfiles(opts *CLI) (certfile string, keyfile string) {
 
 // writetlsfiles writes TLS files on disk.
 func writetlsfiles(certfile, keyfile string) error {
-	if err := baseline.WriteTLSCert(certfile, 0600); err != nil {
+	if err := baseline.WriteTLSCert(certfile, 0644); err != nil {
 		return err
 	}
-	if err := baseline.WriteTLSKey(keyfile, 0600); err != nil {
+	if err := baseline.WriteTLSKey(keyfile, 0644); err != nil {
 		return err
 	}
 	return nil
@@ -61,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 	srvr := baseline.NewServer(certfile, keyfile)
-	listener, err := srvr.Listen()
+	listener, err := srvr.Listen(opts.Address)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "fatal: %s\n", err.Error())
 		os.Exit(1)
