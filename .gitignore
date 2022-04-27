@@ -1,5 +1,5 @@
 .DS_Store
-*.pem
+/*.pem
 /*.tar.gz
 /baseline
 /baseline.exe
