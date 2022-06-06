@@ -1,5 +1,10 @@
 .DS_Store
+/*.pem
 /*.tar.gz
+/baseline
+/baseline.exe
+/baselined
+/baselined.exe
 /crawler
 /crawler.exe
 /crawler.jsonl

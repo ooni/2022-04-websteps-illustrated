@@ -50,8 +50,8 @@ type Measurer struct {
 // DefaultHTTP3Transport is the default HTTP3 transport used by this library.
 var DefaultHTTP3Transport = &http3.RoundTripper{}
 
-// NewMeasurerWithDefaultSettings creates a new measurer using apex/log's
-// singleton as the logger and netxlite as the underlying library.
+// NewMeasurerWithDefaultSettings creates a new measurer using
+// netxlite as the underlying library.
 func NewMeasurerWithDefaultSettings() *Measurer {
 	return NewMeasurer(NewDefaultLibrary())
 }

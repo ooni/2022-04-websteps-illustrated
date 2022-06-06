@@ -28,6 +28,14 @@ type Options struct {
 	// use for measuring HTTP/HTTPS/HTTP3 endpoints.
 	DNSParallelism int64 `json:",omitempty"`
 
+	// DoNotInitiallyForceHTTPAndHTTPS controls whether we're going to
+	// initially force using both HTTP and HTTPS for the first URL.
+	//
+	// TODO(bassosimone): per the latest spec, we should rename this
+	// variable to become DoNotFollowHTTPAndHTTPS (or maybe we can even
+	// find a better name that is even more explanatory).
+	DoNotInitiallyForceHTTPAndHTTPS bool `json:",omitempty"`
+
 	// EndpointParallellism is the number of parallel goroutines we will
 	// use for measuring HTTP/HTTPS/HTTP3 endpoints.
 	EndpointParallelism int64 `json:",omitempty"`
@@ -43,14 +51,6 @@ type Options struct {
 	// the first HTTP request. Subsequent requests following redirects
 	// will use the same headers of the first request.
 	HTTPRequestHeaders http.Header `json:",omitempty"`
-
-	// DoNotInitiallyForceHTTPAndHTTPS controls whether we're going to
-	// initially force using both HTTP and HTTPS for the first URL.
-	//
-	// TODO(bassosimone): per the latest spec, we should rename this
-	// variable to become DoNotFollowHTTPAndHTTPS (or maybe we can even
-	// find a better name that is even more explanatory).
-	DoNotInitiallyForceHTTPAndHTTPS bool `json:",omitempty"`
 
 	// MaxAddressesPerFamily controls the maximum number of IP addresses
 	// per family (i.e., A and AAAA) we'll test.
@@ -83,6 +83,9 @@ type Options struct {
 	// for any QUIC handshake to complete.
 	QUICHandshakeTimeout time.Duration `json:",omitempty"`
 
+	// SNI allows to override the QUIC/TLS SNI we'll use.
+	SNI string `json:",omitempty"`
+
 	// TCPConnectTimeout is the maximum time we're willing to wait
 	// for any TCP connect attempt to complete.
 	TCPconnectTimeout time.Duration `json:",omitempty"`
@@ -91,8 +94,8 @@ type Options struct {
 	// for any TLS handshake to complete.
 	TLSHandshakeTimeout time.Duration `json:",omitempty"`
 
-	// SNI allows to override the QUIC/TLS SNI we'll use.
-	SNI string `json:",omitempty"`
+	// TLSSkipVerify configures whether to skip TLS verification.
+	TLSSkipVerify bool `json:",omitempty"`
 }
 
 // Chain returns child configured to use the current parent as
@@ -427,6 +430,17 @@ func (opt *Options) tlsHandshakeTimeout() (v time.Duration) {
 	return
 }
 
+// tlsSkipVerify returns whether we should skip TLS verification.
+func (opt *Options) tlsSkipVerify() (v bool) {
+	if opt != nil {
+		v = opt.TLSSkipVerify
+	}
+	if !v && opt != nil && opt.Parent != nil {
+		v = opt.Parent.tlsSkipVerify()
+	}
+	return
+}
+
 // Flatten generates a new Options that contains all the currently
 // configured options (or default values) inside it.
 func (cur *Options) Flatten() *Options {
@@ -449,5 +463,6 @@ func (cur *Options) Flatten() *Options {
 		TCPconnectTimeout:    cur.tcpConnectTimeout(),
 		TLSHandshakeTimeout:  cur.tlsHandshakeTimeout(),
 		SNI:                  cur.sni(),
+		TLSSkipVerify:        cur.tlsSkipVerify(),
 	}
 }

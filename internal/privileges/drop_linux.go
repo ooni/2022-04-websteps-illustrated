@@ -1,7 +1,7 @@
 //go:build linux
 // +build linux
 
-package main
+package privileges
 
 import (
 	"fmt"
@@ -51,7 +51,8 @@ func dropuid(newUid int) {
 	runtimex.Must(err, "syscall.Setresuid failed")
 }
 
-func dropprivileges(user string) {
+// Drop drops root privileges.
+func Drop(user string) {
 	if !isroot() {
 		return
 	}
