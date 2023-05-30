@@ -62,6 +62,8 @@ normal, given that for now websteps is still a bit of a moving target.
 
 ## Building the websteps client
 
+You need to use go1.17.13 to build this repository.
+
 ```bash
 go build -v ./cmd/websteps
 ```
