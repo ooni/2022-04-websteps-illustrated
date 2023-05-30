@@ -14,8 +14,8 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // ALPNForHTTPSEndpoint selects the correct ALPN for an HTTP endpoint

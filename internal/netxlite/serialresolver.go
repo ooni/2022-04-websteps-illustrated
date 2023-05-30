@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net"
 
-	"github.com/bassosimone/websteps-illustrated/internal/atomicx"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/miekg/dns"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/atomicx"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // SerialResolver uses a transport and sends performs a LookupHost

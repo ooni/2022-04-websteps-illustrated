@@ -1,4 +1,4 @@
-module github.com/bassosimone/websteps-illustrated
+module github.com/ooni/2022-04-websteps-illustrated
 
 go 1.17
 

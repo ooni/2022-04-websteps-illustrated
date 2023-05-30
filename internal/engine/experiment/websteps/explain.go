@@ -9,7 +9,7 @@ package websteps
 import (
 	"strings"
 
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
 )
 
 // AnalysisDescription maps an analysis flag to information useful

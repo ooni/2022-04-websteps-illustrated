@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/engine/httpheader"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/engine/httpheader"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // DNSOverHTTPSTransport is a DNS-over-HTTPS DNSTransport.

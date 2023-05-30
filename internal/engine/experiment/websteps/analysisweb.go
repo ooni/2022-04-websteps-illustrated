@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
 )
 
 // analysisWebResult is the type of result returned by analysisWeb functions
@@ -213,7 +213,7 @@ func analysisWebBodyLengthDiff(
 	return analysisWebMatch
 }
 
-//analysisWebTitleDiff compares the titles.
+// analysisWebTitleDiff compares the titles.
 func analysisWebTitleDiff(
 	scoreID int64, epnt, otherEpnt *measurex.EndpointMeasurement) analysisWebResult {
 	control := otherEpnt.HTTPTitle

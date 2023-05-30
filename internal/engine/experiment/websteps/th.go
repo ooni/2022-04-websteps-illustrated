@@ -16,12 +16,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
-	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
 	"github.com/gorilla/websocket"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/runtimex"
 )
 
 // THResponseOrError is a thResponse or an error.

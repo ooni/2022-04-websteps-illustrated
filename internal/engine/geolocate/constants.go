@@ -1,6 +1,6 @@
 package geolocate
 
-import "github.com/bassosimone/websteps-illustrated/internal/model"
+import "github.com/ooni/2022-04-websteps-illustrated/internal/model"
 
 const (
 	// DefaultProbeASN is the default probe ASN as a number.

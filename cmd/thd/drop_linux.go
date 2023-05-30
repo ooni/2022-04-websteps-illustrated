@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/runtimex"
 )
 
 func getcurrent() *user.User {

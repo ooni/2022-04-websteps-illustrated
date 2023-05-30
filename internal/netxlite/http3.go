@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/http3"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // http3Dialer adapts a QUICContextDialer to work with

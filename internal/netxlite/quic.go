@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/lucas-clemente/quic-go"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // NewUDPListener creates a new UDPListener using the standard

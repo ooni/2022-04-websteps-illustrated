@@ -9,8 +9,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // NetworkType is the type of network we're using.

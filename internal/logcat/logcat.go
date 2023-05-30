@@ -25,8 +25,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/atomicx"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/atomicx"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // These values control the log level.

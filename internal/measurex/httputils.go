@@ -15,10 +15,10 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/engine/httpheader"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/engine/httpheader"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/runtimex"
 	"golang.org/x/net/publicsuffix"
 )
 

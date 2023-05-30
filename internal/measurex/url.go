@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 	"golang.org/x/net/idna"
 )
 

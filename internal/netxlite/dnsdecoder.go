@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/miekg/dns"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // DNSDecoderMiekg uses github.com/miekg/dns to implement the Decoder.

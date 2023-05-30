@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bassosimone/websteps-illustrated/internal/scrubber"
 	"github.com/lucas-clemente/quic-go"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/scrubber"
 )
 
 // classifyGenericError is maps an error occurred during an operation

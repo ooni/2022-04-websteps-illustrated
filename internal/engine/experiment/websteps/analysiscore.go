@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bassosimone/websteps-illustrated/internal/engine/geolocate"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/engine/geolocate"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
 )
 
 // Analysis contains the results of the analysis.
@@ -30,13 +30,13 @@ type Analysis struct {
 // We represent analysis results using an int64 bitmask. We define
 // the following groups of bits within the bitmask:
 //
-//     0    4    8   12   16   20   24   28   32
-//     +----+----+----+----+----+----+----+----+
-//     |                Failure                |
-//     +----+----+----+----+----+----+----+----+
-//     |                Reserved               |
-//     +----+----+----+----+----+----+----+----+
-//     32  36   40   44   48   52   56   60   64
+//	0    4    8   12   16   20   24   28   32
+//	+----+----+----+----+----+----+----+----+
+//	|                Failure                |
+//	+----+----+----+----+----+----+----+----+
+//	|                Reserved               |
+//	+----+----+----+----+----+----+----+----+
+//	32  36   40   44   48   52   56   60   64
 //
 // The failure flags indicate censorship conditions we detected. The
 // HTTP flags provide further details regarding #httpDiff like results.

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 	utls "gitlab.com/yawning/utls.git"
 )
 

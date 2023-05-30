@@ -7,8 +7,8 @@ package websteps
 //
 
 import (
-	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/dnsping"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
 )
 
 // SingleStepMeasurement contains a a single-step measurement.

@@ -9,7 +9,7 @@ package measurex
 import (
 	"context"
 
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
 )
 
 // Crawler starts from an input URL and visits the forest

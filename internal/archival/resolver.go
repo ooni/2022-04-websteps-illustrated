@@ -9,9 +9,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // DNSLookupType indicates the type of DNS lookup.

@@ -7,7 +7,7 @@ package websteps
 //
 
 import (
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
 )
 
 // finalLogging logs the overall results.

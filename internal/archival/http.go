@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/glaslos/tlsh"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // WrapHTTPTransport wraps an HTTP transport to use this saver. The

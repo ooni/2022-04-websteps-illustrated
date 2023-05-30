@@ -3,8 +3,8 @@ package measurex
 import (
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 //

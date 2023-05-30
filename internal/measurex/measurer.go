@@ -16,8 +16,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
 	"github.com/lucas-clemente/quic-go/http3"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // Measurer performs measurements. If you don't use a factory for creating

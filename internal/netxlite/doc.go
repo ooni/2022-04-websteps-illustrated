@@ -8,13 +8,13 @@
 // You should consider checking the tutorial explaining how to use this package
 // for network measurements: https://github.com/ooni/probe-cli/tree/master/internal/tutorial/netxlite.
 //
-// Naming and history
+// # Naming and history
 //
 // Previous versions of this package were called netx. Compared to such
 // versions this package is lightweight because it does not contain code
 // to perform the measurements, hence its name.
 //
-// Design
+// # Design
 //
 // We want to potentially be able to observe each low-level operation
 // separately, even though this is not done by this package. This is
@@ -34,7 +34,7 @@
 //
 // We want to have reasonable watchdog timeouts for each operation.
 //
-// Operations
+// # Operations
 //
 // This package implements the following operations:
 //

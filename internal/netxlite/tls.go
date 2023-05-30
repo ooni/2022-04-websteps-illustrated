@@ -9,8 +9,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 	oohttp "github.com/ooni/oohttp"
 )
 

@@ -10,12 +10,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/dnsping"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // dnsPingFollowUp runs the dnsping sub-experiment as a follow-up. We will

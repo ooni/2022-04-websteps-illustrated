@@ -6,7 +6,7 @@ package measurex
 // Generates unique IDs for measurements.
 //
 
-import "github.com/bassosimone/websteps-illustrated/internal/atomicx"
+import "github.com/ooni/2022-04-websteps-illustrated/internal/atomicx"
 
 // IDGenerator generates unique IDs for measurements.
 type IDGenerator struct {

@@ -7,8 +7,8 @@ package websteps
 //
 
 import (
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
 )
 
 // analyzeTHResults attempts to cross compare TH results between each other to figure

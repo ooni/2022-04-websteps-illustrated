@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
 )
 
 // stepsCache contains a cache common to all steps. This structure

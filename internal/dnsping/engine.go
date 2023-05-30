@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // SinglePingPlan is the plan to perform a single DNS ping.

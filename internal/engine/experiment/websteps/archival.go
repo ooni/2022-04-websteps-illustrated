@@ -9,9 +9,9 @@ package websteps
 import (
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/dnsping"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/dnsping"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
 )
 
 // ArchivalTestKeys contains the archival test keys.

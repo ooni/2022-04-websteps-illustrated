@@ -15,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/miekg/dns"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // DNSResolverInfo contains info about a DNS resolver.
@@ -313,17 +313,17 @@ func (dlm *DNSLookupMeasurement) Summary() string {
 //
 // The following table shows when two lookup types are weakly compatible:
 //
-//     +-------------+-------------+-------+--------+---------+
-//     |             | getaddrinfo | https |   ns   | reverse |
-//     +-------------+-------------+-------+--------+---------+
-//     | getaddrinfo |     yes     |  yes  |   no   |   no    |
-//     +-------------+-------------+-------+--------+---------+
-//     |    https    |     yes     |  yes  |   no   |   no    |
-//     +-------------+-------------+-------+--------+---------+
-//     |      ns     |      no     |   no  |  yes   |   no    |
-//     +-------------+-------------+-------+--------+---------+
-//     |   reverse   |      no     |   no  |   no   |  yes    |
-//     +-------------+-------------+-------+--------+---------+
+//	+-------------+-------------+-------+--------+---------+
+//	|             | getaddrinfo | https |   ns   | reverse |
+//	+-------------+-------------+-------+--------+---------+
+//	| getaddrinfo |     yes     |  yes  |   no   |   no    |
+//	+-------------+-------------+-------+--------+---------+
+//	|    https    |     yes     |  yes  |   no   |   no    |
+//	+-------------+-------------+-------+--------+---------+
+//	|      ns     |      no     |   no  |  yes   |   no    |
+//	+-------------+-------------+-------+--------+---------+
+//	|   reverse   |      no     |   no  |   no   |  yes    |
+//	+-------------+-------------+-------+--------+---------+
 //
 // In addition, two lookup types are _always_ weakly compatible when they're the
 // same, even if they are not listed in the above table.

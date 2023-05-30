@@ -7,9 +7,9 @@ package dnsping
 //
 
 import (
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/measurex"
 	"github.com/miekg/dns"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/measurex"
 )
 
 // URLAddressList converts Result to []*URLAddress.

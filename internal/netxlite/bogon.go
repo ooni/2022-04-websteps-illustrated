@@ -11,8 +11,8 @@ package netxlite
 import (
 	"net"
 
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
-	"github.com/bassosimone/websteps-illustrated/internal/runtimex"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/runtimex"
 )
 
 // IsBogon returns whether an IP address is bogon. Passing to this

@@ -10,9 +10,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
-	"github.com/bassosimone/websteps-illustrated/internal/netxlite"
 	"github.com/lucas-clemente/quic-go"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/netxlite"
 )
 
 // WrapUDPListener wraps a UDPListener to use the saver.

@@ -21,9 +21,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/archival"
-	"github.com/bassosimone/websteps-illustrated/internal/caching"
-	"github.com/bassosimone/websteps-illustrated/internal/logcat"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/archival"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/caching"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/logcat"
 )
 
 // Cache is a cache for measurex DNS and endpoint measurements.

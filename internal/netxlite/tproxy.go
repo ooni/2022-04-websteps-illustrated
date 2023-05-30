@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/bassosimone/websteps-illustrated/internal/model"
+	"github.com/ooni/2022-04-websteps-illustrated/internal/model"
 )
 
 // TProxy is the fundamental variable controlling how netxlite creates
